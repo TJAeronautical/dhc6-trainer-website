@@ -22,6 +22,7 @@
       --muted-2: #9fb2c8;
       --cyan: #7dd3fc;
       --green: #35d07f;
+      --amber: #facc15;
     }
 
     * {
@@ -31,15 +32,21 @@
     body {
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
-      background: var(--bg);
+      background:
+        radial-gradient(circle at top right, rgba(59, 130, 246, 0.18), transparent 34%),
+        #07111f;
       color: var(--text);
       line-height: 1.65;
     }
 
     header {
-      background: #0b1f36;
+      background: rgba(11, 31, 54, 0.96);
       border-bottom: 1px solid var(--border);
-      padding: 20px;
+      padding: 18px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(12px);
     }
 
     .nav {
@@ -55,10 +62,12 @@
     .brand {
       font-weight: 800;
       font-size: 20px;
+      letter-spacing: 0.2px;
     }
 
     a {
       color: var(--cyan);
+      overflow-wrap: anywhere;
     }
 
     .home-link {
@@ -75,19 +84,29 @@
 
     .hero {
       background:
-        radial-gradient(circle at top right, rgba(59, 130, 246, 0.22), transparent 36%),
+        radial-gradient(circle at top right, rgba(53, 208, 127, 0.12), transparent 36%),
         rgba(255, 255, 255, 0.055);
       border: 1px solid var(--border);
       border-radius: 24px;
       padding: 28px;
       margin-bottom: 24px;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.25);
     }
 
     h1 {
       font-size: clamp(36px, 8vw, 64px);
       line-height: 1;
-      margin: 0 0 16px;
+      margin: 0 0 10px;
       letter-spacing: -1.5px;
+    }
+
+    .subtitle {
+      color: var(--cyan);
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-size: 13px;
+      margin-bottom: 18px;
     }
 
     .meta {
@@ -96,12 +115,12 @@
     }
 
     .notice {
-      background: rgba(53, 208, 127, 0.12);
-      border: 1px solid rgba(53, 208, 127, 0.32);
+      background: rgba(250, 204, 21, 0.12);
+      border: 1px solid rgba(250, 204, 21, 0.32);
       border-radius: 16px;
       padding: 18px;
       margin: 22px 0;
-      color: #d9ffe9;
+      color: #fff6cc;
     }
 
     section {
@@ -122,6 +141,7 @@
     h3 {
       margin-bottom: 8px;
       color: #ffffff;
+      font-size: 18px;
     }
 
     p,
@@ -139,6 +159,10 @@
       border: 1px solid var(--border);
       border-radius: 16px;
       padding: 18px;
+    }
+
+    .summary-list {
+      margin-top: 10px;
     }
 
     footer {
@@ -178,12 +202,13 @@
 
   <main>
     <div class="hero">
+      <div class="subtitle">DHC-6 Trainer</div>
       <h1>Privacy Policy</h1>
 
       <p class="meta">
-        <strong>App:</strong> DHC-6 Trainer<br />
         <strong>Effective Date:</strong> 17 March 2026<br />
-        <strong>Last Updated:</strong> 17 May 2026<br />
+        <strong>Last Updated:</strong> 17 May 2026<br /><br />
+
         <strong>Developer:</strong> TJ Aeronautical<br />
         <strong>Contact Email:</strong>
         <a href="mailto:tj.aeronautical@outlook.com">tj.aeronautical@outlook.com</a><br />
@@ -195,35 +220,35 @@
     </div>
 
     <div class="notice">
-      DHC-6 Trainer is intended for aviation study and training support only. It is not a substitute
-      for approved aircraft manuals, operator procedures, instructor guidance, or regulatory requirements.
+      DHC-6 Trainer is intended for study, revision, training preparation, and knowledge reinforcement only.
+      It is not a substitute for official aircraft documentation, approved QRH, company SOPs, instructor guidance,
+      regulatory requirements, or operational decision-making.
     </div>
 
     <section>
       <h2>1. Introduction</h2>
 
       <p>
-        This Privacy Policy explains how DHC-6 Trainer collects, uses, stores, protects,
-        and shares information when you use the DHC-6 Trainer Android application.
+        This Privacy Policy explains how DHC-6 Trainer collects, uses, stores, protects, and shares information
+        when you use the DHC-6 Trainer Android application.
       </p>
 
       <p>
-        DHC-6 Trainer is an aviation study and training support app designed to help pilots
-        review DHC-6 Twin Otter systems, procedures, memory items, QRH-style drills,
-        cockpit flows, aircraft state scenarios, flashcards, and related training material.
+        DHC-6 Trainer is an aviation study and training support app designed to help pilots review DHC-6 Twin Otter
+        systems, procedures, memory items, QRH-style drills, cockpit flows, aircraft state scenarios, flashcards,
+        and related training material.
       </p>
 
       <p>
-        The app is intended for study, revision, training preparation, and knowledge
-        reinforcement only. It is not a substitute for the official Aircraft Flight Manual,
-        Pilot Operating Handbook, approved QRH, company Standard Operating Procedures,
-        instructor guidance, aircraft documentation, regulatory requirements, or operational
+        The app is intended for study, revision, training preparation, and knowledge reinforcement only. It is not
+        a substitute for the official Aircraft Flight Manual, Pilot Operating Handbook, approved QRH, company Standard
+        Operating Procedures, instructor guidance, aircraft documentation, regulatory requirements, or operational
         decision-making.
       </p>
 
       <p>
-        By installing or using DHC-6 Trainer, you agree to the practices described in this
-        Privacy Policy. If you do not agree with this Privacy Policy, please do not use the app.
+        By installing or using DHC-6 Trainer, you agree to the practices described in this Privacy Policy. If you do
+        not agree with this Privacy Policy, please do not use the app.
       </p>
     </section>
 
@@ -231,53 +256,71 @@
       <h2>2. Information We Collect</h2>
 
       <p>
-        DHC-6 Trainer is designed to collect only the information needed to provide and
-        improve the app. Depending on the features enabled in your version of the app,
-        the app may collect or process the following types of information.
+        DHC-6 Trainer is designed to collect only the information needed to provide and improve the app.
+      </p>
+
+      <p>
+        Depending on the features enabled in your version of the app, the app may collect or process the following
+        types of information:
       </p>
 
       <h3>a. App Activity and Study Progress</h3>
       <p>
-        The app may store information about your progress inside the app, including completed
-        drills, selected study modules, checklist progress, flashcard progress, aircraft state
-        practice selections, and user preferences. This information is used to allow you to
-        continue training where you left off and to personalize the study experience.
+        The app may store information about your progress inside the app, including completed drills, selected study
+        modules, checklist progress, flashcard progress, aircraft state practice selections, and user preferences.
+      </p>
+
+      <p>
+        This information is used to allow you to continue training where you left off and to personalize the study
+        experience.
       </p>
 
       <h3>b. User-Created or Imported Training Content</h3>
       <p>
-        If the app allows you to create, edit, import, or save study content, QRH-style items,
-        procedure sets, memory items, aircraft state scenarios, or flashcards, that content may
-        be stored by the app. Unless a cloud sync or account feature is specifically enabled,
-        this content is stored locally on your device.
+        If the app allows you to create, edit, import, or save study content, QRH-style items, procedure sets, memory
+        items, aircraft state scenarios, or flashcards, that content may be stored by the app.
+      </p>
+
+      <p>
+        Unless a cloud sync or account feature is specifically enabled, this content is stored locally on your device.
       </p>
 
       <h3>c. Account Information</h3>
       <p>
-        If DHC-6 Trainer includes account login, authentication, cloud sync, or subscription
-        access, the app may collect account-related information such as your email address,
-        user ID, login provider information, and account status.
+        If DHC-6 Trainer includes account login, authentication, cloud sync, or subscription access, the app may collect
+        account-related information such as your email address, user ID, login provider information, and account status.
+      </p>
+
+      <p>
+        This information is used to authenticate you, restore access, manage your account, and provide app features
+        connected to your account.
       </p>
 
       <h3>d. Purchase or Subscription Information</h3>
       <p>
-        If DHC-6 Trainer offers paid upgrades, subscriptions, or in-app purchases, purchase
-        processing is handled through Google Play Billing. The app may receive purchase
-        status information from Google Play, such as whether a purchase or subscription is
+        If DHC-6 Trainer offers paid upgrades, subscriptions, or in-app purchases, purchase processing is handled through
+        Google Play Billing.
+      </p>
+
+      <p>
+        The app may receive purchase status information from Google Play, such as whether a purchase or subscription is
         active. DHC-6 Trainer does not collect or store your full payment card details.
       </p>
 
       <h3>e. Device and App Diagnostics</h3>
       <p>
-        The app may collect technical information needed to maintain app reliability, such as
-        app version, device type, Android version, crash logs, performance data, and error reports.
+        The app may collect technical information needed to maintain app reliability, such as app version, device type,
+        Android version, crash logs, performance data, and error reports.
+      </p>
+
+      <p>
+        This information is used to diagnose bugs, fix crashes, improve stability, and support app updates.
       </p>
 
       <h3>f. Support Communications</h3>
       <p>
-        If you contact the developer for support, we may collect the information you provide,
-        such as your email address, message content, screenshots, app version, device type,
-        and any other details needed to respond to your request.
+        If you contact the developer for support, we may collect the information you provide, such as your email address,
+        message content, screenshots, app version, device type, and any other details needed to respond to your request.
       </p>
     </section>
 
@@ -285,9 +328,8 @@
       <h2>3. Information We Do Not Collect</h2>
 
       <p>
-        DHC-6 Trainer does not intentionally collect the following information unless a future
-        version clearly introduces a feature that requires it and obtains the required permission
-        or disclosure:
+        DHC-6 Trainer does not intentionally collect the following information unless a future version clearly introduces
+        a feature that requires it and obtains the required permission or disclosure:
       </p>
 
       <ul>
@@ -301,21 +343,21 @@
         <li>Government identification numbers</li>
         <li>Biometric data</li>
         <li>
-          Personal aviation license details, unless voluntarily provided in a support message
-          or account profile feature
+          Personal aviation license details, unless you voluntarily provide them in a support message or account profile feature
         </li>
       </ul>
 
       <p>
-        DHC-6 Trainer is not designed to track your real-world aircraft operation or live
-        flight activity.
+        DHC-6 Trainer is not designed to track your real-world aircraft operation or live flight activity.
       </p>
     </section>
 
     <section>
       <h2>4. How We Use Information</h2>
 
-      <p>Information collected or processed by DHC-6 Trainer may be used for the following purposes:</p>
+      <p>
+        Information collected or processed by DHC-6 Trainer may be used for the following purposes:
+      </p>
 
       <ul>
         <li>To provide the app’s study, checklist, flashcard, cockpit drill, and aircraft state training features</li>
@@ -336,19 +378,18 @@
       <h2>5. Local Storage</h2>
 
       <p>
-        DHC-6 Trainer may store training progress, settings, aircraft state selections,
-        checklist progress, flashcards, imported content, and user-created content locally
-        on your device.
+        DHC-6 Trainer may store training progress, settings, aircraft state selections, checklist progress, flashcards,
+        imported content, and user-created content locally on your device.
       </p>
 
       <p>
-        You can usually delete locally stored app data by using Android system settings to
-        clear the app’s storage or by uninstalling the app.
+        You can usually delete locally stored app data by using Android system settings to clear the app’s storage or by
+        uninstalling the app.
       </p>
 
       <p>
-        If the app includes export, import, backup, or restore features, you are responsible
-        for protecting any files you export or share outside the app.
+        If the app includes export, import, backup, or restore features, you are responsible for protecting any files you
+        export or share outside the app.
       </p>
     </section>
 
@@ -356,19 +397,18 @@
       <h2>6. Cloud Storage and Sync</h2>
 
       <p>
-        If DHC-6 Trainer includes cloud sync, account backup, online content updates, or
-        server-based access control, some information may be transmitted to and stored on
-        remote servers.
+        If DHC-6 Trainer includes cloud sync, account backup, online content updates, or server-based access control,
+        some information may be transmitted to and stored on remote servers.
       </p>
 
       <p>
-        This may include account information, entitlement status, study progress,
-        user-created content, imported content, or app diagnostic information.
+        This may include account information, entitlement status, study progress, user-created content, imported content,
+        or app diagnostic information.
       </p>
 
       <p>
-        If cloud features are not enabled in your version of the app, your study data and
-        user-created content may remain only on your device.
+        If cloud features are not enabled in your version of the app, your study data and user-created content may remain
+        only on your device.
       </p>
     </section>
 
@@ -380,40 +420,44 @@
       </p>
 
       <p>
-        We may share limited information only when necessary for the operation, security,
-        support, or legal compliance of the app.
+        We may share limited information only when necessary for the operation, security, support, or legal compliance
+        of the app.
+      </p>
+
+      <p>
+        Information may be shared with the following categories of service providers, depending on the features enabled
+        in the app:
       </p>
 
       <h3>a. Google Play Services and Google Play Billing</h3>
       <p>
-        If you install the app from Google Play or purchase upgrades or subscriptions,
-        Google may process information according to its own policies. Google Play Billing is
-        used to process payments and subscriptions. DHC-6 Trainer does not receive your
-        full payment card details.
+        If you install the app from Google Play or purchase upgrades or subscriptions, Google may process information
+        according to its own policies. Google Play Billing is used to process payments and subscriptions. DHC-6 Trainer
+        does not receive your full payment card details.
       </p>
 
       <h3>b. Authentication Providers</h3>
       <p>
-        If the app uses sign-in or account services, the authentication provider may process
-        login information needed to verify your identity.
+        If the app uses sign-in or account services, the authentication provider may process login information needed
+        to verify your identity.
       </p>
 
       <h3>c. Analytics or Crash Reporting Providers</h3>
       <p>
-        If analytics or crash reporting is enabled, diagnostic information may be shared with
-        the relevant provider to help identify and fix issues.
+        If analytics or crash reporting is enabled, diagnostic information may be shared with the relevant provider to
+        help identify and fix issues.
       </p>
 
       <h3>d. Cloud Hosting or Database Providers</h3>
       <p>
-        If the app uses cloud sync, online content updates, or remote account features,
-        information may be stored with a cloud service provider.
+        If the app uses cloud sync, online content updates, or remote account features, information may be stored with
+        a cloud service provider.
       </p>
 
       <h3>e. Legal Requirements</h3>
       <p>
-        We may disclose information if required by law, legal process, regulation, or to protect
-        the rights, safety, and security of users, the developer, or the public.
+        We may disclose information if required by law, legal process, regulation, or to protect the rights, safety, and
+        security of users, the developer, or the public.
       </p>
     </section>
 
@@ -421,12 +465,11 @@
       <h2>8. Third-Party Services</h2>
 
       <p>
-        DHC-6 Trainer may use third-party services depending on the version and features enabled.
-        These may include:
+        DHC-6 Trainer may use third-party services depending on the version and features enabled. These may include:
       </p>
 
       <ul>
-        <li>Google Play Services</li>
+        <li>Google Play services</li>
         <li>Google Play Billing</li>
         <li>Firebase or similar services for authentication, crash reporting, analytics, or cloud messaging</li>
         <li>Cloud database or storage services</li>
@@ -434,8 +477,12 @@
       </ul>
 
       <p>
-        Third-party services may collect information according to their own privacy policies
-        and data handling practices.
+        Third-party services may collect information according to their own privacy policies and data handling practices.
+      </p>
+
+      <p>
+        The developer is responsible for ensuring that the Google Play Data Safety section accurately reflects the app’s
+        data collection, sharing, and security practices, including data handled by third-party SDKs.
       </p>
     </section>
 
@@ -447,9 +494,8 @@
       </p>
 
       <p>
-        If advertising is added in a future version, this Privacy Policy and the Google Play Data
-        Safety section will be updated to explain what advertising data is collected or shared and
-        which advertising partners are used.
+        If advertising is added in a future version, this Privacy Policy and the Google Play Data Safety section will be
+        updated to explain what advertising data is collected or shared and which advertising partners are used.
       </p>
     </section>
 
@@ -457,14 +503,14 @@
       <h2>10. Children’s Privacy</h2>
 
       <p>
-        DHC-6 Trainer is intended for pilots, aviation students, instructors, operators, and
-        aviation training users. It is not directed to children under the age of 13.
+        DHC-6 Trainer is intended for pilots, aviation students, instructors, operators, and aviation training users. It is
+        not directed to children under the age of 13.
       </p>
 
       <p>
-        We do not knowingly collect personal information from children under 13. If we become
-        aware that personal information from a child has been collected without appropriate
-        consent, we will take reasonable steps to delete that information.
+        We do not knowingly collect personal information from children under 13. If we become aware that personal
+        information from a child has been collected without appropriate consent, we will take reasonable steps to delete
+        that information.
       </p>
     </section>
 
@@ -472,19 +518,17 @@
       <h2>11. Data Security</h2>
 
       <p>
-        We use reasonable administrative, technical, and organizational measures to protect
-        information handled by the app.
+        We use reasonable administrative, technical, and organizational measures to protect information handled by the app.
       </p>
 
       <p>
-        Where information is transmitted over a network, reasonable security measures such as
-        encrypted transmission should be used where supported by the relevant services.
+        Where information is transmitted over a network, reasonable security measures such as encrypted transmission
+        should be used where supported by the relevant services.
       </p>
 
       <p>
-        No method of electronic storage or transmission is completely secure. Therefore, we
-        cannot guarantee absolute security, but we work to protect information against
-        unauthorized access, loss, misuse, or alteration.
+        No method of electronic storage or transmission is completely secure. Therefore, we cannot guarantee absolute
+        security, but we work to protect information against unauthorized access, loss, misuse, or alteration.
       </p>
     </section>
 
@@ -492,20 +536,21 @@
       <h2>12. Data Retention</h2>
 
       <p>
-        DHC-6 Trainer retains information only for as long as reasonably necessary to provide
-        the app, support the user, comply with legal obligations, resolve disputes, maintain
-        security, and improve the app.
+        DHC-6 Trainer retains information only for as long as reasonably necessary to provide the app, support the user,
+        comply with legal obligations, resolve disputes, maintain security, and improve the app.
       </p>
 
       <p>
-        Local app data remains on your device until you delete it, clear app storage, or uninstall
-        the app.
+        Local app data remains on your device until you delete it, clear app storage, or uninstall the app.
       </p>
 
       <p>
-        If account or cloud sync features are enabled, account-related data may be retained
-        while your account remains active or as required for support, legal, security, or purchase
-        verification purposes.
+        If account or cloud sync features are enabled, account-related data may be retained while your account remains
+        active or as required for support, legal, security, or purchase verification purposes.
+      </p>
+
+      <p>
+        Crash logs and diagnostic data may be retained for a limited period for troubleshooting and reliability improvement.
       </p>
     </section>
 
@@ -513,13 +558,11 @@
       <h2>13. Data Deletion</h2>
 
       <p>
-        You may delete local app data by clearing the app’s storage in Android settings or
-        uninstalling the app.
+        You may delete local app data by clearing the app’s storage in Android settings or uninstalling the app.
       </p>
 
       <p>
-        If DHC-6 Trainer includes account creation, you may request deletion of your account
-        and associated data by contacting:
+        If DHC-6 Trainer includes account creation, you may request deletion of your account and associated data by contacting:
       </p>
 
       <p>
@@ -527,16 +570,22 @@
       </p>
 
       <p>
-        Please include enough information for us to identify your account. We may need to
-        retain limited information where required for legal, security, fraud prevention, purchase
-        verification, or legitimate business purposes.
+        Please include enough information for us to identify your account. We may need to retain limited information where
+        required for legal, security, fraud prevention, purchase verification, or legitimate business purposes.
+      </p>
+
+      <p>
+        If the app allows account creation inside the app, Google Play may require an in-app account deletion path and a
+        web link where users can request account and associated data deletion.
       </p>
     </section>
 
     <section>
       <h2>14. User Choices and Control</h2>
 
-      <p>Depending on the app features available, you may be able to:</p>
+      <p>
+        Depending on the app features available, you may be able to:
+      </p>
 
       <ul>
         <li>Use the app without creating an account</li>
@@ -552,13 +601,13 @@
       <h2>15. International Data Processing</h2>
 
       <p>
-        If cloud services, analytics, crash reporting, authentication, or support services are
-        used, information may be processed in countries other than your country of residence.
+        If cloud services, analytics, crash reporting, authentication, or support services are used, information may be
+        processed in countries other than your country of residence.
       </p>
 
       <p>
-        By using DHC-6 Trainer, you understand that information may be processed where
-        the developer or service providers operate, subject to applicable data protection laws.
+        By using DHC-6 Trainer, you understand that information may be processed where the developer or service providers
+        operate, subject to applicable data protection laws.
       </p>
     </section>
 
@@ -570,21 +619,24 @@
       </p>
 
       <p>
-        The app may include DHC-6 Twin Otter systems information, memory items,
-        QRH-style training flows, procedure references, performance study material,
-        flashcards, aircraft state practice, cockpit interaction training, and other educational content.
+        The app may include DHC-6 Twin Otter systems information, memory items, QRH-style training flows, procedure
+        references, performance study material, flashcards, aircraft state practice, cockpit interaction training, and other
+        educational content.
       </p>
 
       <p>
-        This app must not be used as the sole source for aircraft operation, flight planning,
-        dispatch, emergency response, regulatory compliance, or real-world operational decision-making.
+        This app must not be used as the sole source for aircraft operation, flight planning, dispatch, emergency response,
+        regulatory compliance, or real-world operational decision-making.
       </p>
 
       <p>
-        Pilots, instructors, operators, and trainees must always use the current approved
-        Aircraft Flight Manual, Pilot Operating Handbook, approved QRH, aircraft-specific
-        supplements, company Standard Operating Procedures, instructor guidance, and
-        applicable aviation regulations.
+        Pilots, instructors, operators, and trainees must always use the current approved Aircraft Flight Manual, Pilot
+        Operating Handbook, approved QRH, aircraft-specific supplements, company Standard Operating Procedures,
+        instructor guidance, and applicable aviation regulations.
+      </p>
+
+      <p>
+        Training content in the app may be simplified, adapted, summarized, or reorganized for study purposes.
       </p>
     </section>
 
@@ -596,14 +648,17 @@
       </p>
 
       <p>
-        When changes are made, the “Last Updated” date at the top of this policy will be
-        revised. Continued use of DHC-6 Trainer after changes are posted means you accept
-        the updated Privacy Policy.
+        When changes are made, the “Last Updated” date at the top of this policy will be revised. Continued use of
+        DHC-6 Trainer after changes are posted means you accept the updated Privacy Policy.
       </p>
     </section>
 
     <section>
       <h2>18. Contact Information</h2>
+
+      <p>
+        If you have questions, requests, or concerns about this Privacy Policy or DHC-6 Trainer’s data practices, contact:
+      </p>
 
       <div class="contact-box">
         <p>
@@ -624,13 +679,12 @@
       <h2>19. Google Play Data Safety Summary</h2>
 
       <p>
-        This section summarizes the app’s expected data practices for Google Play users.
-        The final Google Play Data Safety form must match the actual features and SDKs
-        included in the released app.
+        This section summarizes the app’s expected data practices for Google Play users. The final Google Play Data Safety
+        form must match the actual features and SDKs included in the released app.
       </p>
 
-      <h3>Data that may be collected</h3>
-      <ul>
+      <h3>Data that may be collected:</h3>
+      <ul class="summary-list">
         <li>App activity, such as study progress and app interactions</li>
         <li>User-created or imported training content, if enabled</li>
         <li>Account information, such as email address, if login is enabled</li>
@@ -639,27 +693,33 @@
         <li>Support information, if the user contacts support</li>
       </ul>
 
-      <h3>Data sharing</h3>
-      <ul>
+      <h3>Data sharing:</h3>
+      <ul class="summary-list">
         <li>Data is not sold</li>
         <li>
-          Limited data may be shared with service providers needed for app functionality,
-          purchases, authentication, diagnostics, cloud sync, or legal compliance
+          Limited data may be shared with service providers needed for app functionality, purchases, authentication,
+          diagnostics, cloud sync, or legal compliance
         </li>
       </ul>
 
-      <h3>Security practices</h3>
-      <ul>
+      <h3>Security practices:</h3>
+      <ul class="summary-list">
         <li>Reasonable security measures are used to protect data</li>
         <li>Network-transmitted data should be encrypted where supported</li>
       </ul>
 
-      <h3>Data deletion</h3>
-      <ul>
+      <h3>Data deletion:</h3>
+      <ul class="summary-list">
         <li>Local data can be deleted by clearing app storage or uninstalling the app</li>
+        <li>Account data deletion can be requested by contacting the developer if account features are enabled</li>
+      </ul>
+
+      <h3>Required or optional data:</h3>
+      <ul class="summary-list">
+        <li>Some data may be required for core app functionality</li>
         <li>
-          Account data deletion can be requested by contacting the developer if account
-          features are enabled
+          Optional data may depend on features such as account login, cloud sync, analytics, crash reporting, imports,
+          or purchases
         </li>
       </ul>
     </section>
