@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DHC-6 Trainer</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #07111f;
+      color: white;
+    }
+
+    header {
+      padding: 22px;
+      background: #0b1f36;
+      border-bottom: 1px solid rgba(255,255,255,0.12);
+    }
+
+    .hero {
+      min-height: 70vh;
+      padding: 40px 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background: linear-gradient(rgba(7,17,31,0.85), rgba(7,17,31,0.92));
+    }
+
+    h1 {
+      font-size: 42px;
+      margin: 0 0 12px;
+    }
+
+    p {
+      font-size: 18px;
+      line-height: 1.5;
+      max-width: 760px;
+      color: #d7e4f5;
+    }
+
+    .buttons {
+      margin-top: 24px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .button {
+      padding: 14px 18px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .primary {
+      background: #35d07f;
+      color: #06120c;
+    }
+
+    .secondary {
+      border: 1px solid #6d88aa;
+      color: white;
+    }
+
+    .features {
+      padding: 32px 22px;
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px;
+      padding: 20px;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      color: #7dd3fc;
+    }
+
+    footer {
+      padding: 22px;
+      color: #9fb2c8;
+      border-top: 1px solid rgba(255,255,255,0.12);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <strong>DHC-6 Trainer</strong>
+  </header>
+
+  <section class="hero">
+    <h1>DHC-6 Trainer</h1>
+    <p>
+      A study and drill platform for Twin Otter pilots, featuring QRH practice,
+      checklist drills, MCC callouts, flashcards, and aircraft systems review.
+    </p>
+
+    <div class="buttons">
+      <a class="button primary" href="#">Download Mobile App</a>
+      <a class="button secondary" href="#">PC Platform Coming Soon</a>
+    </div>
+  </section>
+
+  <section class="features">
+    <div class="card">
+      <h2>QRH Trainer</h2>
+      <p>Practice emergency and abnormal procedures with clear step-by-step flows.</p>
+    </div>
+
+    <div class="card">
+      <h2>Drill Mode</h2>
+      <p>Test memory items, limitations, procedures, and aircraft systems knowledge.</p>
+    </div>
+
+    <div class="card">
+      <h2>MCC Callouts</h2>
+      <p>Train PF/PM callout discipline with scenario-based crew coordination drills.</p>
+    </div>
+
+    <div class="card">
+      <h2>PC Platform</h2>
+      <p>A desktop cockpit-background trainer and web demo platform planned for PC users.</p>
+    </div>
+  </section>
+
+  <footer>
+    Contact: your-email@example.com
+  </footer>
+</body>
+</html>
