@@ -3,13 +3,13 @@
   "short_name": "DHC-6 Trainer",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#07111f",
-  "theme_color": "#07111f",
-  "description": "Twin Otter study app for QRH practice, MCC callouts, checklists, flashcards, and aircraft systems review.",
+  "background_color": "#031f30",
+  "theme_color": "#073047",
+  "description": "DHC-6 Trainer website and privacy resources.",
   "icons": [
     {
-      "src": "/assets/favicon.svg",
-      "sizes": "any",
+      "src": "assets/favicon.svg",
+      "sizes": "64x64",
       "type": "image/svg+xml"
     }
   ]
