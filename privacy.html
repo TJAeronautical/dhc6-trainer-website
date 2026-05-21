@@ -11,6 +11,17 @@
     content="Privacy Policy for the DHC-6 Trainer Android application."
   />
 
+  <meta name="theme-color" content="#07111f" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://dhc6-trainer.netlify.app/privacy.html" />
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="assets/site.webmanifest" />
+  <meta property="og:title" content="Privacy Policy | DHC-6 Trainer" />
+  <meta property="og:description" content="Privacy Policy for the DHC-6 Trainer Android application." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://dhc6-trainer.netlify.app/privacy.html" />
+  <meta name="twitter:card" content="summary" />
+
   <style>
     :root {
       --bg: #07111f;
@@ -173,6 +184,49 @@
       text-align: center;
     }
 
+
+
+    .nav-links {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .pill-link {
+      display: inline-flex;
+      align-items: center;
+      min-height: 38px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border);
+      text-decoration: none;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .pill-link:hover {
+      color: var(--cyan);
+      border-color: rgba(125, 211, 252, 0.45);
+    }
+
+    .skip-link {
+      position: absolute;
+      left: -999px;
+      top: 10px;
+      padding: 10px 14px;
+      background: var(--cyan);
+      color: #06120c;
+      border-radius: 10px;
+      font-weight: 800;
+      z-index: 100;
+    }
+
+    .skip-link:focus {
+      left: 12px;
+    }
+
     @media (max-width: 560px) {
       main {
         padding: 28px 14px 48px;
@@ -193,14 +247,18 @@
 </head>
 
 <body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
   <header>
     <div class="nav">
       <div class="brand">DHC-6 Trainer</div>
-      <a class="home-link" href="index.html">Back to Home</a>
+      <div class="nav-links">
+        <a class="pill-link" href="index.html">Back to Home</a>
+        <a class="pill-link" href="account-deletion.html">Account/Data Deletion</a>
+      </div>
     </div>
   </header>
 
-  <main>
+  <main id="main-content">
     <div class="hero">
       <div class="subtitle">DHC-6 Trainer</div>
       <h1>Privacy Policy</h1>
@@ -215,6 +273,10 @@
         <strong>Website / Privacy Policy URL:</strong>
         <a href="https://dhc6-trainer.netlify.app/privacy.html">
           https://dhc6-trainer.netlify.app/privacy.html
+        </a><br />
+        <strong>Account/Data Deletion URL:</strong>
+        <a href="https://dhc6-trainer.netlify.app/account-deletion.html">
+          https://dhc6-trainer.netlify.app/account-deletion.html
         </a>
       </p>
     </div>
@@ -562,21 +624,29 @@
       </p>
 
       <p>
-        If DHC-6 Trainer includes account creation, you may request deletion of your account and associated data by contacting:
+        If DHC-6 Trainer includes account creation, cloud sync, saved app state, or other account-linked features,
+        you may request deletion of your account and associated data by using the dedicated account and data deletion page:
       </p>
 
       <p>
-        <a href="mailto:tj.aeronautical@outlook.com">tj.aeronautical@outlook.com</a>
+        <a href="https://dhc6-trainer.netlify.app/account-deletion.html">
+          https://dhc6-trainer.netlify.app/account-deletion.html
+        </a>
       </p>
 
       <p>
-        Please include enough information for us to identify your account. We may need to retain limited information where
-        required for legal, security, fraud prevention, purchase verification, or legitimate business purposes.
+        You may also contact the developer directly at
+        <a href="mailto:tj.aeronautical@outlook.com">tj.aeronautical@outlook.com</a>.
+        Please include enough information for us to identify your account, such as the email address or sign-in method used in the app.
       </p>
 
       <p>
-        If the app allows account creation inside the app, Google Play may require an in-app account deletion path and a
-        web link where users can request account and associated data deletion.
+        We may need to retain limited information where required for legal, security, fraud prevention,
+        purchase verification, audit, or legitimate business purposes.
+      </p>
+
+      <p>
+        The dedicated deletion page is provided for Google Play account deletion and data deletion requirements.
       </p>
     </section>
 
@@ -711,7 +781,7 @@
       <h3>Data deletion:</h3>
       <ul class="summary-list">
         <li>Local data can be deleted by clearing app storage or uninstalling the app</li>
-        <li>Account data deletion can be requested by contacting the developer if account features are enabled</li>
+        <li>Account data deletion can be requested through the dedicated account and data deletion page or by contacting the developer if account features are enabled</li>
       </ul>
 
       <h3>Required or optional data:</h3>
@@ -727,7 +797,8 @@
 
   <footer>
     DHC-6 Trainer Privacy Policy ·
-    <a href="https://dhc6-trainer.netlify.app">Back to Website</a>
+    <a href="https://dhc6-trainer.netlify.app">Back to Website</a> ·
+    <a href="https://dhc6-trainer.netlify.app/account-deletion.html">Account/Data Deletion</a>
   </footer>
 </body>
   </html>

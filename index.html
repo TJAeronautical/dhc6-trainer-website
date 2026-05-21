@@ -11,6 +11,35 @@
     content="DHC-6 Trainer is a Twin Otter study and drill app for QRH practice, MCC callouts, checklists, flashcards, and aircraft systems review."
   />
 
+  <meta name="theme-color" content="#07111f" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://dhc6-trainer.netlify.app/" />
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="assets/site.webmanifest" />
+
+  <meta property="og:title" content="DHC-6 Trainer | Twin Otter Study App" />
+  <meta property="og:description" content="Twin Otter study and drill app for QRH practice, MCC callouts, checklists, flashcards, and aircraft systems review." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://dhc6-trainer.netlify.app/" />
+  <meta name="twitter:card" content="summary" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "DHC-6 Trainer",
+    "applicationCategory": "EducationalApplication",
+    "operatingSystem": "Android",
+    "url": "https://dhc6-trainer.netlify.app/",
+    "privacyPolicy": "https://dhc6-trainer.netlify.app/privacy.html",
+    "publisher": {
+      "@type": "Organization",
+      "name": "TJ Aeronautical",
+      "email": "tj.aeronautical@outlook.com"
+    }
+  }
+  </script>
+
   <style>
     :root {
       --bg: #07111f;
@@ -379,6 +408,45 @@
       margin-top: 22px;
     }
 
+
+    .skip-link {
+      position: absolute;
+      left: -999px;
+      top: 10px;
+      padding: 10px 14px;
+      background: var(--cyan);
+      color: #06120c;
+      border-radius: 10px;
+      font-weight: 800;
+      z-index: 100;
+    }
+
+    .skip-link:focus {
+      left: 12px;
+    }
+
+    .button[aria-disabled="true"] {
+      opacity: 0.78;
+      cursor: not-allowed;
+    }
+
+    .small-link-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    .small-link-row a {
+      color: var(--cyan);
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .small-link-row a:hover {
+      text-decoration: underline;
+    }
+
     @media (max-width: 900px) {
       .hero-inner,
       .split,
@@ -421,6 +489,7 @@
 </head>
 
 <body>
+  <a class="skip-link" href="#main-content">Skip to content</a>
   <header>
     <nav class="nav">
       <div class="brand">DHC-6 Trainer</div>
@@ -431,11 +500,12 @@
         <a href="#pc">PC Platform</a>
         <a href="#support">Support</a>
         <a href="privacy.html">Privacy</a>
+        <a href="account-deletion.html">Data Deletion</a>
       </div>
     </nav>
   </header>
 
-  <main>
+  <main id="main-content">
     <section class="hero">
       <div class="hero-inner">
         <div>
@@ -619,7 +689,7 @@
             Once available, this section will link directly to the app store listing.
           </p>
 
-          <a class="button primary" href="#">Google Play Link Coming Soon</a>
+          <a class="button primary" href="#support" aria-disabled="true">Google Play Link Coming Soon</a>
         </div>
       </div>
     </section>
@@ -654,6 +724,11 @@
             The full Privacy Policy is available at
             <a href="privacy.html">dhc6-trainer.netlify.app/privacy.html</a>.
           </p>
+
+          <p><strong>How do I request account or data deletion?</strong><br />
+            Use the dedicated account and data deletion page at
+            <a href="account-deletion.html">dhc6-trainer.netlify.app/account-deletion.html</a>.
+          </p>
         </div>
       </div>
     </section>
@@ -676,6 +751,10 @@
           </p>
 
           <a class="button secondary" href="privacy.html">Open Privacy Policy</a>
+
+          <div class="small-link-row" aria-label="Privacy resources">
+            <a href="account-deletion.html">Account and Data Deletion URL</a>
+          </div>
 
           <p class="disclaimer">
             Training disclaimer: DHC-6 Trainer is provided for study, revision, and training
@@ -712,6 +791,11 @@
         <p>
           Privacy Policy:
           <a href="https://dhc6-trainer.netlify.app/privacy.html">dhc6-trainer.netlify.app/privacy.html</a>
+        </p>
+
+        <p>
+          Account/Data Deletion:
+          <a href="https://dhc6-trainer.netlify.app/account-deletion.html">dhc6-trainer.netlify.app/account-deletion.html</a>
         </p>
       </div>
     </div>

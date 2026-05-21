@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://dhc6-trainer.netlify.app/sitemap.xml
