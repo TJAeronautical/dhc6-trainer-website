@@ -1,0 +1,25 @@
+# GitHub Pages setup for DHC-6 Trainer website
+
+This package is prepared for GitHub Pages project hosting.
+
+## Publish settings
+
+Repository: `dhc6-trainer-website`
+
+GitHub → repo → Settings → Pages:
+
+- Source: Deploy from a branch
+- Branch: main
+- Folder: /root
+
+After publishing, GitHub will show the live URL. Use these Play Console URLs after replacing `YOUR-GITHUB-USERNAME` with the published owner shown by GitHub:
+
+- Website: `https://YOUR-GITHUB-USERNAME.github.io/dhc6-trainer-website/`
+- Privacy Policy: `https://YOUR-GITHUB-USERNAME.github.io/dhc6-trainer-website/privacy.html`
+- Account/Data Deletion: `https://YOUR-GITHUB-USERNAME.github.io/dhc6-trainer-website/account-deletion.html`
+
+## Notes
+
+- `.nojekyll` is included so GitHub Pages serves this as plain static HTML.
+- All internal links are relative, so the site works from the GitHub Pages project path.
+- The Play Store link remains a coming-soon placeholder while closed testing is in progress.
