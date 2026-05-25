@@ -20,3 +20,8 @@ Static HTML site intended for Netlify deployment from GitHub.
 - Android closed testing in progress.
 - Play Store link placeholder should be replaced once the public listing or approved testing link is ready.
 - Screenshot assets are stored in `assets/screenshots/`.
+
+
+## GitHub Pages migration
+
+This build is GitHub Pages-ready. It includes `.nojekyll`, relative links, and a simple `404.html`. Enable Pages from the `main` branch `/root` folder.
