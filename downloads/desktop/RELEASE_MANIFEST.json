@@ -1,0 +1,31 @@
+{
+  "product": "DHC-6 Trainer Desktop",
+  "version": "1.6.9",
+  "status": "installer slots added; build artifacts not included in this patch",
+  "expected_files": [
+    {
+      "platform": "windows",
+      "type": "exe",
+      "file": "DHC6TrainerDesktop-1.6.9.exe",
+      "sha256": null
+    },
+    {
+      "platform": "windows",
+      "type": "msi",
+      "file": "DHC6TrainerDesktop-1.6.9.msi",
+      "sha256": null
+    },
+    {
+      "platform": "macos",
+      "type": "dmg",
+      "file": "DHC6TrainerDesktop-1.6.9.dmg",
+      "sha256": null
+    },
+    {
+      "platform": "linux",
+      "type": "deb",
+      "file": "DHC6TrainerDesktop-1.6.9.deb",
+      "sha256": null
+    }
+  ]
+}
