@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -95,13 +95,13 @@ footer{padding:30px 0 50px;border-top:1px solid rgba(255,255,255,.1);background:
 
 <main>
 <section class="hero"><div class="wrap">
-  <span class="eyebrow">Browser preview · runs offline</span>
+  <span class="eyebrow">Browser preview Â· runs offline</span>
   <h1>Live Web Trainer</h1>
   <p class="lead">A limited, in-browser slice of the DHC-6 Trainer: a normal procedure, QRH memory items, a flashcard deck, the performance calculator, and a PF/PM cockpit callout drill. Content is drawn from the DHC-6 Series 300 AFM/POH, the operator QRH, and the Flight Crew Training Manual. The full mobile and desktop apps go further.</p>
   <div class="notice">Training support only. Always fly the approved AFM, QRH, company OM-B, and current regulatory documents. Figures here are for study/planning, not for operational use.</div>
   <div style="margin-top:16px;display:flex;gap:12px;flex-wrap:wrap">
-    <a class="btn primary" href="desktop.html">Get the desktop app</a>
-    <a class="btn" href="mobile.html">Get the mobile app</a>
+    <a class="btn primary" href="desktop.html">Request desktop access</a>
+    <a class="btn" href="mobile.html">Download mobile app</a>
   </div>
 </div></section>
 
@@ -136,14 +136,14 @@ footer{padding:30px 0 50px;border-top:1px solid rgba(255,255,255,.1);background:
   <div class="module" id="mod-qrh">
     <div class="panel">
       <div class="row" style="align-items:center;justify-content:space-between">
-        <div><span class="tag">QRH · abnormal &amp; emergency</span><h2 id="qrh-title"></h2></div>
+        <div><span class="tag">QRH Â· abnormal &amp; emergency</span><h2 id="qrh-title"></h2></div>
         <div class="field" style="min-width:240px;margin:0">
           <label for="qrh-select">Select checklist</label>
           <select id="qrh-select"></select>
         </div>
       </div>
       <p id="qrh-ref" class="muted"></p>
-      <div style="margin:6px 0 4px"><span class="pill mem">■ Memory item</span><span class="pill">Read &amp; do</span>
+      <div style="margin:6px 0 4px"><span class="pill mem">â–  Memory item</span><span class="pill">Read &amp; do</span>
         <button class="btn" id="qrh-toggle" style="float:right;padding:7px 13px">Hide memory items</button></div>
       <ol class="steplist" id="qrh-steps"></ol>
       <div id="qrh-note"></div>
@@ -152,7 +152,7 @@ footer{padding:30px 0 50px;border-top:1px solid rgba(255,255,255,.1);background:
 
   <div class="module" id="mod-flashcards">
     <div class="panel">
-      <span class="tag">Flashcards · limitations &amp; V-speeds</span>
+      <span class="tag">Flashcards Â· limitations &amp; V-speeds</span>
       <h2>PT6A-27 limits &amp; airspeeds</h2>
       <p class="muted" id="fc-counter"></p>
       <div class="fcard card" id="fc-card" style="margin-bottom:14px">
@@ -181,13 +181,13 @@ footer{padding:30px 0 50px;border-top:1px solid rgba(255,255,255,.1);background:
       <div class="row">
         <div class="col">
           <div class="field"><label for="pf-elev">Pressure altitude (ft)</label><input id="pf-elev" type="number" value="0" step="100"></div>
-          <div class="field"><label for="pf-oat">OAT (°C)</label><input id="pf-oat" type="number" value="15"></div>
+          <div class="field"><label for="pf-oat">OAT (Â°C)</label><input id="pf-oat" type="number" value="15"></div>
           <div class="field"><label for="pf-wt">Gross weight (lb)</label><input id="pf-wt" type="number" value="12500" step="100"></div>
-          <div class="field"><label for="pf-wind">Wind component (kt · + headwind / − tailwind)</label><input id="pf-wind" type="number" value="0"></div>
+          <div class="field"><label for="pf-wind">Wind component (kt Â· + headwind / âˆ’ tailwind)</label><input id="pf-wind" type="number" value="0"></div>
           <div class="field" id="pf-surface-field"><label for="pf-surface">Surface</label>
             <select id="pf-surface"><option>PAVED DRY</option><option>WET</option><option>GRASS</option><option>GRAVEL</option><option>SOFT</option></select></div>
           <div class="field" id="pf-flap-field" style="display:none"><label for="pf-flaps">Landing flap</label>
-            <select id="pf-flaps"><option value="37.5">Full (37.5°)</option><option value="20">20°</option><option value="10">10°</option><option value="0">0°</option></select></div>
+            <select id="pf-flaps"><option value="37.5">Full (37.5Â°)</option><option value="20">20Â°</option><option value="10">10Â°</option><option value="0">0Â°</option></select></div>
         </div>
         <div class="col">
           <div class="card">
@@ -201,8 +201,8 @@ footer{padding:30px 0 50px;border-top:1px solid rgba(255,255,255,.1);background:
 
   <div class="module" id="mod-drill">
     <div class="panel drill">
-      <span class="tag">Cockpit drill · PF / PM callout</span>
-      <h2 id="drill-title">Engine Fire In-Flight — memory items</h2>
+      <span class="tag">Cockpit drill Â· PF / PM callout</span>
+      <h2 id="drill-title">Engine Fire In-Flight â€” memory items</h2>
       <p class="muted" id="drill-ctx"></p>
       <div class="bar"><i id="drill-bar"></i></div>
       <p class="muted" id="drill-count"></p>
@@ -210,11 +210,11 @@ footer{padding:30px 0 50px;border-top:1px solid rgba(255,255,255,.1);background:
         <div class="tag" style="text-align:center">PF challenge</div>
         <div class="call" id="drill-call"></div>
         <div class="tag" style="text-align:center">Expected response / action</div>
-        <div class="resp" id="drill-resp">— — —</div>
+        <div class="resp" id="drill-resp">â€” â€” â€”</div>
       </div>
       <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
         <button class="btn gold" id="drill-reveal">Reveal response</button>
-        <button class="btn primary" id="drill-next" disabled>Confirmed — next</button>
+        <button class="btn primary" id="drill-next" disabled>Confirmed â€” next</button>
         <button class="btn" id="drill-restart">Restart drill</button>
       </div>
     </div>
@@ -223,13 +223,13 @@ footer{padding:30px 0 50px;border-top:1px solid rgba(255,255,255,.1);background:
 </main>
 
 <footer><div class="wrap">
-  <p>© TJ Aeronautical · DHC-6 Trainer. Training support only — always use the approved AFM, QRH, company procedures, and current regulatory documents for operation.</p>
+  <p>Â© TJ Aeronautical Â· DHC-6 Trainer. Training support only â€” always use the approved AFM, QRH, company procedures, and current regulatory documents for operation.</p>
 </div></footer>
 
 <script>
 "use strict";
 /* =========================================================================
-   DHC-6 Trainer — Live Web Preview
+   DHC-6 Trainer â€” Live Web Preview
    Content grounded in: DHC-6 Series 300 AFM/POH (PSM 1-63),
    operator QRH (HBFO002, G950), and the Flight Crew Training Manual (HBTS-001).
    Performance model ported verbatim from the desktop PerformanceEngine.
@@ -287,7 +287,7 @@ var PROCEDURES = [
   {
     title: "Before Starting Engines",
     ref: "AFM/POH Section 4.5 (Normal Procedures)",
-    caution: "WARNING — Engine start is prohibited if the hydraulic oil pump circuit breaker is pulled out or the electrically powered hydraulic oil pump is inoperative.",
+    caution: "WARNING â€” Engine start is prohibited if the hydraulic oil pump circuit breaker is pulled out or the electrically powered hydraulic oil pump is inoperative.",
     steps: [
       ["Exterior Check Checklist", "Completed"],
       ["Cockpit Preparation Checklist", "Completed"],
@@ -297,14 +297,14 @@ var PROCEDURES = [
       ["HYD OIL PUMP circuit breaker", "Confirm NOT pulled out"],
       ["Hydraulic pressures", "Both above 1,300 PSI (1,500 typical)"],
       ["Fuel quantity", "Sufficient for planned flight"],
-      ["AFT BOOST & FWD BOOST switches", "ON — all four boost pump caution lights out"],
+      ["AFT BOOST & FWD BOOST switches", "ON â€” all four boost pump caution lights out"],
       ["Red Anti-Collision Beacon", "ON"]
     ]
   },
   {
-    title: "Starting Engines — External Power Start",
+    title: "Starting Engines â€” External Power Start",
     ref: "AFM/POH Section 4.6.1",
-    caution: "CAUTION — Do not move the engine FUEL lever to ON before stabilized NG is reached. Minimum stabilized NG to introduce fuel is 12%. With external power, the right engine is normally started first to minimise wind blast toward ground crew on the left.",
+    caution: "CAUTION â€” Do not move the engine FUEL lever to ON before stabilized NG is reached. Minimum stabilized NG to introduce fuel is 12%. With external power, the right engine is normally started first to minimise wind blast toward ground crew on the left.",
     steps: [
       ["EXTERNAL / BATTERY switch", "EXTERNAL"],
       ["Voltmeter", "Confirm 28 V external power present"],
@@ -322,7 +322,7 @@ var QRH = [
   {
     title: "Engine Fire / Failure In-Flight or In-Flight Shutdown",
     ref: "QRH Engine page EN-3 (auto-feather OFF, after AFTER-TAKEOFF checklist)",
-    note: "NOTE — Setting max power on the unaffected engine: advance to the first of torque, T5, or NG limit; ensure unaffected PROP lever at MAX (96% NP). Steps marked ■ are memory items.",
+    note: "NOTE â€” Setting max power on the unaffected engine: advance to the first of torque, T5, or NG limit; ensure unaffected PROP lever at MAX (96% NP). Steps marked â–  are memory items.",
     steps: [
       ["MASTER WARNING", "CANCEL", false],
       ["POWER & PROP levers (unaffected engine)", "MAX POWER", false],
@@ -341,9 +341,9 @@ var QRH = [
     ]
   },
   {
-    title: "Engine Fire — On Ground",
-    ref: "QRH / OM-B(V1) 3.11.1 — Engine page EN-1",
-    note: "If applicable, park/beach/secure the aircraft first with the fire on the downwind side before completing the drill. Steps marked ■ are memory items.",
+    title: "Engine Fire â€” On Ground",
+    ref: "QRH / OM-B(V1) 3.11.1 â€” Engine page EN-1",
+    note: "If applicable, park/beach/secure the aircraft first with the fire on the downwind side before completing the drill. Steps marked â–  are memory items.",
     steps: [
       ["MASTER WARNING", "CANCEL", false],
       ["POWER levers (both engines)", "IDLE", M],
@@ -362,13 +362,13 @@ var QRH = [
 
 var FLASHCARDS = [
   { cat: "Powerplant limit", q: "Maximum permissible sustained torque (PT6A-27)?", a: "50 PSI", note: "= 620 SHP at 96% NP (airframe restriction)." },
-  { cat: "Powerplant limit", q: "Max T5 — take-off & max continuous?", a: "725 °C", note: "Max climb/cruise T5 limit is 695 °C." },
-  { cat: "Powerplant limit", q: "Max Ng — take-off & max continuous?", a: "101.5 %", note: "Acceleration (2 sec) limit is 102.6%." },
-  { cat: "Powerplant limit", q: "Max Np — take-off & max continuous?", a: "96 %", note: "Acceleration Np limit (2 sec) is 110%." },
-  { cat: "Powerplant limit", q: "Normal oil pressure range?", a: "80–100 PSI", note: "Above 72% NG with oil temp 60–70 °C." },
+  { cat: "Powerplant limit", q: "Max T5 â€” take-off & max continuous?", a: "725 Â°C", note: "Max climb/cruise T5 limit is 695 Â°C." },
+  { cat: "Powerplant limit", q: "Max Ng â€” take-off & max continuous?", a: "101.5 %", note: "Acceleration (2 sec) limit is 102.6%." },
+  { cat: "Powerplant limit", q: "Max Np â€” take-off & max continuous?", a: "96 %", note: "Acceleration Np limit (2 sec) is 110%." },
+  { cat: "Powerplant limit", q: "Normal oil pressure range?", a: "80â€“100 PSI", note: "Above 72% NG with oil temp 60â€“70 Â°C." },
   { cat: "Powerplant limit", q: "Oil pressure that is unsafe?", a: "Below 40 PSI", note: "Shut down or land ASAP using minimum power needed." },
-  { cat: "Powerplant limit", q: "Max T5 during starting (time-limited 2 sec)?", a: "1090 °C", note: "Idle T5 limit is 660 °C." },
-  { cat: "Powerplant limit", q: "Reverse power time limit?", a: "1 minute", note: "Max reverse: T5 725 °C, Np 91 ±1%." },
+  { cat: "Powerplant limit", q: "Max T5 during starting (time-limited 2 sec)?", a: "1090 Â°C", note: "Idle T5 limit is 660 Â°C." },
+  { cat: "Powerplant limit", q: "Reverse power time limit?", a: "1 minute", note: "Max reverse: T5 725 Â°C, Np 91 Â±1%." },
   { cat: "Airspeed (KCAS)", q: "VMC (air minimum control speed)?", a: "66 KCAS", note: "Red radial line (TC/US ASI markings)." },
   { cat: "Airspeed (KCAS)", q: "VMO (max operating speed, post-mod)?", a: "170 KCAS", note: "Top of the green arc / red radial." },
   { cat: "Airspeed (KCAS)", q: "VYSE (best single-engine ROC)?", a: "82 KCAS", note: "Blue radial line." },
@@ -379,15 +379,15 @@ var FLASHCARDS = [
 ];
 
 var DRILL = {
-  title: "Engine Fire In-Flight — PF/PM memory items",
+  title: "Engine Fire In-Flight â€” PF/PM memory items",
   ctx: "Source: Flight Crew Training Manual (simulated emergencies). At first sign of fire: CONFIRM, then set MAX POWER on the unaffected engine. When the decision is made to secure the affected engine, run the memory items below. Touch-confirm each control, then act.",
   steps: [
-    ["CONFIRM — L/R ENGINE POWER LEVER", "RETARD (to 10 PSI)"],
-    ["CONFIRM — L/R PROP LEVER", "FEATHER"],
-    ["CONFIRM — L/R ENGINE FUEL LEVER", "OFF"],
-    ["CONFIRM — L/R ENGINE FUEL EMERGENCY (SOV) SWITCH", "OFF (check illuminated)"],
-    ["CONFIRM — L/R ENGINE FIRE EXTINGUISHER", "PUSH (discharged)"],
-    ["CONFIRM — L/R FUEL BOOST PUMP", "OFF"]
+    ["CONFIRM â€” L/R ENGINE POWER LEVER", "RETARD (to 10 PSI)"],
+    ["CONFIRM â€” L/R PROP LEVER", "FEATHER"],
+    ["CONFIRM â€” L/R ENGINE FUEL LEVER", "OFF"],
+    ["CONFIRM â€” L/R ENGINE FUEL EMERGENCY (SOV) SWITCH", "OFF (check illuminated)"],
+    ["CONFIRM â€” L/R ENGINE FIRE EXTINGUISHER", "PUSH (discharged)"],
+    ["CONFIRM â€” L/R FUEL BOOST PUMP", "OFF"]
   ]
 };
 
@@ -415,7 +415,7 @@ function renderProc(i) {
   var ol = $('proc-steps'); ol.innerHTML = '';
   p.steps.forEach(function (s, n) {
     var li = el('li'); li.dataset.done = '0';
-    li.innerHTML = '<span class="n">' + (n + 1) + '</span><span class="txt"><b>' + esc(s[0]) + '</b> — <span class="set">' + esc(s[1]) + '</span></span>';
+    li.innerHTML = '<span class="n">' + (n + 1) + '</span><span class="txt"><b>' + esc(s[0]) + '</b> â€” <span class="set">' + esc(s[1]) + '</span></span>';
     li.addEventListener('click', function () {
       var d = li.dataset.done === '1'; li.dataset.done = d ? '0' : '1';
       li.classList.toggle('done', !d); updateProcProgress();
@@ -446,9 +446,9 @@ function renderQrh(i) {
     var mem = s[2] === true;
     var li = el('li', mem ? 'mem' : '');
     li.dataset.done = '0';
-    var label = mem ? '■ ' : '';
-    var setText = (mem && !showMem) ? '••••••' : s[1];
-    li.innerHTML = '<span class="n">' + (n + 1) + '</span><span class="txt"><b>' + label + esc(s[0]) + '</b> — <span class="set">' + esc(setText) + '</span></span>';
+    var label = mem ? 'â–  ' : '';
+    var setText = (mem && !showMem) ? 'â€¢â€¢â€¢â€¢â€¢â€¢' : s[1];
+    li.innerHTML = '<span class="n">' + (n + 1) + '</span><span class="txt"><b>' + label + esc(s[0]) + '</b> â€” <span class="set">' + esc(setText) + '</span></span>';
     li.addEventListener('click', function () {
       var d = li.dataset.done === '1'; li.dataset.done = d ? '0' : '1'; li.classList.toggle('done', !d);
     });
@@ -509,7 +509,7 @@ function calcPf() {
     out.innerHTML = box(l.distanceFrom50Ft.toLocaleString() + ' ft', 'Landing from 50 ft') +
       box(l.vRefKt + ' kt', 'VREF');
   }
-  $('pf-disc').textContent = 'Planning only — refer to AFM Section 5 for operations.';
+  $('pf-disc').textContent = 'Planning only â€” refer to AFM Section 5 for operations.';
 }
 $('pf-to').addEventListener('click', function () { setPfMode('to'); });
 $('pf-ldg').addEventListener('click', function () { setPfMode('ldg'); });
@@ -524,7 +524,7 @@ $('drill-ctx').textContent = DRILL.ctx;
 function renderDrill() {
   var s = DRILL.steps[drillPos];
   $('drill-call').textContent = s[0];
-  $('drill-resp').textContent = drillRevealed ? s[1] : '— — —';
+  $('drill-resp').textContent = drillRevealed ? s[1] : 'â€” â€” â€”';
   $('drill-bar').style.width = Math.round((drillPos) / DRILL.steps.length * 100) + '%';
   $('drill-count').textContent = 'Memory item ' + (drillPos + 1) + ' of ' + DRILL.steps.length;
   $('drill-next').disabled = !drillRevealed;
@@ -534,9 +534,9 @@ $('drill-next').addEventListener('click', function () {
   if (drillPos < DRILL.steps.length - 1) { drillPos++; drillRevealed = false; renderDrill(); }
   else {
     $('drill-call').textContent = 'MEMORY ITEMS COMPLETE';
-    $('drill-resp').textContent = '→ Action remaining QRH items';
+    $('drill-resp').textContent = 'â†’ Action remaining QRH items';
     $('drill-bar').style.width = '100%';
-    $('drill-count').textContent = DRILL.steps.length + ' of ' + DRILL.steps.length + ' — complete';
+    $('drill-count').textContent = DRILL.steps.length + ' of ' + DRILL.steps.length + ' â€” complete';
     $('drill-next').disabled = true;
   }
 });
