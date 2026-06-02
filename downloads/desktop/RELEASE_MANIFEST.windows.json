@@ -1,12 +1,12 @@
 ﻿[
     {
         "file":  "DHC6TrainerDesktop-1.6.9.exe",
-        "bytes":  162708480,
-        "sha256":  "d15c34752b0f92ef92af3f65a19f8439531740cb2050dfc0a75e75bbddabdf5a"
+        "bytes":  162713088,
+        "sha256":  "f8dc1b227f5c4338d8e407c4976180a8ab04279e2c9c005f1ce413d57160c0a0"
     },
     {
         "file":  "DHC6TrainerDesktop-1.6.9.msi",
-        "bytes":  162061689,
-        "sha256":  "ad77cd8a4763ae39e3084fe5b1996c37703c09606f5c0186181ba40e536aa73b"
+        "bytes":  162065827,
+        "sha256":  "ba7c4d4d19e19dce4c8e7c1598e4a24b94e18f6e2a6fac7bd4f6b6eaa835224a"
     }
 ]
