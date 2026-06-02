@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
   const form = document.getElementById("desktop-access-form");
   const copyButton = document.getElementById("copy-request");
   const status = document.getElementById("desktop-access-status");
@@ -106,3 +106,4 @@
     copyButton.addEventListener("click", copyRequestDetails);
   }
 })();
+
