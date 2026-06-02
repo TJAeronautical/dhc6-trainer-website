@@ -1,35 +1,354 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Desktop Access | DHC-6 Trainer</title>
-  <meta name="theme-color" content="#073047"><link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Request Desktop Access | DHC-6 Trainer</title>
+  <meta name="description" content="Request licensed Windows desktop access for DHC-6 Trainer.">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <style>
-    :root{--bg:#031f30;--panel:#06283d;--card:#071d2d;--text:#f4fbff;--muted:#c7d6df;--line:#1e506c;--accent:#48b9ff;--gold:#f0b429;--shadow:0 20px 50px rgba(0,0,0,.28);--radius:28px}
-    *{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:radial-gradient(circle at top left,#0b4561 0,#031f30 42%,#021723 100%);color:var(--text);line-height:1.55}
-    a{color:inherit}.wrap{width:min(960px,calc(100% - 36px));margin:0 auto}header{position:sticky;top:0;z-index:10;background:rgba(3,31,48,.88);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.08)}
-    nav{display:flex;align-items:center;justify-content:space-between;padding:16px 0}.brand{font-weight:900;text-decoration:none}.navlinks{display:flex;gap:18px;font-weight:800;color:var(--muted)}.navlinks a{text-decoration:none}
-    .hero{padding:70px 0}.panel,.card{background:linear-gradient(135deg,rgba(7,37,56,.96),rgba(12,63,91,.9));border:1px solid var(--line);border-radius:34px;padding:30px;box-shadow:var(--shadow)}
-    h1{font-size:clamp(2.3rem,6vw,4.4rem);line-height:1;margin:0 0 18px;letter-spacing:-.05em}h2{margin:0 0 12px}p,li{color:var(--muted);font-weight:700}.actions{display:flex;gap:14px;flex-wrap:wrap;margin-top:24px}.btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,.24);border-radius:999px;padding:12px 18px;text-decoration:none;font-weight:900;background:#0d4160}.btn.primary{background:linear-gradient(135deg,#1479b5,#52c5ff)}.btn.gold{background:linear-gradient(135deg,#bd8112,#f0b429);color:#06131d}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:24px}@media(max-width:800px){.grid{grid-template-columns:1fr}.navlinks{display:none}}
+    :root{
+      --bg:#031f30;
+      --panel:#06283d;
+      --panel2:#0b3d59;
+      --card:#071d2d;
+      --text:#f4fbff;
+      --muted:#c7d6df;
+      --line:#1e506c;
+      --accent:#48b9ff;
+      --accent2:#f0b429;
+      --red:#ff5366;
+      --shadow:0 20px 50px rgba(0,0,0,.28);
+      --radius:28px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:radial-gradient(circle at top left,#0b4561 0,#031f30 42%,#021723 100%);
+      color:var(--text);
+      line-height:1.55;
+    }
+    a{color:inherit}
+    .wrap{width:min(1040px,calc(100% - 36px));margin:0 auto}
+    header{
+      position:sticky;
+      top:0;
+      z-index:10;
+      background:rgba(3,31,48,.88);
+      backdrop-filter:blur(14px);
+      border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    nav{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:16px 0;
+      gap:18px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      font-weight:900;
+      font-size:1.05rem;
+      letter-spacing:.02em;
+      text-decoration:none;
+    }
+    .logo{
+      width:42px;
+      height:42px;
+      border-radius:14px;
+      background:linear-gradient(135deg,#0c76ad,#53c7ff);
+      display:grid;
+      place-items:center;
+      box-shadow:var(--shadow);
+    }
+    .navlinks{
+      display:flex;
+      gap:18px;
+      align-items:center;
+      flex-wrap:wrap;
+      font-weight:800;
+      color:var(--muted);
+    }
+    .navlinks a{text-decoration:none}
+    .navlinks a:hover{color:#fff}
+    main{padding:54px 0 74px}
+    .hero{
+      display:grid;
+      grid-template-columns:.9fr 1.1fr;
+      gap:26px;
+      align-items:start;
+    }
+    .panel{
+      background:linear-gradient(135deg,rgba(7,37,56,.96),rgba(12,63,91,.9));
+      border:1px solid var(--line);
+      border-radius:34px;
+      padding:32px;
+      box-shadow:var(--shadow);
+    }
+    .eyebrow{
+      display:inline-flex;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.06);
+      padding:8px 13px;
+      border-radius:999px;
+      color:#dbeaf2;
+      font-weight:900;
+      margin-bottom:18px;
+    }
+    h1{
+      font-size:clamp(2.2rem,5vw,4.4rem);
+      line-height:1;
+      margin:0 0 18px;
+      letter-spacing:-.05em;
+    }
+    h2{
+      font-size:clamp(1.6rem,3vw,2.3rem);
+      line-height:1.1;
+      margin:0 0 14px;
+      letter-spacing:-.035em;
+    }
+    h3{margin:0 0 8px;font-size:1.08rem}
+    p{margin:0 0 16px;color:var(--muted);font-weight:700}
+    .lead{font-size:1.12rem}
+    .notice{
+      border-left:5px solid var(--accent2);
+      background:rgba(240,180,41,.11);
+      padding:18px;
+      border-radius:18px;
+      margin-top:20px;
+    }
+    .feature-list{
+      display:grid;
+      gap:12px;
+      margin-top:22px;
+    }
+    .mini{
+      background:rgba(0,0,0,.2);
+      border:1px solid var(--line);
+      border-radius:20px;
+      padding:16px;
+    }
+    label{
+      display:block;
+      font-weight:900;
+      color:#e8f7ff;
+      margin:14px 0 7px;
+    }
+    input, select, textarea{
+      width:100%;
+      border:1px solid #2b7194;
+      background:#041d2e;
+      color:#fff;
+      border-radius:16px;
+      padding:14px 15px;
+      font:inherit;
+      font-weight:700;
+      outline:none;
+    }
+    input:focus, select:focus, textarea:focus{
+      border-color:var(--accent);
+      box-shadow:0 0 0 3px rgba(72,185,255,.18);
+    }
+    textarea{
+      min-height:120px;
+      resize:vertical;
+    }
+    .form-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+    }
+    .actions{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-top:22px;
+    }
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      border:1px solid rgba(255,255,255,.24);
+      border-radius:999px;
+      padding:12px 18px;
+      text-decoration:none;
+      font-weight:900;
+      background:#0d4160;
+      color:#fff;
+      box-shadow:0 8px 18px rgba(0,0,0,.15);
+      cursor:pointer;
+    }
+    .btn.primary{
+      background:linear-gradient(135deg,#1479b5,#52c5ff);
+      color:#fff;
+      border-color:#7ad6ff;
+    }
+    .btn.gold{
+      background:linear-gradient(135deg,#bd8112,#f0b429);
+      border-color:#ffe08a;
+      color:#06131d;
+    }
+    .btn:disabled{
+      opacity:.58;
+      cursor:not-allowed;
+    }
+    .status{
+      margin-top:14px;
+      color:#dbeaf2;
+      font-weight:800;
+    }
+    .status.error{color:var(--red)}
+    .fine{
+      font-size:.9rem;
+      color:#9fb9c7;
+      margin-top:16px;
+    }
+    footer{
+      padding:34px 0 46px;
+      border-top:1px solid rgba(255,255,255,.1);
+      background:#021723;
+    }
+    @media(max-width:900px){
+      .hero{grid-template-columns:1fr}
+      .navlinks{display:none}
+    }
+    @media(max-width:640px){
+      .form-grid{grid-template-columns:1fr}
+      .panel{padding:22px}
+      .wrap{width:min(100% - 28px,1040px)}
+    }
   </style>
 </head>
 <body>
-<header><div class="wrap"><nav><a class="brand" href="./">DHC-6 Trainer</a><div class="navlinks"><a href="mobile.html">Mobile</a><a href="desktop.html">Desktop</a><a href="live.html">Live Preview</a><a href="privacy.html">Privacy</a></div></nav></div></header>
-<main class="hero"><div class="wrap">
-  <section class="panel">
-    <h1>Request desktop access</h1>
-    <p>DHC-6 Trainer Desktop is intended for licensed users, instructors, and training organizations. The public website does not host direct installer links.</p>
-    <div class="actions">
-      <a class="btn primary" href="mailto:tjaeronautical@gmail.com?subject=DHC-6%20Trainer%20Desktop%20Access%20Request&body=Hello%20TJ%20Aeronautical%2C%0A%0AI%20would%20like%20desktop%20access%20for%20DHC-6%20Trainer.%0A%0AName%3A%0AEmail%3A%0AUse%20case%20%28pilot%2Finstructor%2Fschool%29%3A%0ANumber%20of%20seats%3A%0A%0AThank%20you.">Email access request</a>
-      <a class="btn gold" href="desktop.html#license-gate">Enter license key</a>
-    </div>
-  </section>
+<header>
+  <div class="wrap">
+    <nav>
+      <a class="brand" href="./"><span class="logo">?</span><span>DHC-6 Trainer</span></a>
+      <div class="navlinks">
+        <a href="./">Home</a>
+        <a href="desktop.html">Desktop</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="account-deletion.html">Account/Data deletion</a>
+      </div>
+    </nav>
+  </div>
+</header>
 
-  <section class="grid">
-    <article class="card"><h2>Individual desktop seat</h2><p>For pilots and students who want desktop/laptop study alongside the Android app.</p></article>
-    <article class="card"><h2>Instructor / school access</h2><p>For classroom display, instructor-led briefing, and multi-seat deployment.</p></article>
-  </section>
-</div></main>
+<main>
+  <div class="wrap hero">
+    <section class="panel">
+      <span class="eyebrow">Licensed desktop access</span>
+      <h1>Request DHC-6 Trainer Desktop access.</h1>
+      <p class="lead">
+        The Windows desktop build is available only to approved licensed users, instructors, and training organizations.
+      </p>
+
+      <div class="feature-list">
+        <div class="mini">
+          <h3>Private distribution</h3>
+          <p>No public installer links are provided on this website.</p>
+        </div>
+        <div class="mini">
+          <h3>Activation required</h3>
+          <p>The desktop app requires a valid desktop license key before use.</p>
+        </div>
+        <div class="mini">
+          <h3>Training use only</h3>
+          <p>DHC-6 Trainer is a study aid and does not replace approved manuals, company procedures, or regulatory requirements.</p>
+        </div>
+      </div>
+
+      <div class="notice">
+        <p><strong>How access works:</strong> submit the request form, review is completed manually, and approved users receive desktop installation and activation instructions privately.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Desktop access request</h2>
+      <p>Fill in the details below. The form will open a prefilled email to TJ Aeronautical.</p>
+
+      <form id="desktop-access-form">
+        <div class="form-grid">
+          <div>
+            <label for="requestName">Full name</label>
+            <input id="requestName" name="requestName" autocomplete="name" required>
+          </div>
+
+          <div>
+            <label for="requestEmail">Email</label>
+            <input id="requestEmail" name="requestEmail" type="email" autocomplete="email" required>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div>
+            <label for="requestOrg">Organisation / company</label>
+            <input id="requestOrg" name="requestOrg" placeholder="Individual, school, operator, etc.">
+          </div>
+
+          <div>
+            <label for="requestRole">Role</label>
+            <select id="requestRole" name="requestRole">
+              <option value="Pilot">Pilot</option>
+              <option value="Student pilot">Student pilot</option>
+              <option value="Instructor">Instructor</option>
+              <option value="Training manager">Training manager</option>
+              <option value="Flight school / operator">Flight school / operator</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div>
+            <label for="requestSeats">Seats required</label>
+            <select id="requestSeats" name="requestSeats">
+              <option value="1">1</option>
+              <option value="2-5">2-5</option>
+              <option value="6-10">6-10</option>
+              <option value="10+">10+</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="requestPlatform">Platform</label>
+            <select id="requestPlatform" name="requestPlatform">
+              <option value="Windows EXE">Windows EXE</option>
+              <option value="Windows MSI">Windows MSI</option>
+              <option value="School / organisation deployment">School / organisation deployment</option>
+            </select>
+          </div>
+        </div>
+
+        <label for="requestUse">How will you use the desktop app?</label>
+        <textarea id="requestUse" name="requestUse" placeholder="Example: recurrent study, classroom training, instructor-led procedure review, MCC callouts, QRH drills, systems review..."></textarea>
+
+        <div class="actions">
+          <button class="btn primary" type="submit">Open prefilled email</button>
+          <button class="btn" type="button" id="copy-request">Copy request details</button>
+          <a class="btn gold" href="desktop.html">Back to desktop page</a>
+        </div>
+
+        <p id="desktop-access-status" class="status" aria-live="polite"></p>
+        <p class="fine">
+          If your browser does not open an email app, use “Copy request details” and email the copied request to
+          <a href="mailto:tj.aeronautical@outlook.com">tj.aeronautical@outlook.com</a>.
+        </p>
+      </form>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>DHC-6 Trainer by TJ Aeronautical.</p>
+  </div>
+</footer>
+
+<script src="assets/js/desktop-access-request.js"></script>
 </body>
 </html>
