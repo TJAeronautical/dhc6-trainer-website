@@ -1,0 +1,7 @@
+[build]
+  publish = "."
+
+[[redirects]]
+  from = "/api/desktop-download"
+  to = "/.netlify/functions/desktop-download"
+  status = 200

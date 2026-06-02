@@ -1,49 +1,105 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Desktop App | DHC-6 Trainer</title><meta name="theme-color" content="#073047"><link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><style>
-:root{--bg:#031f30;--panel:#06283d;--card:#071d2d;--text:#f4fbff;--muted:#c7d6df;--line:#1e506c;--accent:#48b9ff;--gold:#f0b429;--green:#1f9d4a;--shadow:0 20px 50px rgba(0,0,0,.28);--radius:28px}*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:radial-gradient(circle at top left,#0b4561 0,#031f30 42%,#021723 100%);color:var(--text);line-height:1.55}a{color:inherit}.wrap{width:min(1160px,calc(100% - 36px));margin:0 auto}header{position:sticky;top:0;z-index:10;background:rgba(3,31,48,.88);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.08)}nav{display:flex;align-items:center;justify-content:space-between;padding:16px 0;gap:18px}.brand{font-weight:900;font-size:1.05rem;letter-spacing:.02em;text-decoration:none}.navlinks{display:flex;gap:18px;align-items:center;flex-wrap:wrap;font-weight:800;color:var(--muted)}.navlinks a{text-decoration:none}.navlinks a:hover{color:#fff}.hero{padding:70px 0 40px}.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:34px;align-items:center}.eyebrow{display:inline-flex;border:1px solid var(--line);background:rgba(255,255,255,.06);padding:8px 13px;border-radius:999px;color:#dbeaf2;font-weight:900;margin-bottom:18px}h1{font-size:clamp(2.4rem,6vw,4.8rem);line-height:.98;margin:0 0 22px;letter-spacing:-.055em}h2{font-size:clamp(1.65rem,3vw,2.35rem);line-height:1.1;margin:0 0 14px;letter-spacing:-.035em}h3{margin:0 0 8px;font-size:1.18rem}p{margin:0 0 16px;color:var(--muted);font-weight:700}.lead{font-size:1.15rem;max-width:68ch}.actions{display:flex;gap:14px;flex-wrap:wrap;margin-top:26px}.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid rgba(255,255,255,.24);border-radius:999px;padding:12px 18px;text-decoration:none;font-weight:900;background:#0d4160;box-shadow:0 8px 18px rgba(0,0,0,.15)}.btn.primary{background:linear-gradient(135deg,#1479b5,#52c5ff);color:#fff;border-color:#7ad6ff}.btn.gold{background:linear-gradient(135deg,#bd8112,#f0b429);border-color:#ffe08a;color:#06131d}.btn.disabled{opacity:.58;pointer-events:none}.panel{background:linear-gradient(135deg,rgba(7,37,56,.96),rgba(12,63,91,.9));border:1px solid var(--line);border-radius:34px;padding:30px;box-shadow:var(--shadow)}section{padding:46px 0}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.card{background:rgba(5,31,48,.88);border:1px solid var(--line);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow)}.tag{display:inline-block;border-radius:999px;padding:6px 10px;font-weight:900;background:#104765;color:#dff6ff;margin-bottom:14px}.notice{border-left:5px solid var(--gold);background:rgba(240,180,41,.11);padding:18px;border-radius:18px}.ok{border-left-color:var(--green);background:rgba(31,157,74,.13)}table{width:100%;border-collapse:collapse;margin-top:10px;overflow:hidden;border-radius:18px}th,td{text-align:left;padding:14px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--muted);font-weight:700}th{color:#fff;background:rgba(255,255,255,.06)}code{background:rgba(0,0,0,.25);padding:.15em .35em;border-radius:.35em;color:#e8f8ff}ul{margin:0;padding-left:20px;color:var(--muted);font-weight:700}li{margin:.45rem 0}.mock{background:#02121d;border:1px solid var(--line);border-radius:26px;padding:20px}.pill{display:inline-flex;border-radius:999px;padding:8px 12px;background:#0b4260;font-weight:900;color:#e5f7ff;margin:4px}footer{padding:38px 0 56px;border-top:1px solid rgba(255,255,255,.1);background:#021723}@media(max-width:900px){.hero-grid{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.navlinks{display:none}.hero{padding-top:44px}}</style></head><body><header><div class="wrap"><nav><a class="brand" href="./">DHC-6 Trainer</a><div class="navlinks"><a href="mobile.html">Mobile</a><a href="desktop.html">Desktop</a><a href="live.html">Live Preview</a><a href="changelog.html">Changelog</a><a href="privacy.html">Privacy</a></div></nav></div></header>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Desktop App | DHC-6 Trainer</title>
+  <meta name="theme-color" content="#073047">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <style>
+    :root{--bg:#031f30;--panel:#06283d;--card:#071d2d;--text:#f4fbff;--muted:#c7d6df;--line:#1e506c;--accent:#48b9ff;--gold:#f0b429;--green:#1f9d4a;--red:#ff6b6b;--shadow:0 20px 50px rgba(0,0,0,.28);--radius:28px}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:radial-gradient(circle at top left,#0b4561 0,#031f30 42%,#021723 100%);color:var(--text);line-height:1.55}
+    a{color:inherit}.wrap{width:min(1160px,calc(100% - 36px));margin:0 auto}
+    header{position:sticky;top:0;z-index:10;background:rgba(3,31,48,.88);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.08)}
+    nav{display:flex;align-items:center;justify-content:space-between;padding:16px 0;gap:18px}
+    .brand{font-weight:900;font-size:1.05rem;letter-spacing:.02em;text-decoration:none}
+    .navlinks{display:flex;gap:18px;align-items:center;flex-wrap:wrap;font-weight:800;color:var(--muted)}
+    .navlinks a{text-decoration:none}.navlinks a:hover{color:#fff}
+    .hero{padding:70px 0 40px}.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:34px;align-items:center}
+    .eyebrow{display:inline-flex;border:1px solid var(--line);background:rgba(255,255,255,.06);padding:8px 13px;border-radius:999px;color:#dbeaf2;font-weight:900;margin-bottom:18px}
+    h1{font-size:clamp(2.4rem,6vw,4.8rem);line-height:.98;margin:0 0 22px;letter-spacing:-.055em}
+    h2{font-size:clamp(1.65rem,3vw,2.35rem);line-height:1.1;margin:0 0 14px;letter-spacing:-.035em}
+    h3{margin:0 0 8px;font-size:1.18rem}p{margin:0 0 16px;color:var(--muted);font-weight:700}.lead{font-size:1.15rem;max-width:68ch}
+    .actions{display:flex;gap:14px;flex-wrap:wrap;margin-top:26px}.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid rgba(255,255,255,.24);border-radius:999px;padding:12px 18px;text-decoration:none;font-weight:900;background:#0d4160;box-shadow:0 8px 18px rgba(0,0,0,.15);cursor:pointer}
+    .btn.primary{background:linear-gradient(135deg,#1479b5,#52c5ff);color:#fff;border-color:#7ad6ff}.btn.gold{background:linear-gradient(135deg,#bd8112,#f0b429);border-color:#ffe08a;color:#06131d}.btn.disabled{opacity:.58;pointer-events:none}
+    .panel{background:linear-gradient(135deg,rgba(7,37,56,.96),rgba(12,63,91,.9));border:1px solid var(--line);border-radius:34px;padding:30px;box-shadow:var(--shadow)}
+    section{padding:46px 0}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.card{background:rgba(5,31,48,.88);border:1px solid var(--line);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow)}
+    .tag{display:inline-block;border-radius:999px;padding:6px 10px;font-weight:900;background:#104765;color:#dff6ff;margin-bottom:14px}
+    .notice{border-left:5px solid var(--gold);background:rgba(240,180,41,.11);padding:18px;border-radius:18px}.ok{border-left-color:var(--green);background:rgba(31,157,74,.13)}.danger{border-left-color:var(--red);background:rgba(255,107,107,.11)}
+    input{width:100%;border:1px solid var(--line);border-radius:16px;background:#031927;color:var(--text);padding:13px 14px;font-weight:800;margin:8px 0 12px}
+    label{display:block;color:#fff;font-weight:900;margin-top:8px}
+    table{width:100%;border-collapse:collapse;margin-top:10px;overflow:hidden;border-radius:18px}th,td{text-align:left;padding:14px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--muted);font-weight:700}th{color:#fff;background:rgba(255,255,255,.06)}code{background:rgba(0,0,0,.25);padding:.15em .35em;border-radius:.35em;color:#e8f8ff}ul{margin:0;padding-left:20px;color:var(--muted);font-weight:700}li{margin:.45rem 0}.pill{display:inline-flex;border-radius:999px;padding:8px 12px;background:#0b4260;font-weight:900;color:#e5f7ff;margin:4px}
+    footer{padding:38px 0 56px;border-top:1px solid rgba(255,255,255,.1);background:#021723}@media(max-width:900px){.hero-grid{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.navlinks{display:none}.hero{padding-top:44px}}
+  </style>
+</head>
+<body>
+<header><div class="wrap"><nav><a class="brand" href="./">DHC-6 Trainer</a><div class="navlinks"><a href="mobile.html">Mobile</a><a href="desktop.html">Desktop</a><a href="live.html">Live Preview</a><a href="changelog.html">Changelog</a><a href="privacy.html">Privacy</a></div></nav></div></header>
+
 <main>
   <section class="hero"><div class="wrap hero-grid">
     <div>
-      <span class="eyebrow">Desktop release channel</span>
+      <span class="eyebrow">Desktop license required</span>
       <h1>DHC-6 Trainer Desktop</h1>
-      <p class="lead">Use the desktop build for serious study, instructor displays, classroom briefings, cockpit drill review, procedure work, systems learning, and performance practice on a larger screen.</p>
+      <p class="lead">The Windows desktop build is available only to licensed users, instructors, and approved training organizations. The installer is not publicly downloadable from this page.</p>
       <div class="actions">
-        <a class="btn primary" href="https://github.com/TJAeronautical/dhc6-trainer-website/releases/download/desktop-v1.6.9/DHC6TrainerDesktop-1.6.9.exe">Download Windows EXE</a>
-        <a class="btn" href="https://github.com/TJAeronautical/dhc6-trainer-website/releases/download/desktop-v1.6.9/DHC6TrainerDesktop-1.6.9.msi">Windows MSI</a>
-        <span class="btn disabled">macOS DMG coming soon</span>
-        <span class="btn disabled">Linux DEB coming soon</span>
+        <a class="btn primary" href="access.html">Request desktop access</a>
+        <a class="btn gold" href="#license-gate">I already have a license key</a>
+        <a class="btn" href="mobile.html">Use Android version</a>
       </div>
-      <p style="margin-top:14px">Version: <strong>1.6.9</strong>. Windows installers are hosted through GitHub Releases. macOS and Linux builds will be added later.</p>
+      <p style="margin-top:14px">Version: <strong>1.6.9</strong>. Windows desktop distribution is protected through a license-gated download flow.</p>
     </div>
     <div class="panel">
-      <h2>Recommended use</h2>
-      <div class="mock"><span class="pill">Instructor briefing</span><span class="pill">Desktop study</span><span class="pill">QRH review</span><span class="pill">Cockpit drill demo</span><span class="pill">Systems lab</span></div>
-      <p style="margin-top:18px">The desktop app is the installable training platform. The website remains the public hub and limited live preview.</p>
+      <h2>Included with desktop access</h2>
+      <span class="pill">Instructor briefing</span><span class="pill">Desktop study</span><span class="pill">QRH review</span><span class="pill">Cockpit drill demo</span><span class="pill">Systems lab</span>
+      <p style="margin-top:18px">Use the desktop build for laptop study, classroom display, and structured training support. The website remains the public hub and limited live preview.</p>
+    </div>
+  </div></section>
+
+  <section id="license-gate"><div class="wrap hero-grid">
+    <div class="card">
+      <span class="tag">Locked download</span>
+      <h2>Enter desktop license</h2>
+      <p>Enter your issued desktop license key. This page does not contain public installer links. A secure backend must verify the key before issuing a temporary download link.</p>
+      <form id="desktop-license-form">
+        <label for="licenseKey">License key</label>
+        <input id="licenseKey" name="licenseKey" placeholder="DHC6-XXXX-XXXX-XXXX" autocomplete="off" required>
+        <label for="licenseEmail">Email</label>
+        <input id="licenseEmail" name="licenseEmail" type="email" placeholder="name@example.com" autocomplete="email" required>
+        <button class="btn primary" type="submit">Unlock desktop download</button>
+      </form>
+      <p id="license-gate-message" aria-live="polite"></p>
+    </div>
+
+    <div class="notice danger">
+      <strong>Security note:</strong> Do not place GitHub Release installer links directly in public HTML. Public release assets can be shared and downloaded without paying. Use a private storage bucket, payment-provider delivery, or a license backend that issues short-lived signed URLs.
     </div>
   </div></section>
 
   <section><div class="wrap grid">
-    <article class="card"><span class="tag">Windows</span><h3>EXE or MSI</h3><p>Use the EXE for direct installation. Use MSI where an organization or school prefers managed deployment.</p></article>
-    <article class="card"><span class="tag">macOS</span><h3>DMG</h3><p>Build this on macOS. Apple notarization/signing can be added later before a public institutional rollout.</p></article>
-    <article class="card"><span class="tag">Linux</span><h3>DEB</h3><p>Build this on Linux for Debian/Ubuntu systems. Useful for classroom machines and training labs.</p></article>
+    <article class="card"><span class="tag">Windows</span><h3>EXE / MSI</h3><p>Available after license verification. Use EXE for direct install and MSI for school/organization deployment.</p></article>
+    <article class="card"><span class="tag">Mobile</span><h3>Google Play</h3><p>The Android version remains the public app-store product and should drive most user acquisition.</p></article>
+    <article class="card"><span class="tag">Schools</span><h3>Instructor access</h3><p>Training organizations can request desktop seats, classroom deployment, and future instructor/student features.</p></article>
   </div></section>
 
   <section><div class="wrap">
     <div class="card">
-      <h2>Download manifest</h2>
-      <p>After the installer files are uploaded, update this table with the final file sizes and SHA-256 checksums from <code>downloads/desktop/RELEASE_MANIFEST.json</code>.</p>
+      <h2>Desktop release status</h2>
       <table>
-        <thead><tr><th>Platform</th><th>File</th><th>Status</th></tr></thead>
+        <thead><tr><th>Platform</th><th>File</th><th>Access</th></tr></thead>
         <tbody>
-          <tr><td>Windows</td><td><code>DHC6TrainerDesktop-1.6.9.exe</code></td><td>Available via GitHub Releases</td></tr>
-          <tr><td>Windows</td><td><code>DHC6TrainerDesktop-1.6.9.msi</code></td><td>Available via GitHub Releases</td></tr>
-          <tr><td>macOS</td><td><code>DHC6TrainerDesktop-1.6.9.dmg</code></td><td>Requires macOS build host</td></tr>
-          <tr><td>Linux</td><td><code>DHC6TrainerDesktop-1.6.9.deb</code></td><td>Requires Linux build host</td></tr>
+          <tr><td>Windows</td><td><code>DHC6TrainerDesktop-1.6.9.exe</code></td><td>License-gated</td></tr>
+          <tr><td>Windows</td><td><code>DHC6TrainerDesktop-1.6.9.msi</code></td><td>License-gated</td></tr>
+          <tr><td>macOS</td><td><code>DHC6TrainerDesktop-1.6.9.dmg</code></td><td>Coming later</td></tr>
+          <tr><td>Linux</td><td><code>DHC6TrainerDesktop-1.6.9.deb</code></td><td>Coming later</td></tr>
         </tbody>
       </table>
     </div>
   </div></section>
 
-  <section><div class="wrap">
-    <div class="notice"><strong>Operational disclaimer:</strong> DHC-6 Trainer is a study aid only. It is not an approved AFM, QRH, MEL, checklist, or operational control document.</div>
-  </div></section>
-</main><footer><div class="wrap"><p>© TJ Aeronautical · Training support only. Always use approved AFM, QRH, company procedures, and regulatory documents for operation.</p></div></footer></body></html>
+  <section><div class="wrap"><div class="notice"><strong>Operational disclaimer:</strong> DHC-6 Trainer is a study aid only. It is not an approved AFM, QRH, MEL, checklist, or operational control document.</div></div></section>
+</main>
+<footer><div class="wrap"><p>© TJ Aeronautical · Training support only. Always use approved AFM, QRH, company procedures, and regulatory documents for operation.</p></div></footer>
+<script src="assets/js/desktop-license-gate.js"></script>
+</body>
+</html>
