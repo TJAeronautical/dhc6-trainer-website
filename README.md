@@ -1,40 +1,32 @@
 # DHC-6 Trainer Website
 
-Static marketing and compliance website for the DHC-6 Trainer Android app.
+Static public hub for DHC-6 Trainer.
 
-Live URLs:
+## Added in this patch
 
-- Homepage: https://dhc6-trainer.netlify.app
-- Privacy Policy: https://dhc6-trainer.netlify.app/privacy.html
-- Account/Data Deletion: https://dhc6-trainer.netlify.app/account-deletion.html
+- `mobile.html` for Play Store/mobile positioning.
+- `desktop.html` for desktop installer downloads.
+- `live.html` for limited browser trainer preview positioning.
+- `changelog.html` for release status.
+- `downloads/desktop/` for installer files and release manifest.
+- `tools/Build-DesktopInstallers-Windows.ps1` to build Windows desktop installers from the main project.
+- `tools/Stage-DesktopInstallers.ps1` to copy installer outputs into this website.
 
-Developer: TJ Aeronautical  
-Support: tj.aeronautical@outlook.com
+## Desktop installer flow
 
-## Deployment
+1. Place this website folder beside your main DHC-6-Trainer project or set `-WebsiteRoot`.
+2. From Windows PowerShell in the main project root, run:
 
-Static HTML site intended for Netlify deployment from GitHub.
+```powershell
+.\tools\Build-DesktopInstallers-Windows.ps1
+```
 
-## Current status
+3. Copy resulting installer files into `downloads/desktop/`.
+4. Deploy the website to Netlify/GitHub Pages.
 
-- Android closed testing in progress.
-- Play Store link placeholder should be replaced once the public listing or approved testing link is ready.
-- Screenshot assets are stored in `assets/screenshots/`.
+The website links expect these filenames:
 
-
-## GitHub Pages migration
-
-This build is GitHub Pages-ready. It includes `.nojekyll`, relative links, and a simple `404.html`. Enable Pages from the `main` branch `/root` folder.
-
-
-## 2026 Website Hub Patch
-
-This patch expands the static site into the official DHC-6 Trainer hub:
-
-- `index.html` — revised homepage for Mobile + Desktop + Live Preview strategy
-- `mobile.html` — Google Play conversion page
-- `desktop.html` — desktop release/download guidance page
-- `live.html` — limited live web trainer preview plan
-- `changelog.html` — release/status page
-
-Desktop installers are not included. Build them from the Compose Desktop native distribution task and then replace the placeholder desktop download buttons with real release links.
+- `DHC6TrainerDesktop-1.6.9.exe`
+- `DHC6TrainerDesktop-1.6.9.msi`
+- `DHC6TrainerDesktop-1.6.9.dmg`
+- `DHC6TrainerDesktop-1.6.9.deb`
