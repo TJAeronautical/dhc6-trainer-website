@@ -1,130 +1,18 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Desktop Access | DHC-6 Trainer</title>
-  <meta name="theme-color" content="#073047">
-  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-  <style>
-    :root{--bg:#031f30;--panel:#06283d;--card:#071d2d;--text:#f4fbff;--muted:#c7d6df;--line:#1e506c;--accent:#48b9ff;--gold:#f0b429;--green:#1f9d4a;--red:#ff6b6b;--shadow:0 20px 50px rgba(0,0,0,.28);--radius:28px}
-    *{box-sizing:border-box}
-    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:radial-gradient(circle at top left,#0b4561 0,#031f30 42%,#021723 100%);color:var(--text);line-height:1.55}
-    a{color:inherit}.wrap{width:min(1160px,calc(100% - 36px));margin:0 auto}
-    header{position:sticky;top:0;z-index:10;background:rgba(3,31,48,.88);backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.08)}
-    nav{display:flex;align-items:center;justify-content:space-between;padding:16px 0;gap:18px}
-    .brand{font-weight:900;font-size:1.05rem;letter-spacing:.02em;text-decoration:none}
-    .navlinks{display:flex;gap:18px;align-items:center;flex-wrap:wrap;font-weight:800;color:var(--muted)}
-    .navlinks a{text-decoration:none}.navlinks a:hover{color:#fff}
-    .hero{padding:70px 0 40px}.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:34px;align-items:center}
-    .eyebrow{display:inline-flex;border:1px solid var(--line);background:rgba(255,255,255,.06);padding:8px 13px;border-radius:999px;color:#dbeaf2;font-weight:900;margin-bottom:18px}
-    h1{font-size:clamp(2.4rem,6vw,4.8rem);line-height:.98;margin:0 0 22px;letter-spacing:-.055em}
-    h2{font-size:clamp(1.65rem,3vw,2.35rem);line-height:1.1;margin:0 0 14px;letter-spacing:-.035em}
-    h3{margin:0 0 8px;font-size:1.18rem}p{margin:0 0 16px;color:var(--muted);font-weight:700}.lead{font-size:1.15rem;max-width:68ch}
-    .actions{display:flex;gap:14px;flex-wrap:wrap;margin-top:26px}.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid rgba(255,255,255,.24);border-radius:999px;padding:12px 18px;text-decoration:none;font-weight:900;background:#0d4160;box-shadow:0 8px 18px rgba(0,0,0,.15);cursor:pointer}
-    .btn.primary{background:linear-gradient(135deg,#1479b5,#52c5ff);color:#fff;border-color:#7ad6ff}.btn.gold{background:linear-gradient(135deg,#bd8112,#f0b429);border-color:#ffe08a;color:#06131d}.btn.disabled{opacity:.58;pointer-events:none}
-    .panel{background:linear-gradient(135deg,rgba(7,37,56,.96),rgba(12,63,91,.9));border:1px solid var(--line);border-radius:34px;padding:30px;box-shadow:var(--shadow)}
-    section{padding:46px 0}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.card{background:rgba(5,31,48,.88);border:1px solid var(--line);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow)}
-    .tag{display:inline-block;border-radius:999px;padding:6px 10px;font-weight:900;background:#104765;color:#dff6ff;margin-bottom:14px}
-    .notice{border-left:5px solid var(--gold);background:rgba(240,180,41,.11);padding:18px;border-radius:18px}.ok{border-left-color:var(--green);background:rgba(31,157,74,.13)}.danger{border-left-color:var(--red);background:rgba(255,107,107,.11)}
-    input{width:100%;border:1px solid var(--line);border-radius:16px;background:#031927;color:var(--text);padding:13px 14px;font-weight:800;margin:8px 0 12px}
-    label{display:block;color:#fff;font-weight:900;margin-top:8px}
-    table{width:100%;border-collapse:collapse;margin-top:10px;overflow:hidden;border-radius:18px}th,td{text-align:left;padding:14px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--muted);font-weight:700}th{color:#fff;background:rgba(255,255,255,.06)}code{background:rgba(0,0,0,.25);padding:.15em .35em;border-radius:.35em;color:#e8f8ff}ul{margin:0;padding-left:20px;color:var(--muted);font-weight:700}li{margin:.45rem 0}.pill{display:inline-flex;border-radius:999px;padding:8px 12px;background:#0b4260;font-weight:900;color:#e5f7ff;margin:4px}
-    footer{padding:38px 0 56px;border-top:1px solid rgba(255,255,255,.1);background:#021723}@media(max-width:900px){.hero-grid{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.navlinks{display:none}.hero{padding-top:44px}}
-  </style>
+  <meta name="description" content="Request licensed desktop access for DHC-6 Trainer large-screen Twin Otter study, MCC callouts, QRH drills, cockpit review, and instructor-led training.">
+  <meta name="theme-color" content="#06111f"><link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="assets/site-redesign.css">
 </head>
 <body>
-<header><div class="wrap"><nav><a class="brand" href="./">DHC-6 Trainer</a><div class="navlinks"><a href="mobile.html">Mobile</a><a href="desktop.html">Desktop</a><a href="live.html">Live Preview</a><a href="changelog.html">Changelog</a><a href="privacy.html">Privacy</a></div></nav></div></header>
-
+<header class="topbar"><div class="wrap"><nav><a class="brand" href="./"><span class="brand-mark">✈</span><span>DHC-6 Trainer<small>Desktop access</small></span></a><div class="navlinks"><a href="./">Home</a><a href="mobile.html">Mobile</a><a href="desktop.html">Desktop</a><a href="access.html">Request access</a><a href="privacy.html">Privacy</a></div><a class="btn gold" href="access.html">Request access</a></nav></div></header>
 <main>
-  <section class="hero"><div class="wrap hero-grid">
-    <div>
-      <span class="eyebrow">Desktop license required</span>
-      <h1>DHC-6 Trainer Desktop</h1>
-      <p class="lead">The Windows desktop build is available only to licensed users, instructors, and approved training organizations. The installer is not publicly downloadable from this page.</p>
-      <div class="actions">
-        <a class="btn primary" href="access.html">Request desktop access</a>
-        <a class="btn gold" href="#license-gate">I already have a license key</a>
-        <a class="btn" href="mobile.html">Use Android version</a>
-      </div>
-      <p style="margin-top:14px">Version: <strong>1.6.9</strong>. Windows desktop distribution is available through verified desktop access only. Public installer links are not published on the website.</p>
-    </div>
-    <div class="panel">
-      <h2>Included with desktop access</h2>
-      <span class="pill">Instructor briefing</span><span class="pill">Desktop study</span><span class="pill">QRH review</span><span class="pill">Cockpit drill demo</span><span class="pill">Systems lab</span>
-      <p style="margin-top:18px">Use the desktop build for Twin Otter study, QRH drills, classroom display, instructor briefing, and structured recurrent prep. The website remains the public hub and limited live preview.</p>
-    </div>
-  </div></section>
-
-  <section>
-  <div class="wrap grid">
-    <article class="card">
-      <span class="tag">Pilots</span>
-      <h3>Large-screen recurrent study</h3>
-      <p>Use the desktop build for focused Twin Otter study, QRH drills, cockpit review, systems revision, and recurrent prep away from the phone screen.</p>
-    </article>
-    <article class="card">
-      <span class="tag">Instructors</span>
-      <h3>Briefing-room support</h3>
-      <p>Support student briefings with a larger interface for procedure flows, MCC callouts, cockpit familiarisation, and systems review.</p>
-    </article>
-    <article class="card">
-      <span class="tag">Controlled access</span>
-      <h3>No public installer links</h3>
-      <p>EXE and MSI installers are kept out of the public website and GitHub repository. Desktop access is verified manually until the private backend is deployed.</p>
-    </article>
-  </div>
-</section>
-<section id="license-gate"><div class="wrap hero-grid">
-    <div class="card">
-      <span class="tag">Locked download</span>
-      <h2>Enter desktop license</h2>
-      <p>Desktop installer access is manually verified. This page does not publish public EXE or MSI installer links. Approved users can request access, confirm their license details, and receive the correct Windows installer route by email.</p>
-      <form id="desktop-license-form">
-        <label for="licenseKey">License key</label>
-        <input id="licenseKey" name="licenseKey" placeholder="DHC6-XXXX-XXXX-XXXX" autocomplete="off" required>
-        <label for="licenseEmail">Email</label>
-        <input id="licenseEmail" name="licenseEmail" type="email" placeholder="name@example.com" autocomplete="email" required>
-        <label for="downloadType">Installer type</label>
-        <select id="downloadType" name="downloadType" required style="width:100%;border:1px solid var(--line);border-radius:16px;background:#031927;color:var(--text);padding:13px 14px;font-weight:800;margin:8px 0 12px">
-          <option value="exe">Windows EXE installer</option>
-          <option value="msi">Windows MSI installer</option>
-        </select>
-
-        <button class="btn primary" type="submit">Request verified desktop access</button>
-      </form>
-      <p id="license-gate-message" aria-live="polite"></p>
-    </div>
-
-    <div class="notice danger">
-      <strong>Security note:</strong> Desktop installer links are not placed directly in public HTML. Public release assets can be shared, so the production desktop release should use private storage and a dedicated license backend on the official domain.
-    </div>
-  </div></section>
-
-  <section><div class="wrap grid">
-    <article class="card"><span class="tag">Windows</span><h3>EXE / MSI</h3><p>Available after license verification. Use EXE for direct install and MSI for school/organization deployment.</p></article>
-    <article class="card"><span class="tag">Mobile</span><h3>Google Play</h3><p>The Android version remains the public app-store product and should drive most user acquisition.</p></article>
-    <article class="card"><span class="tag">Schools</span><h3>Instructor access</h3><p>Training organizations can request desktop seats, classroom deployment, and future instructor/student features.</p></article>
-  </div></section>
-
-  <section><div class="wrap">
-    <div class="card">
-      <h2>Desktop release status</h2>
-      <table>
-        <thead><tr><th>Platform</th><th>File</th><th>Access</th></tr></thead>
-        <tbody>
-          <tr><td>Windows</td><td><code>DHC6TrainerDesktop-1.6.9.exe</code></td><td>License-gated</td></tr>
-          <tr><td>Windows</td><td><code>DHC6TrainerDesktop-1.6.9.msi</code></td><td>License-gated</td></tr>
-          <tr><td>macOS</td><td><code>DHC6TrainerDesktop-1.6.9.dmg</code></td><td>Coming later</td></tr>
-          <tr><td>Linux</td><td><code>DHC6TrainerDesktop-1.6.9.deb</code></td><td>Coming later</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div></section>
-
-  <section><div class="wrap"><div class="notice"><strong>Operational disclaimer:</strong> DHC-6 Trainer is a study aid only. It is not an approved AFM, QRH, MEL, checklist, or operational control document.</div></div></section>
+<section class="page-hero"><div class="wide page-grid"><div><span class="eyebrow"><span class="dot"></span> Licensed desktop build</span><h1>Large-screen Twin Otter study for approved users.</h1><p class="lead">The Windows desktop build supports briefing-room use, instructor-led review, QRH and MCC callout practice, systems study, and large-screen procedure walkthroughs. Installer access is controlled and verified.</p><div class="actions"><a class="btn primary" href="access.html">Request desktop access</a><a class="btn ghost" href="mobile.html">Use Android version</a></div><p style="margin-top:14px">Current desktop release: <strong>1.6.9</strong>. Public installer links are not exposed on the website.</p></div><div class="visual-card"><img src="assets/latest-design-mcc.webp" alt="DHC-6 Trainer desktop-style MCC callout trainer concept"><div class="floating-card"><span class="score-pill">Controlled distribution</span><p>Designed for licensed pilots, instructors, and training organizations.</p></div></div></div></section>
+<section><div class="wrap grid three"><article class="card"><span class="tag">Pilots</span><h3>Focused recurrent study</h3><p>Review procedures, QRH flows, MCC callouts, systems, and cockpit panels on a larger display.</p></article><article class="card"><span class="tag green">Instructors</span><h3>Briefing-room support</h3><p>Walk students through procedure flows, calls, expected responses, cockpit targets, and debrief points.</p></article><article class="card"><span class="tag amber">Schools</span><h3>Controlled seats</h3><p>Desktop access can be managed for approved training organizations and future instructor/student workflows.</p></article></div></section>
+<section id="license-gate"><div class="wrap split"><div class="card"><span class="tag">Locked download</span><h2>Enter desktop license</h2><p>Approved users can request installer routing after manual verification. This page does not publish direct public EXE/MSI links.</p><form id="desktop-license-form"><label for="licenseKey">License key</label><input id="licenseKey" name="licenseKey" placeholder="DHC6-XXXX-XXXX-XXXX" autocomplete="off" required><label for="licenseEmail">Email</label><input id="licenseEmail" name="licenseEmail" type="email" placeholder="name@example.com" autocomplete="email" required><label for="downloadType">Installer type</label><select id="downloadType" name="downloadType" required><option value="exe">Windows EXE installer</option><option value="msi">Windows MSI installer</option></select><button class="btn primary" type="submit">Request verified desktop access</button></form><p id="license-gate-message" aria-live="polite"></p></div><div class="notice"><h3>Distribution note</h3><p>Desktop installer files should remain behind verified access. Use the Android app as the public store product and desktop as a licensed add-on for approved users, instructors, and training organizations.</p></div></div></section>
+<section><div class="wrap"><div class="card"><h2>Release status</h2><table><thead><tr><th>Platform</th><th>File</th><th>Access</th></tr></thead><tbody><tr><td>Windows</td><td><code>DHC6TrainerDesktop-1.6.9.exe</code></td><td>License-gated</td></tr><tr><td>Windows</td><td><code>DHC6TrainerDesktop-1.6.9.msi</code></td><td>License-gated</td></tr><tr><td>macOS</td><td><code>DHC6TrainerDesktop-1.6.9.dmg</code></td><td>Coming later</td></tr><tr><td>Linux</td><td><code>DHC6TrainerDesktop-1.6.9.deb</code></td><td>Coming later</td></tr></tbody></table></div></div></section>
 </main>
-<footer><div class="wrap"><p>&copy; TJ Aeronautical &middot; DHC-6 Trainer &middot; Twin Otter study, QRH drills, and recurrent prep.</p><p>Training support only. Always use approved AFM, QRH, company procedures, and regulatory documents for operation.</p><p><a href="./">Home</a> &middot; <a href="mobile.html">Mobile</a> &middot; <a href="desktop.html">Desktop</a> &middot; <a href="access.html">Desktop access</a> &middot; <a href="privacy.html">Privacy</a> &middot; <a href="account-deletion.html">Account/Data Deletion</a></p></div></footer>
-<script src="assets/js/desktop-license-gate.js"></script>
-</body>
-</html>
+<footer class="footer"><div class="wrap"><p>&copy; TJ Aeronautical · DHC-6 Trainer · Training support only.</p><p><a href="./">Home</a> · <a href="mobile.html">Mobile</a> · <a href="desktop.html">Desktop</a> · <a href="access.html">Desktop access</a> · <a href="privacy.html">Privacy</a></p></div></footer><script src="assets/js/desktop-license-gate.js"></script>
+</body></html>
