@@ -3,3 +3,10 @@ downloads/desktop/*.exe
 downloads/desktop/*.msi
 downloads/desktop/*.dmg
 downloads/desktop/*.deb
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
