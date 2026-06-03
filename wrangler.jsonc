@@ -1,0 +1,23 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "dhc6-trainer-website",
+  "compatibility_date": "2026-06-03",
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": ".",
+    "not_found_handling": "single-page-application",
+    "exclude": [
+      ".git/**",
+      ".github/**",
+      ".idea/**",
+      ".wrangler/**",
+      "tools/**",
+      "downloads/desktop/*.exe",
+      "downloads/desktop/*.msi",
+      "downloads/desktop/*.dmg",
+      "downloads/desktop/*.deb"
+    ]
+  }
+}
