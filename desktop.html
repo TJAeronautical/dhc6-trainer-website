@@ -60,7 +60,7 @@
     <div class="card">
       <span class="tag">Locked download</span>
       <h2>Enter desktop license</h2>
-      <p>Enter your issued desktop license key. This page does not contain public installer links. A secure backend must verify the key before issuing a temporary download link.</p>
+      <p>Enter your issued desktop license key. This page does not contain public installer links. Desktop access is manually verified until the dedicated private licensing backend is deployed.</p>
       <form id="desktop-license-form">
         <label for="licenseKey">License key</label>
         <input id="licenseKey" name="licenseKey" placeholder="DHC6-XXXX-XXXX-XXXX" autocomplete="off" required>
@@ -72,13 +72,13 @@
           <option value="msi">Windows MSI installer</option>
         </select>
 
-        <button class="btn primary" type="submit">Unlock desktop download</button>
+        <button class="btn primary" type="submit">Request verified desktop access</button>
       </form>
       <p id="license-gate-message" aria-live="polite"></p>
     </div>
 
     <div class="notice danger">
-      <strong>Security note:</strong> Do not place GitHub Release installer links directly in public HTML. Public release assets can be shared and downloaded without paying. Use a private storage bucket, payment-provider delivery, or a license backend that issues short-lived signed URLs.
+      <strong>Security note:</strong> Desktop installer links are not placed directly in public HTML. Public release assets can be shared, so the production desktop release should use private storage and a dedicated license backend on the official domain.
     </div>
   </div></section>
 

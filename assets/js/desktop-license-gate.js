@@ -1,7 +1,7 @@
 /*
-  DHC-6 Trainer desktop license gate.
-  This client-side file is only a UI layer. It is NOT the security boundary.
-  Real protection must happen server-side in /api/desktop-download or an equivalent backend.
+  DHC-6 Trainer desktop access form.
+  This static website does not issue installer downloads directly.
+  Desktop installers require manual approval or a future private backend.
 */
 
 const form = document.getElementById("desktop-license-form");
@@ -15,7 +15,7 @@ function setMessage(text, ok = false) {
 }
 
 if (form) {
-  form.addEventListener("submit", async (event) => {
+  form.addEventListener("submit", (event) => {
     event.preventDefault();
 
     const licenseKey = document.getElementById("licenseKey")?.value?.trim();
@@ -37,41 +37,18 @@ if (form) {
       return;
     }
 
-    setMessage(`Checking license for Windows ${type.toUpperCase()} download...`);
+    const subject = encodeURIComponent("DHC-6 Trainer Desktop Access Request");
+    const body = encodeURIComponent(
+`Desktop access request
 
-    try {
-      const response = await fetch("/api/desktop-download", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-          licenseKey,
-          email,
-          platform: "windows",
-          type
-        })
-      });
+Email: ${email}
+License key: ${licenseKey}
+Requested installer: Windows ${type.toUpperCase()}
 
-      let data = {};
-      try {
-        data = await response.json();
-      } catch {
-        data = {};
-      }
+Please verify my license and send the approved desktop installer access instructions.`
+    );
 
-      if (!response.ok) {
-        setMessage(data.error || "License could not be verified. Check your key or request access.");
-        return;
-      }
-
-      if (!data.downloadUrl) {
-        setMessage("License verified, but no download URL was issued. Contact support.");
-        return;
-      }
-
-      setMessage(`License verified. Starting Windows ${type.toUpperCase()} download...`, true);
-      window.location.href = data.downloadUrl;
-    } catch (error) {
-      setMessage("Secure download backend is not active on this host yet. Request access by email or deploy the provided serverless function.");
-    }
+    setMessage("Opening email request. Desktop downloads are issued after license verification.", true);
+    window.location.href = `mailto:tj.aeronautical@outlook.com?subject=${subject}&body=${body}`;
   });
 }

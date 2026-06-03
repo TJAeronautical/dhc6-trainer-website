@@ -1,8 +1,0 @@
-[build]
-  publish = "."
-  functions = "serverless/netlify/functions"
-
-[[redirects]]
-  from = "/api/desktop-download"
-  to = "/.netlify/functions/desktop-download"
-  status = 200
