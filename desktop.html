@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -47,7 +47,7 @@
         <a class="btn gold" href="#license-gate">I already have a license key</a>
         <a class="btn" href="mobile.html">Use Android version</a>
       </div>
-      <p style="margin-top:14px">Version: <strong>1.7.0</strong>. Windows desktop distribution is protected through a license-gated download flow.</p>
+      <p style="margin-top:14px">Version: <strong>1.6.9</strong>. Windows desktop distribution is protected through a license-gated download flow.</p>
     </div>
     <div class="panel">
       <h2>Included with desktop access</h2>
@@ -66,6 +66,12 @@
         <input id="licenseKey" name="licenseKey" placeholder="DHC6-XXXX-XXXX-XXXX" autocomplete="off" required>
         <label for="licenseEmail">Email</label>
         <input id="licenseEmail" name="licenseEmail" type="email" placeholder="name@example.com" autocomplete="email" required>
+        <label for="downloadType">Installer type</label>
+        <select id="downloadType" name="downloadType" required style="width:100%;border:1px solid var(--line);border-radius:16px;background:#031927;color:var(--text);padding:13px 14px;font-weight:800;margin:8px 0 12px">
+          <option value="exe">Windows EXE installer</option>
+          <option value="msi">Windows MSI installer</option>
+        </select>
+
         <button class="btn primary" type="submit">Unlock desktop download</button>
       </form>
       <p id="license-gate-message" aria-live="polite"></p>
@@ -88,10 +94,10 @@
       <table>
         <thead><tr><th>Platform</th><th>File</th><th>Access</th></tr></thead>
         <tbody>
-          <tr><td>Windows</td><td><code>DHC6TrainerDesktop-1.7.0.exe</code></td><td>License-gated</td></tr>
-          <tr><td>Windows</td><td><code>DHC6TrainerDesktop-1.7.0.msi</code></td><td>License-gated</td></tr>
-          <tr><td>macOS</td><td><code>DHC6TrainerDesktop-1.7.0.dmg</code></td><td>Coming later</td></tr>
-          <tr><td>Linux</td><td><code>DHC6TrainerDesktop-1.7.0.deb</code></td><td>Coming later</td></tr>
+          <tr><td>Windows</td><td><code>DHC6TrainerDesktop-1.6.9.exe</code></td><td>License-gated</td></tr>
+          <tr><td>Windows</td><td><code>DHC6TrainerDesktop-1.6.9.msi</code></td><td>License-gated</td></tr>
+          <tr><td>macOS</td><td><code>DHC6TrainerDesktop-1.6.9.dmg</code></td><td>Coming later</td></tr>
+          <tr><td>Linux</td><td><code>DHC6TrainerDesktop-1.6.9.deb</code></td><td>Coming later</td></tr>
         </tbody>
       </table>
     </div>
@@ -99,7 +105,7 @@
 
   <section><div class="wrap"><div class="notice"><strong>Operational disclaimer:</strong> DHC-6 Trainer is a study aid only. It is not an approved AFM, QRH, MEL, checklist, or operational control document.</div></div></section>
 </main>
-<footer><div class="wrap"><p>Â© TJ Aeronautical Â· Training support only. Always use approved AFM, QRH, company procedures, and regulatory documents for operation.</p></div></footer>
+<footer><div class="wrap"><p>&copy; TJ Aeronautical &middot; Training support only. Always use approved AFM, QRH, company procedures, and regulatory documents for operation.</p></div></footer>
 <script src="assets/js/desktop-license-gate.js"></script>
 </body>
 </html>
