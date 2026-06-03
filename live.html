@@ -4,8 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Live Web Trainer | DHC-6 Trainer</title>
-<meta name="description" content="Run a limited DHC-6 Trainer preview right in your browser: normal procedures, QRH memory items, flashcards, a performance calculator, and a PF/PM cockpit callout drill.">
+<meta name="description" content="A working in-browser DHC-6 trainer: normal procedures, QRH memory items, scored flashcards, a performance calculator, a PF/PM cockpit drill, a local logbook, and an interactive 3D PT6A-27 engine cross-section.">
 <meta name="theme-color" content="#073047">
+<link rel="canonical" href="live.html">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <style>
 :root{--bg:#031f30;--panel:#06283d;--card:#071d2d;--text:#f4fbff;--muted:#c7d6df;--line:#1e506c;--accent:#48b9ff;--gold:#f0b429;--green:#1f9d4a;--red:#e0564f;--shadow:0 20px 50px rgba(0,0,0,.28);--radius:28px}
@@ -29,13 +30,14 @@ p{margin:0 0 14px;color:var(--muted);font-weight:700}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid rgba(255,255,255,.24);border-radius:999px;padding:11px 17px;text-decoration:none;font-weight:900;background:#0d4160;cursor:pointer}
 .btn.primary{background:linear-gradient(135deg,#1479b5,#52c5ff);color:#fff;border-color:#7ad6ff}
 .btn.gold{background:linear-gradient(135deg,#bd8112,#f0b429);border-color:#ffe08a;color:#06131d}
+.btn.good{background:linear-gradient(135deg,#137a3a,#22b357);border-color:#5fe08c;color:#04210f}
+.btn.bad{background:linear-gradient(135deg,#8f2a26,#d6443c);border-color:#ffb0ab;color:#fff}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 section{padding:18px 0}
 .panel{background:linear-gradient(135deg,rgba(7,37,56,.96),rgba(12,63,91,.9));border:1px solid var(--line);border-radius:var(--radius);padding:22px;box-shadow:var(--shadow)}
 .card{background:rgba(5,31,48,.88);border:1px solid var(--line);border-radius:20px;padding:18px;box-shadow:var(--shadow)}
 .notice{border-left:5px solid var(--gold);background:rgba(240,180,41,.11);padding:14px 16px;border-radius:14px;font-weight:700;color:#f4e6c2}
 .notice.warn{border-left-color:var(--red);background:rgba(224,86,79,.12);color:#ffd9d6}
-code{background:rgba(0,0,0,.25);padding:.15em .35em;border-radius:.35em;color:#e8f8ff}
 .appbar{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 18px}
 .tab{border:1px solid var(--line);background:#06283d;color:var(--muted);font-weight:900;padding:10px 15px;border-radius:999px;cursor:pointer;font-size:.95rem}
 .tab[aria-selected="true"]{background:linear-gradient(135deg,#1479b5,#52c5ff);color:#fff;border-color:#7ad6ff}
@@ -77,6 +79,18 @@ label{display:block;font-weight:900;color:#cfe2ee;margin:0 0 6px;font-size:.85re
 .bar{height:8px;border-radius:999px;background:#02121d;overflow:hidden;border:1px solid var(--line);margin:8px 0 4px}
 .bar > i{display:block;height:100%;background:linear-gradient(90deg,#1479b5,#52c5ff);width:0%}
 .muted{color:var(--muted);font-weight:700;font-size:.9rem}
+.lb-row{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:#02121d;margin-bottom:8px}
+.lb-tag{flex:0 0 auto;width:64px;text-align:center;border-radius:8px;font-weight:900;font-size:.7rem;padding:6px 0}
+.card{transition:transform .18s,box-shadow .18s}
+.card:hover{transform:translateY(-2px);box-shadow:0 24px 56px rgba(0,0,0,.32)}
+.module{animation:fademod .3s ease}
+@keyframes fademod{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.steplist li{transition:background .15s}
+.steplist li:hover{background:#051f30}
+.tab{transition:all .2s}
+#engine-canvas{touch-action:none}
+.eng-legend{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 0}
+.eng-legend span{padding:4px 10px;border-radius:999px;font-weight:900;font-size:.72rem;cursor:pointer;border:1px solid transparent;transition:border-color .2s}
 footer{padding:30px 0 50px;border-top:1px solid rgba(255,255,255,.1);background:#021723;margin-top:28px}
 @media(max-width:760px){.navlinks{display:none}.kpi .box .v{font-size:1.5rem}}
 </style>
@@ -85,9 +99,10 @@ footer{padding:30px 0 50px;border-top:1px solid rgba(255,255,255,.1);background:
 <header><div class="wrap"><nav>
   <a class="brand" href="./">DHC-6 Trainer</a>
   <div class="navlinks">
+    <a href="index.html">Home</a>
     <a href="mobile.html">Mobile</a>
     <a href="desktop.html">Desktop</a>
-    <a href="live.html">Live Preview</a>
+    <a href="live.html">Live Trainer</a>
     <a href="changelog.html">Changelog</a>
     <a href="privacy.html">Privacy</a>
   </div>
@@ -95,13 +110,13 @@ footer{padding:30px 0 50px;border-top:1px solid rgba(255,255,255,.1);background:
 
 <main>
 <section class="hero"><div class="wrap">
-  <span class="eyebrow">Browser preview &middot; runs offline</span>
+  <span class="eyebrow">Browser trainer &middot; runs offline &middot; saves your progress</span>
   <h1>Live Web Trainer</h1>
-  <p class="lead">A limited, in-browser slice of the DHC-6 Trainer: a normal procedure, QRH memory items, a flashcard deck, the performance calculator, and a PF/PM cockpit callout drill. Content is drawn from the DHC-6 Series 300 AFM/POH, the operator QRH, and the Flight Crew Training Manual. The full mobile and desktop apps go further.</p>
+  <p class="lead">A working in-browser slice of the DHC-6 Trainer: normal procedures, QRH memory items, scored flashcards, the performance calculator, a PF/PM cockpit drill, a local logbook that records every session on this device, and an interactive 3D PT6A-27 engine cross-section. Content is drawn from the DHC-6 Series 300 AFM/POH, the operator QRH, and the Flight Crew Training Manual.</p>
   <div class="notice">Training support only. Always fly the approved AFM, QRH, company OM-B, and current regulatory documents. Figures here are for study/planning, not for operational use.</div>
   <div style="margin-top:16px;display:flex;gap:12px;flex-wrap:wrap">
-    <a class="btn primary" href="desktop.html">Request desktop access</a>
-    <a class="btn" href="mobile.html">Download mobile app</a>
+    <a class="btn primary" href="desktop.html">Get the desktop app</a>
+    <a class="btn" href="mobile.html">Get the mobile app</a>
   </div>
 </div></section>
 
@@ -112,8 +127,11 @@ footer{padding:30px 0 50px;border-top:1px solid rgba(255,255,255,.1);background:
     <button class="tab" role="tab" aria-selected="false" data-mod="flashcards">Flashcards</button>
     <button class="tab" role="tab" aria-selected="false" data-mod="performance">Performance</button>
     <button class="tab" role="tab" aria-selected="false" data-mod="drill">Cockpit Drill</button>
+    <button class="tab" role="tab" aria-selected="false" data-mod="logbook">Logbook</button>
+    <button class="tab" role="tab" aria-selected="false" data-mod="engine3d">3D Engine</button>
   </div>
 
+  <!-- PROCEDURES -->
   <div class="module active" id="mod-procedures">
     <div class="panel">
       <div class="row" style="align-items:center;justify-content:space-between">
@@ -133,6 +151,7 @@ footer{padding:30px 0 50px;border-top:1px solid rgba(255,255,255,.1);background:
     </div>
   </div>
 
+  <!-- QRH -->
   <div class="module" id="mod-qrh">
     <div class="panel">
       <div class="row" style="align-items:center;justify-content:space-between">
@@ -143,17 +162,18 @@ footer{padding:30px 0 50px;border-top:1px solid rgba(255,255,255,.1);background:
         </div>
       </div>
       <p id="qrh-ref" class="muted"></p>
-      <div style="margin:6px 0 4px"><span class="pill mem">&#9632; Memory item</span><span class="pill">Read &amp; do</span>
-          <div class="field"><label for="pf-oat">OAT (&deg;C)</label><input id="pf-oat" type="number" value="15"></div>
+      <div style="margin:6px 0 4px"><span class="pill mem">■ Memory item</span><span class="pill">Read &amp; do</span>
+        <button class="btn" id="qrh-toggle" style="float:right;padding:7px 13px">Hide memory items</button></div>
       <ol class="steplist" id="qrh-steps"></ol>
       <div id="qrh-note"></div>
     </div>
   </div>
 
+  <!-- FLASHCARDS -->
   <div class="module" id="mod-flashcards">
     <div class="panel">
-      <span class="tag">Flashcards &middot; limitations &amp; V-speeds</span>
-      <h2>PT6A-27 limits &amp; airspeeds</h2>
+      <span class="tag">Flashcards &middot; limitations &amp; systems</span>
+      <h2>PT6A-27 limits, airspeeds &amp; systems</h2>
       <p class="muted" id="fc-counter"></p>
       <div class="fcard card" id="fc-card" style="margin-bottom:14px">
         <div class="inner">
@@ -161,14 +181,16 @@ footer{padding:30px 0 50px;border-top:1px solid rgba(255,255,255,.1);background:
           <div class="face back"><div class="tag">Answer</div><div class="a" id="fc-a"></div><div class="sub" id="fc-note"></div></div>
         </div>
       </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <button class="btn" id="fc-prev">Previous</button>
-        <button class="btn primary" id="fc-next">Next card</button>
-        <button class="btn" id="fc-shuffle">Shuffle</button>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <button class="btn bad" id="fc-review">Review again</button>
+        <button class="btn good" id="fc-got">Got it</button>
+        <button class="btn" id="fc-shuffle">Shuffle &amp; restart</button>
+        <span class="pill ok" id="fc-score" style="margin-left:auto">Score 0 / 0</span>
       </div>
     </div>
   </div>
 
+  <!-- PERFORMANCE -->
   <div class="module" id="mod-performance">
     <div class="panel">
       <span class="tag">Performance planning demo</span>
@@ -192,13 +214,15 @@ footer{padding:30px 0 50px;border-top:1px solid rgba(255,255,255,.1);background:
         <div class="col">
           <div class="card">
             <div class="kpi" id="pf-out"></div>
-            <p class="muted" id="pf-disc" style="margin-top:14px"></p>
+            <div id="pf-flags" style="margin-top:12px"></div>
+            <p class="muted" id="pf-disc" style="margin-top:12px"></p>
           </div>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- DRILL -->
   <div class="module" id="mod-drill">
     <div class="panel drill">
       <span class="tag">Cockpit drill &middot; PF / PM callout</span>
@@ -212,37 +236,114 @@ footer{padding:30px 0 50px;border-top:1px solid rgba(255,255,255,.1);background:
         <div class="tag" style="text-align:center">Expected response / action</div>
         <div class="resp" id="drill-resp">&mdash; &mdash; &mdash;</div>
       </div>
-      <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+      <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
         <button class="btn gold" id="drill-reveal">Reveal response</button>
-        <button class="btn primary" id="drill-next" disabled>Confirmed &mdash; next</button>
+        <button class="btn bad" id="drill-miss" disabled>Missed</button>
+        <button class="btn good" id="drill-correct" disabled>Correct &mdash; next</button>
         <button class="btn" id="drill-restart">Restart drill</button>
+        <span class="pill ok" id="drill-score" style="margin-left:auto">Score 0 / 0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGBOOK -->
+  <div class="module" id="mod-logbook">
+    <div class="panel">
+      <span class="tag">Logbook &middot; saved on this device</span>
+      <h2>Your training logbook</h2>
+      <div class="kpi" id="lb-stats" style="margin-bottom:14px"></div>
+      <div id="lb-debrief"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin:14px 0 8px">
+        <span class="tag">Recent sessions</span>
+        <button class="btn bad" id="lb-clear" style="padding:7px 13px">Clear history</button>
+      </div>
+      <div id="lb-list"></div>
+    </div>
+  </div>
+
+  <!-- 3D ENGINE -->
+  <div class="module" id="mod-engine3d">
+    <div class="panel">
+      <span class="tag">Interactive 3D · PT6A-27 turboprop</span>
+      <h2>PT6A-27 engine cross-section</h2>
+      <p class="muted">Click a section to learn about it. Drag to rotate, scroll to zoom. Grounded in the FCTM / Technical DHC-6 aircraft information.</p>
+      <div class="row">
+        <div class="col" style="min-height:400px;flex:2 1 480px">
+          <canvas id="engine-canvas" style="width:100%;height:400px;border:1px solid var(--line);border-radius:20px;background:#010e18;cursor:grab"></canvas>
+        </div>
+        <div class="col" style="flex:1 1 260px">
+          <div class="card" id="engine-info">
+            <span class="tag" id="eng-tag">Select a component</span>
+            <h3 id="eng-name">PT6A-27 overview</h3>
+            <p id="eng-desc">The PT6A-27 is a free-turbine, reverse-flow turboprop producing 620 SHP (flat-rated). Air enters at the rear, flows forward through a three-stage axial plus one centrifugal compressor, reverses through an annular combustion chamber, then passes rearward through the compressor turbine and power turbine. The power turbine drives the propeller through a two-stage reduction gearbox at the front. This reverse-flow design keeps the propeller shaft short and the engine compact.</p>
+          </div>
+          <div class="notice" style="margin-top:10px">Training reference only. Refer to the P&amp;WC PT6A maintenance manual for official specifications.</div>
+        </div>
       </div>
     </div>
   </div>
 </div></section>
 </main>
 
-<footer><div class="wrap"><p>&copy; TJ Aeronautical &middot; DHC-6 Trainer &middot; Twin Otter study, QRH drills, and recurrent prep.</p><p>Training support only. Always use approved AFM, QRH, company procedures, and regulatory documents for operation.</p><p><a href="./">Home</a> &middot; <a href="mobile.html">Mobile</a> &middot; <a href="desktop.html">Desktop</a> &middot; <a href="access.html">Desktop access</a> &middot; <a href="privacy.html">Privacy</a> &middot; <a href="account-deletion.html">Account/Data Deletion</a></p></div></footer>
+<footer><div class="wrap">
+  <p>&copy; TJ Aeronautical &middot; DHC-6 Trainer. Training support only &mdash; always use the approved AFM, QRH, company procedures, and current regulatory documents for operation. Logbook data is stored only in this browser on this device.</p>
+</div></footer>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 "use strict";
 /* =========================================================================
-   DHC-6 Trainer &mdash; Live Web Preview
+   DHC-6 Trainer - Live Web Trainer
    Content grounded in: DHC-6 Series 300 AFM/POH (PSM 1-63),
    operator QRH (HBFO002, G950), and the Flight Crew Training Manual (HBTS-001).
    Performance model ported verbatim from the desktop PerformanceEngine.
    ========================================================================= */
 
+/* ---------- Local persistence (this device only) ---------- */
+var Store = (function () {
+  var KEY = "dhc6.trainer.v1";
+  var mem = { attempts: [], lastTab: "procedures", perf: {} };
+  function load() {
+    try { var raw = window.localStorage.getItem(KEY); if (raw) mem = Object.assign(mem, JSON.parse(raw)); }
+    catch (e) { /* private mode / disabled storage - fall back to in-memory */ }
+    if (!Array.isArray(mem.attempts)) mem.attempts = [];
+  }
+  function save() {
+    try { window.localStorage.setItem(KEY, JSON.stringify(mem)); } catch (e) {}
+  }
+  load();
+  return {
+    record: function (type, title, correct, total, sec) {
+      mem.attempts.unshift({ type: type, title: String(title).slice(0, 80), correct: correct, total: total, sec: sec, ts: Date.now() });
+      mem.attempts = mem.attempts.slice(0, 50);
+      save();
+    },
+    attempts: function () { return mem.attempts.slice(); },
+    sessions: function (type) { return mem.attempts.filter(function (a) { return a.type === type; }).length; },
+    best: function (type) {
+      return mem.attempts.filter(function (a) { return a.type === type; })
+        .reduce(function (m, a) { var p = a.total > 0 ? Math.round(a.correct * 100 / a.total) : 0; return p > m ? p : m; }, 0);
+    },
+    total: function () { return mem.attempts.length; },
+    clear: function () { mem.attempts = []; save(); },
+    setTab: function (t) { mem.lastTab = t; save(); },
+    getTab: function () { return mem.lastTab || "procedures"; },
+    setPerf: function (o) { mem.perf = o; save(); },
+    getPerf: function () { return mem.perf || {}; }
+  };
+})();
+
+/* ---------- Performance engine (ported 1:1 from Performanceengine.kt) ---------- */
 var PerformanceEngine = {
   BASE_GR_FT: 808.0, TO50_RATIO: 1.84, MTOW_LB: 12500.0, MLW_LB: 12300.0,
   BASE_LDG_FT: 1510.0, VLOF_MTOW_KT: 75.0, VS_MLW_FULL_FLAP_KT: 56.0,
   _clamp: function (v, lo, hi) { return Math.min(Math.max(v, lo), hi); },
-          <div class="field"><label for="pf-oat">OAT (&deg;C)</label><input id="pf-oat" type="number" value="15"></div>
+  computeTakeoff: function (elevationFt, oatC, weightLb, windKt, surface) {
     var w = this._clamp(weightLb, 7000.0, this.MTOW_LB);
     var weightFactor = Math.pow(w / this.MTOW_LB, 1.4);
     var altFactor = 1.0 + (elevationFt / 1000.0) * 0.035;
     var isaTemp = 15.0 - (elevationFt * 0.00198);
-          <div class="field"><label for="pf-oat">OAT (&deg;C)</label><input id="pf-oat" type="number" value="15"></div>
+    var tempDev = Math.max(oatC - isaTemp, 0.0);
     var tempFactor = 1.0 + (tempDev / 10.0) * 0.020;
     var windFactor;
     if (windKt > 0) windFactor = Math.max(1.0 - Math.min(windKt, 20) * 0.010, 0.72);
@@ -259,12 +360,12 @@ var PerformanceEngine = {
     var v2 = Math.trunc(vLof * 1.04);
     return { groundRollFt: Math.trunc(gr), distanceTo50Ft: Math.trunc(to50), vLofKt: vLof, v2Kt: v2 };
   },
-          <div class="field"><label for="pf-oat">OAT (&deg;C)</label><input id="pf-oat" type="number" value="15"></div>
+  computeLanding: function (elevationFt, oatC, weightLb, windKt, flaps) {
     var w = this._clamp(weightLb, 7000.0, this.MLW_LB);
     var weightFactor = Math.pow(w / this.MLW_LB, 1.4);
     var altFactor = 1.0 + (elevationFt / 1000.0) * 0.030;
     var isaTemp = 15.0 - (elevationFt * 0.00198);
-          <div class="field"><label for="pf-oat">OAT (&deg;C)</label><input id="pf-oat" type="number" value="15"></div>
+    var tempDev = Math.max(oatC - isaTemp, 0.0);
     var tempFactor = 1.0 + (tempDev / 10.0) * 0.015;
     var windFactor;
     if (windKt > 0) windFactor = Math.max(1.0 - Math.min(windKt, 20) * 0.008, 0.75);
@@ -281,11 +382,12 @@ var PerformanceEngine = {
   }
 };
 
+/* ---------- Content (grounded in project documents) ---------- */
 var PROCEDURES = [
   {
     title: "Before Starting Engines",
     ref: "AFM/POH Section 4.5 (Normal Procedures)",
-    caution: "WARNING &mdash; Engine start is prohibited if the hydraulic oil pump circuit breaker is pulled out or the electrically powered hydraulic oil pump is inoperative.",
+    caution: "WARNING - Engine start is prohibited if the hydraulic oil pump circuit breaker is pulled out or the electrically powered hydraulic oil pump is inoperative.",
     steps: [
       ["Exterior Check Checklist", "Completed"],
       ["Cockpit Preparation Checklist", "Completed"],
@@ -293,16 +395,16 @@ var PROCEDURES = [
       ["Preflight Weight & Balance Checks", "Completed"],
       ["Passenger Briefing", "Complete"],
       ["HYD OIL PUMP circuit breaker", "Confirm NOT pulled out"],
-      ["Hydraulic pressures", "Both above 1,300 PSI (1,500 typical)"],
+      ["Hydraulic pressures", "Within 1,225-1,625 PSI band"],
       ["Fuel quantity", "Sufficient for planned flight"],
-      ["AFT BOOST & FWD BOOST switches", "ON &mdash; all four boost pump caution lights out"],
+      ["AFT BOOST & FWD BOOST switches", "ON - all four boost pump caution lights out"],
       ["Red Anti-Collision Beacon", "ON"]
     ]
   },
   {
-    title: "Starting Engines &mdash; External Power Start",
+    title: "Starting Engines - External Power Start",
     ref: "AFM/POH Section 4.6.1",
-    caution: "CAUTION &mdash; Do not move the engine FUEL lever to ON before stabilized NG is reached. Minimum stabilized NG to introduce fuel is 12%. With external power, the right engine is normally started first to minimise wind blast toward ground crew on the left.",
+    caution: "CAUTION - Do not move the engine FUEL lever to ON before stabilized NG is reached. Minimum stabilized NG to introduce fuel is 12%. With external power, the right engine is normally started first to minimise wind blast toward ground crew on the left.",
     steps: [
       ["EXTERNAL / BATTERY switch", "EXTERNAL"],
       ["Voltmeter", "Confirm 28 V external power present"],
@@ -320,7 +422,7 @@ var QRH = [
   {
     title: "Engine Fire / Failure In-Flight or In-Flight Shutdown",
     ref: "QRH Engine page EN-3 (auto-feather OFF, after AFTER-TAKEOFF checklist)",
-    note: "NOTE &mdash; Setting max power on the unaffected engine: advance to the first of torque, T5, or NG limit; ensure unaffected PROP lever at MAX (96% NP). Steps marked &#9632; are memory items.",
+    note: "NOTE - Setting max power on the unaffected engine: advance to the first of torque, T5, or NG limit; ensure unaffected PROP lever at MAX (96% NP). Steps marked ■ are memory items.",
     steps: [
       ["MASTER WARNING", "CANCEL", false],
       ["POWER & PROP levers (unaffected engine)", "MAX POWER", false],
@@ -339,9 +441,9 @@ var QRH = [
     ]
   },
   {
-    title: "Engine Fire &mdash; On Ground",
-    ref: "QRH / OM-B(V1) 3.11.1 &mdash; Engine page EN-1",
-    note: "If applicable, park/beach/secure the aircraft first with the fire on the downwind side before completing the drill. Steps marked &#9632; are memory items.",
+    title: "Engine Fire - On Ground",
+    ref: "QRH / OM-B(V1) 3.11.1 - Engine page EN-1",
+    note: "If applicable, park/beach/secure the aircraft first with the fire on the downwind side before completing the drill. Steps marked ■ are memory items.",
     steps: [
       ["MASTER WARNING", "CANCEL", false],
       ["POWER levers (both engines)", "IDLE", M],
@@ -355,57 +457,90 @@ var QRH = [
       ["Evacuate aircraft", "When propellers have stopped spinning", false],
       ["Portable fire extinguisher", "Apply into exhaust (if required & safe)", false]
     ]
+  },
+  {
+    title: "Generator Fail (L / R GEN FAIL)",
+    ref: "QRH / OM-B(V1) 3.12.2.2 - Electrical page EC-2",
+    note: "CAUTION - Do not hold the GENERATOR switch in RESET, and make no more than two reset attempts. The GEN RESET circuit breaker is in the engine nacelle and cannot be reset in flight. Steps marked ■ are memory items.",
+    steps: [
+      ["GENERATOR switch (affected engine)", "OFF", M],
+      ["GENERATOR switch (affected engine)", "RESET ONCE", false],
+      ["GEN FAIL CAS message (affected)", "Check extinguished", false],
+      ["BUS TIE switch  (if not reset)", "OPEN", false],
+      ["GENERATOR switch (affected engine)", "RESET ONCE", false],
+      ["GEN FAIL CAS message (affected)", "Check extinguished", false],
+      ["DC LOADMETER", "Check generator loads", false],
+      ["GENERATOR switch (affected engine, if still not reset)", "OFF", M],
+      ["BUS TIE switch", "NORMAL", false],
+      ["DC LOADMETER", "Check (max 1.0 single generator in flight)", false]
+    ]
   }
 ];
 
 var FLASHCARDS = [
   { cat: "Powerplant limit", q: "Maximum permissible sustained torque (PT6A-27)?", a: "50 PSI", note: "= 620 SHP at 96% NP (airframe restriction)." },
-  { cat: "Powerplant limit", q: "Max T5 &mdash; take-off & max continuous?", a: "725 &deg;C", note: "Max climb/cruise T5 limit is 695 &deg;C." },
-  { cat: "Powerplant limit", q: "Max Ng &mdash; take-off & max continuous?", a: "101.5 %", note: "Acceleration (2 sec) limit is 102.6%." },
-  { cat: "Powerplant limit", q: "Max Np &mdash; take-off & max continuous?", a: "96 %", note: "Acceleration Np limit (2 sec) is 110%." },
-  { cat: "Powerplant limit", q: "Normal oil pressure range?", a: "80&ndash;100 PSI", note: "Above 72% NG with oil temp 60&ndash;70 &deg;C." },
+  { cat: "Powerplant limit", q: "Max T5 - take-off & max continuous?", a: "725 °C", note: "Max climb/cruise T5 limit is 695 °C." },
+  { cat: "Powerplant limit", q: "Max Ng - take-off & max continuous?", a: "101.5 %", note: "Green arc 50-101.5%; acceleration (2 sec) 102.6%." },
+  { cat: "Powerplant limit", q: "Max Np (propeller) red radial?", a: "96 %", note: "Green arc 75-91% post-mod 6/1687; accel Np 110%." },
+  { cat: "Powerplant limit", q: "Normal oil pressure range?", a: "80-100 PSI", note: "Above 72% NG with oil temp 60-70 °C; min red radial 40 PSI." },
   { cat: "Powerplant limit", q: "Oil pressure that is unsafe?", a: "Below 40 PSI", note: "Shut down or land ASAP using minimum power needed." },
-  { cat: "Powerplant limit", q: "Max T5 during starting (time-limited 2 sec)?", a: "1090 &deg;C", note: "Idle T5 limit is 660 &deg;C." },
-  { cat: "Powerplant limit", q: "Reverse power time limit?", a: "1 minute", note: "Max reverse: T5 725 &deg;C, Np 91 &plusmn;1%." },
+  { cat: "Powerplant limit", q: "Max oil temperature?", a: "99 °C", note: "Green 10-99 °C; yellow -40 to +10 °C; min for start -40 °C." },
+  { cat: "Powerplant limit", q: "Max T5 during starting (2 sec limit)?", a: "1090 °C", note: "Idle T5 limit is 660 °C." },
+  { cat: "Powerplant limit", q: "Reverse power time limit?", a: "1 minute", note: "Max reverse: T5 725 °C, Np 91 ±1%." },
   { cat: "Airspeed (KCAS)", q: "VMC (air minimum control speed)?", a: "66 KCAS", note: "Red radial line (TC/US ASI markings)." },
   { cat: "Airspeed (KCAS)", q: "VMO (max operating speed, post-mod)?", a: "170 KCAS", note: "Top of the green arc / red radial." },
   { cat: "Airspeed (KCAS)", q: "VYSE (best single-engine ROC)?", a: "82 KCAS", note: "Blue radial line." },
   { cat: "Airspeed (KCAS)", q: "VS1 (stall, clean)?", a: "74 KCAS", note: "Bottom of the green arc." },
   { cat: "Airspeed (KCAS)", q: "VS0 (stall, landing config)?", a: "58 KCAS", note: "Bottom of the white arc." },
   { cat: "Airspeed (KCAS)", q: "VFE (max flap-extended)?", a: "95 KCAS", note: "Top of the white arc." },
-  { cat: "Weights", q: "Maximum take-off weight (Series 300)?", a: "12,500 lb", note: "Max landing weight is 12,300 lb." }
+  { cat: "Weights", q: "Maximum take-off weight (Series 300)?", a: "12,500 lb", note: "Max landing weight is 12,300 lb." },
+  { cat: "Fuel system", q: "Forward fuel tank capacity?", a: "183 US gal", note: "152 Imp gal (691 L); feeds the RIGHT engine (cells 1-4)." },
+  { cat: "Fuel system", q: "Aft fuel tank capacity?", a: "200 US gal", note: "166 Imp gal (755 L); feeds the LEFT engine (cells 5-8)." },
+  { cat: "Fuel system", q: "Usable fuel (gravimetric, both tanks)?", a: "2,548 lb", note: "At +15 °C, JET-A/A1; gross 2,574 lb." },
+  { cat: "Oil system", q: "Engine oil tank usable quantity (each)?", a: "1.5 US gal", note: "1.3 Imp gal usable; 2.3 US gal (1.9 Imp) total." },
+  { cat: "Hydraulics", q: "Hydraulic fluid type & system pressure?", a: "MIL-H-5606", note: "System pressure 1,225-1,625 psi; reservoir 0.66 USG." },
+  { cat: "Electrical", q: "Main battery rating?", a: "24 V, 48 Ah", note: "Lead-acid; powers left bus, and right bus via BUS TIE NORMAL." },
+  { cat: "Electrical", q: "Starter-generator rating (each)?", a: "28.5 VDC, 200 A", note: "Two units; max recommended load difference 0.1 (20 A)." },
+  { cat: "Electrical", q: "Max single-generator load in flight?", a: "Loadmeter 1.0", note: "= 200 A; shed non-essential loads on single-gen ops." },
+  { cat: "Electrical", q: "Low oil pressure caution light comes on at?", a: "40-42 PSI", note: "Goes out again at 44-46 PSI." }
 ];
 
 var DRILL = {
-  title: "Engine Fire In-Flight &mdash; PF/PM memory items",
+  title: "Engine Fire In-Flight - PF/PM memory items",
   ctx: "Source: Flight Crew Training Manual (simulated emergencies). At first sign of fire: CONFIRM, then set MAX POWER on the unaffected engine. When the decision is made to secure the affected engine, run the memory items below. Touch-confirm each control, then act.",
   steps: [
-    ["CONFIRM &mdash; L/R ENGINE POWER LEVER", "RETARD (to 10 PSI)"],
-    ["CONFIRM &mdash; L/R PROP LEVER", "FEATHER"],
-    ["CONFIRM &mdash; L/R ENGINE FUEL LEVER", "OFF"],
-    ["CONFIRM &mdash; L/R ENGINE FUEL EMERGENCY (SOV) SWITCH", "OFF (check illuminated)"],
-    ["CONFIRM &mdash; L/R ENGINE FIRE EXTINGUISHER", "PUSH (discharged)"],
-    ["CONFIRM &mdash; L/R FUEL BOOST PUMP", "OFF"]
+    ["CONFIRM - L/R ENGINE POWER LEVER", "RETARD (to 10 PSI)"],
+    ["CONFIRM - L/R PROP LEVER", "FEATHER"],
+    ["CONFIRM - L/R ENGINE FUEL LEVER", "OFF"],
+    ["CONFIRM - L/R ENGINE FUEL EMERGENCY (SOV) SWITCH", "OFF (check illuminated)"],
+    ["CONFIRM - L/R ENGINE FIRE EXTINGUISHER", "PUSH (discharged)"],
+    ["CONFIRM - L/R FUEL BOOST PUMP", "OFF"]
   ]
 };
 
+/* ---------- Helpers ---------- */
 function $(id){ return document.getElementById(id); }
 function el(tag, cls, html){ var e=document.createElement(tag); if(cls)e.className=cls; if(html!=null)e.innerHTML=html; return e; }
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function now(){ return Date.now(); }
 
+/* ---------- Tabs (with persistence) ---------- */
 var tabs = document.querySelectorAll('.appbar [data-mod]');
-tabs.forEach(function (t) {
-  t.addEventListener('click', function () {
-    tabs.forEach(function (x) { x.setAttribute('aria-selected', 'false'); });
-    t.setAttribute('aria-selected', 'true');
-    document.querySelectorAll('.module').forEach(function (m) { m.classList.remove('active'); });
-    $('mod-' + t.dataset.mod).classList.add('active');
-  });
-});
+function selectTab(mod) {
+  tabs.forEach(function (x) { x.setAttribute('aria-selected', x.dataset.mod === mod ? 'true' : 'false'); });
+  document.querySelectorAll('.module').forEach(function (m) { m.classList.remove('active'); });
+  var t = $('mod-' + mod); if (t) t.classList.add('active');
+  Store.setTab(mod);
+  if (mod === 'logbook') renderLogbook();
+}
+tabs.forEach(function (t) { t.addEventListener('click', function () { selectTab(t.dataset.mod); }); });
 
+/* ---------- Procedures ---------- */
 var procSel = $('proc-select');
 PROCEDURES.forEach(function (p, i) { procSel.appendChild(new Option(p.title, i)); });
+var procLogged = false;
 function renderProc(i) {
+  procLogged = false;
   var p = PROCEDURES[i];
   $('proc-title').textContent = p.title;
   $('proc-ref').textContent = p.ref;
@@ -416,21 +551,26 @@ function renderProc(i) {
     li.innerHTML = '<span class="n">' + (n + 1) + '</span><span class="txt"><b>' + esc(s[0]) + '</b> &mdash; <span class="set">' + esc(s[1]) + '</span></span>';
     li.addEventListener('click', function () {
       var d = li.dataset.done === '1'; li.dataset.done = d ? '0' : '1';
-      li.classList.toggle('done', !d); updateProcProgress();
+      li.classList.toggle('done', !d); updateProcProgress(i);
     });
     ol.appendChild(li);
   });
-  updateProcProgress();
+  updateProcProgress(i);
 }
-function updateProcProgress() {
+function updateProcProgress(i) {
   var items = $('proc-steps').querySelectorAll('li');
   var done = $('proc-steps').querySelectorAll('li.done').length;
   $('proc-progress').textContent = done + ' of ' + items.length + ' complete';
+  if (!procLogged && items.length > 0 && done === items.length) {
+    procLogged = true;
+    Store.record('PROC', PROCEDURES[i].title, done, items.length, 0);
+  }
 }
 procSel.addEventListener('change', function () { renderProc(+procSel.value); });
 $('proc-reset').addEventListener('click', function () { renderProc(+procSel.value); });
 renderProc(0);
 
+/* ---------- QRH ---------- */
 var qrhSel = $('qrh-select');
 QRH.forEach(function (q, i) { qrhSel.appendChild(new Option(q.title, i)); });
 var showMem = true;
@@ -438,15 +578,15 @@ function renderQrh(i) {
   var q = QRH[i];
   $('qrh-title').textContent = q.title;
   $('qrh-ref').textContent = q.ref;
-  $('qrh-note').innerHTML = q.note ? '<div class="notice">' + esc(q.note) + '</div>' : '';
+  $('qrh-note').innerHTML = q.note ? '<div class="notice">' + q.note + '</div>' : '';
   var ol = $('qrh-steps'); ol.innerHTML = '';
   q.steps.forEach(function (s, n) {
     var mem = s[2] === true;
     var li = el('li', mem ? 'mem' : '');
     li.dataset.done = '0';
-    var label = mem ? '&#9632; ' : '';
-    var setText = (mem && !showMem) ? '&bull;&bull;&bull;&bull;&bull;&bull;' : s[1];
-    li.innerHTML = '<span class="n">' + (n + 1) + '</span><span class="txt"><b>' + label + esc(s[0]) + '</b> &mdash; <span class="set">' + esc(setText) + '</span></span>';
+    var label = mem ? '■ ' : '';
+    var setText = (mem && !showMem) ? '&bull;&bull;&bull;&bull;&bull;&bull;' : esc(s[1]);
+    li.innerHTML = '<span class="n">' + (n + 1) + '</span><span class="txt"><b>' + label + esc(s[0]) + '</b> &mdash; <span class="set">' + setText + '</span></span>';
     li.addEventListener('click', function () {
       var d = li.dataset.done === '1'; li.dataset.done = d ? '0' : '1'; li.classList.toggle('done', !d);
     });
@@ -461,8 +601,13 @@ $('qrh-toggle').addEventListener('click', function () {
 });
 renderQrh(0);
 
-var fcOrder = FLASHCARDS.map(function (_, i) { return i; });
-var fcPos = 0;
+/* ---------- Flashcards (scored) ---------- */
+var fcOrder = [], fcPos = 0, fcCorrect = 0, fcStart = 0;
+function fcReset() {
+  fcOrder = FLASHCARDS.map(function (_, i) { return i; });
+  for (var i = fcOrder.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = fcOrder[i]; fcOrder[i] = fcOrder[j]; fcOrder[j] = t; }
+  fcPos = 0; fcCorrect = 0; fcStart = now(); renderFc();
+}
 function renderFc() {
   var c = FLASHCARDS[fcOrder[fcPos]];
   $('fc-card').classList.remove('flipped');
@@ -471,16 +616,31 @@ function renderFc() {
   $('fc-a').textContent = c.a;
   $('fc-note').textContent = c.note || '';
   $('fc-counter').textContent = 'Card ' + (fcPos + 1) + ' of ' + FLASHCARDS.length;
+  $('fc-score').textContent = 'Score ' + fcCorrect + ' / ' + fcPos;
+}
+function fcRate(correct) {
+  if (correct) fcCorrect++;
+  fcPos++;
+  if (fcPos >= FLASHCARDS.length) {
+    Store.record('CARDS', 'Flashcard deck', fcCorrect, FLASHCARDS.length, Math.round((now() - fcStart) / 1000));
+    $('fc-q').textContent = 'Deck complete';
+    $('fc-a').textContent = fcCorrect + ' / ' + FLASHCARDS.length;
+    $('fc-note').textContent = 'Saved to your logbook. Shuffle & restart to run again.';
+    $('fc-card').classList.add('flipped');
+    $('fc-score').textContent = 'Score ' + fcCorrect + ' / ' + FLASHCARDS.length;
+    $('fc-got').disabled = true; $('fc-review').disabled = true;
+  } else {
+    $('fc-got').disabled = false; $('fc-review').disabled = false;
+    renderFc();
+  }
 }
 $('fc-card').addEventListener('click', function () { $('fc-card').classList.toggle('flipped'); });
-$('fc-next').addEventListener('click', function () { fcPos = (fcPos + 1) % FLASHCARDS.length; renderFc(); });
-$('fc-prev').addEventListener('click', function () { fcPos = (fcPos - 1 + FLASHCARDS.length) % FLASHCARDS.length; renderFc(); });
-$('fc-shuffle').addEventListener('click', function () {
-  for (var i = fcOrder.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = fcOrder[i]; fcOrder[i] = fcOrder[j]; fcOrder[j] = t; }
-  fcPos = 0; renderFc();
-});
-renderFc();
+$('fc-got').addEventListener('click', function () { fcRate(true); });
+$('fc-review').addEventListener('click', function () { fcRate(false); });
+$('fc-shuffle').addEventListener('click', function () { $('fc-got').disabled = false; $('fc-review').disabled = false; fcReset(); });
+fcReset();
 
+/* ---------- Performance (with safety flags) ---------- */
 var pfMode = 'to';
 function setPfMode(m) {
   pfMode = m;
@@ -493,53 +653,277 @@ function setPfMode(m) {
 function box(v, l) { return '<div class="box"><div class="v">' + v + '</div><div class="l">' + l + '</div></div>'; }
 function calcPf() {
   var elev = parseInt($('pf-elev').value, 10) || 0;
-          <div class="field"><label for="pf-oat">OAT (&deg;C)</label><input id="pf-oat" type="number" value="15"></div>
+  var oat = parseInt($('pf-oat').value, 10) || 0;
   var wt = parseInt($('pf-wt').value, 10) || 0;
   var wind = parseInt($('pf-wind').value, 10) || 0;
   var out = $('pf-out');
+  var flags = [];
   if (pfMode === 'to') {
-          <div class="field"><label for="pf-oat">OAT (&deg;C)</label><input id="pf-oat" type="number" value="15"></div>
+    var r = PerformanceEngine.computeTakeoff(elev, oat, wt, wind, $('pf-surface').value);
     out.innerHTML = box(r.groundRollFt.toLocaleString() + ' ft', 'Ground roll') +
       box(r.distanceTo50Ft.toLocaleString() + ' ft', 'To 50 ft') +
       box(r.vLofKt + ' kt', 'VLOF') + box(r.v2Kt + ' kt', 'V2');
+    if (wt > 12500) flags.push('Weight exceeds MTOW 12,500 lb');
   } else {
-          <div class="field"><label for="pf-oat">OAT (&deg;C)</label><input id="pf-oat" type="number" value="15"></div>
-    out.innerHTML = box(l.distanceFrom50Ft.toLocaleString() + ' ft', 'Landing from 50 ft') +
-      box(l.vRefKt + ' kt', 'VREF');
+    var l = PerformanceEngine.computeLanding(elev, oat, wt, wind, $('pf-flaps').value);
+    out.innerHTML = box(l.distanceFrom50Ft.toLocaleString() + ' ft', 'Landing from 50 ft') + box(l.vRefKt + ' kt', 'VREF');
+    if (wt > 12300) flags.push('Weight exceeds MLW 12,300 lb');
   }
-  $('pf-disc').textContent = 'Planning only &mdash; refer to AFM Section 5 for operations.';
+  if (wind < -10) flags.push('Tailwind exceeds 10 kt - check AFM tailwind limit');
+  $('pf-flags').innerHTML = flags.length ? '<div class="notice warn">' + flags.map(esc).join('<br>') + '</div>' : '';
+  $('pf-disc').textContent = 'Planning only - refer to AFM Section 5 for operations.';
+  Store.setPerf({ elev: elev, oat: oat, wt: wt, wind: wind, surface: $('pf-surface').value, flaps: $('pf-flaps').value, mode: pfMode });
 }
 $('pf-to').addEventListener('click', function () { setPfMode('to'); });
 $('pf-ldg').addEventListener('click', function () { setPfMode('ldg'); });
-          <div class="field"><label for="pf-oat">OAT (&deg;C)</label><input id="pf-oat" type="number" value="15"></div>
+['pf-elev', 'pf-oat', 'pf-wt', 'pf-wind', 'pf-surface', 'pf-flaps'].forEach(function (id) {
   $(id).addEventListener('input', calcPf); $(id).addEventListener('change', calcPf);
 });
-calcPf();
+(function restorePerf() {
+  var p = Store.getPerf();
+  if (p && typeof p.wt !== 'undefined') {
+    $('pf-elev').value = p.elev; $('pf-oat').value = p.oat; $('pf-wt').value = p.wt; $('pf-wind').value = p.wind;
+    if (p.surface) $('pf-surface').value = p.surface;
+    if (p.flaps) $('pf-flaps').value = p.flaps;
+  }
+  setPfMode((p && p.mode) || 'to');
+})();
 
-var drillPos = 0, drillRevealed = false;
+/* ---------- Cockpit drill (scored) ---------- */
+var drillPos = 0, drillRevealed = false, drillCorrect = 0, drillStart = 0;
 $('drill-title').textContent = DRILL.title;
 $('drill-ctx').textContent = DRILL.ctx;
 function renderDrill() {
   var s = DRILL.steps[drillPos];
   $('drill-call').textContent = s[0];
-  $('drill-resp').textContent = drillRevealed ? s[1] : '&mdash; &mdash; &mdash;';
+  $('drill-resp').innerHTML = drillRevealed ? esc(s[1]) : '&mdash; &mdash; &mdash;';
   $('drill-bar').style.width = Math.round((drillPos) / DRILL.steps.length * 100) + '%';
   $('drill-count').textContent = 'Memory item ' + (drillPos + 1) + ' of ' + DRILL.steps.length;
-  $('drill-next').disabled = !drillRevealed;
+  $('drill-score').textContent = 'Score ' + drillCorrect + ' / ' + drillPos;
+  $('drill-reveal').disabled = drillRevealed;
+  $('drill-correct').disabled = !drillRevealed;
+  $('drill-miss').disabled = !drillRevealed;
+}
+function drillRestart() { drillPos = 0; drillRevealed = false; drillCorrect = 0; drillStart = now(); renderDrill(); }
+function drillRate(correct) {
+  if (correct) drillCorrect++;
+  drillPos++; drillRevealed = false;
+  if (drillPos >= DRILL.steps.length) {
+    Store.record('DRILL', 'Engine Fire In-Flight', drillCorrect, DRILL.steps.length, Math.round((now() - drillStart) / 1000));
+    $('drill-call').textContent = 'MEMORY ITEMS COMPLETE';
+    $('drill-resp').innerHTML = '&rarr; Action remaining QRH items';
+    $('drill-bar').style.width = '100%';
+    $('drill-count').textContent = 'Saved to logbook  -  ' + drillCorrect + ' / ' + DRILL.steps.length;
+    $('drill-score').textContent = 'Score ' + drillCorrect + ' / ' + DRILL.steps.length;
+    $('drill-reveal').disabled = true; $('drill-correct').disabled = true; $('drill-miss').disabled = true;
+  } else {
+    renderDrill();
+  }
 }
 $('drill-reveal').addEventListener('click', function () { drillRevealed = true; renderDrill(); });
-$('drill-next').addEventListener('click', function () {
-  if (drillPos < DRILL.steps.length - 1) { drillPos++; drillRevealed = false; renderDrill(); }
-  else {
-    $('drill-call').textContent = 'MEMORY ITEMS COMPLETE';
-    $('drill-resp').textContent = '&rarr; Action remaining QRH items';
-    $('drill-bar').style.width = '100%';
-    $('drill-count').textContent = DRILL.steps.length + ' of ' + DRILL.steps.length + ' &mdash; complete';
-    $('drill-next').disabled = true;
+$('drill-correct').addEventListener('click', function () { drillRate(true); });
+$('drill-miss').addEventListener('click', function () { drillRate(false); });
+$('drill-restart').addEventListener('click', drillRestart);
+drillRestart();
+
+/* ---------- Logbook ---------- */
+function fmtDate(ts) {
+  try { return new Date(ts).toLocaleString(undefined, { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }); }
+  catch (e) { return ''; }
+}
+function fmtTime(sec) { var m = Math.floor(sec / 60), s = sec % 60; return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s; }
+var TYPE_LABEL = { CARDS: 'CARDS', DRILL: 'DRILL', PROC: 'PROC' };
+var TYPE_COLOR = { CARDS: '#48b9ff', DRILL: '#22c55e', PROC: '#f0b429' };
+function renderLogbook() {
+  var attempts = Store.attempts();
+  $('lb-stats').innerHTML =
+    box(Store.total(), 'Total sessions') +
+    box(Store.sessions('CARDS') > 0 ? Store.best('CARDS') + '%' : '\u2014', 'Flashcards best') +
+    box(Store.sessions('DRILL') > 0 ? Store.best('DRILL') + '%' : '\u2014', 'Drill best');
+
+  if (attempts.length === 0) {
+    $('lb-debrief').innerHTML = '';
+    $('lb-list').innerHTML = '<div class="card"><b>No sessions recorded yet.</b><p class="muted" style="margin:8px 0 0">Finish a flashcard deck or a cockpit drill and your scores, times, and weak areas will appear here. History is saved only in this browser on this device.</p></div>';
+    return;
   }
+
+  // Weak areas: scored sessions (CARDS/DRILL) grouped by title, lowest average first
+  var scored = attempts.filter(function (a) { return a.type !== 'PROC' && a.total > 0; });
+  var byTitle = {};
+  scored.forEach(function (a) {
+    var k = a.type + ' · ' + a.title;
+    (byTitle[k] = byTitle[k] || []).push(Math.round(a.correct * 100 / a.total));
+  });
+  var weak = Object.keys(byTitle).map(function (k) {
+    var arr = byTitle[k]; var avg = Math.round(arr.reduce(function (x, y) { return x + y; }, 0) / arr.length);
+    return { k: k, avg: avg, n: arr.length };
+  }).sort(function (a, b) { return a.avg - b.avg; }).slice(0, 3);
+
+  $('lb-debrief').innerHTML = weak.length
+    ? '<div class="card"><span class="tag" style="color:var(--gold)">Debrief &mdash; focus areas</span>' +
+      weak.map(function (w) {
+        return '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">' +
+          '<span style="font-weight:700">' + esc(w.k) + '</span>' +
+          '<b style="color:' + (w.avg < 70 ? 'var(--red)' : 'var(--muted)') + '">' + w.avg + '% avg &middot; ' + w.n + '</b></div>';
+      }).join('') + '</div>'
+    : '';
+
+  $('lb-list').innerHTML = attempts.map(function (a) {
+    var pct = a.total > 0 ? Math.round(a.correct * 100 / a.total) : 0;
+    var col = TYPE_COLOR[a.type] || '#48b9ff';
+    var right = a.type === 'PROC'
+      ? '<b style="color:var(--green)">' + a.correct + '/' + a.total + ' done</b>'
+      : '<b style="color:' + (pct >= 70 ? 'var(--green)' : 'var(--red)') + '">' + a.correct + '/' + a.total + ' (' + pct + '%)</b>';
+    return '<div class="lb-row">' +
+      '<span class="lb-tag" style="background:' + col + '22;color:' + col + '">' + (TYPE_LABEL[a.type] || a.type) + '</span>' +
+      '<div style="flex:1;min-width:0"><div style="font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(a.title) + '</div>' +
+      '<div class="muted" style="font-size:.8rem">' + fmtDate(a.ts) + (a.sec ? '  &middot;  ' + fmtTime(a.sec) : '') + '</div></div>' +
+      right + '</div>';
+  }).join('');
+}
+$('lb-clear').addEventListener('click', function () {
+  Store.clear(); renderLogbook();
 });
-$('drill-restart').addEventListener('click', function () { drillPos = 0; drillRevealed = false; renderDrill(); });
-renderDrill();
+
+/* ---------- 3D Engine (Three.js PT6A-27 cross-section) ---------- */
+var eng3dReady = false;
+function initEngine3d() {
+  if (eng3dReady || typeof THREE === 'undefined') return;
+  eng3dReady = true;
+  var canvas = $('engine-canvas');
+  var w = canvas.clientWidth || 700, h = canvas.clientHeight || 400;
+  var scene = new THREE.Scene();
+  var camera = new THREE.PerspectiveCamera(42, w / h, 0.1, 100);
+  camera.position.set(0, 3, 10);
+  camera.lookAt(0, 0, 0);
+  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+  renderer.setSize(w, h);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+  scene.add(new THREE.AmbientLight(0x8899bb, 0.6));
+  var dLight = new THREE.DirectionalLight(0xffffff, 0.9);
+  dLight.position.set(4, 6, 8);
+  scene.add(dLight);
+
+  var group = new THREE.Group();
+  scene.add(group);
+
+  var ENGINE_PARTS = [
+    { name: "Propeller shaft", color: 0x667788, x: -3.2, r: 0.12, h: 1.6, tag: "Output", desc: "Output shaft from the reduction gearbox to the constant-speed propeller. The prop lever controls feather, normal, and reverse range via the propeller governor and beta valve." },
+    { name: "Reduction gearbox", color: 0x1a6e7a, x: -1.8, r: 0.65, h: 1.0, tag: "Gearbox", desc: "Two-stage planetary reduction gearbox reducing power-turbine speed to propeller speed (ratio ~15:1). Houses the propeller brake, tachometer generator, and torque sensor (torquemeter)." },
+    { name: "Axial compressor (3 stages)", color: 0x2288cc, x: -0.5, r: 0.52, h: 1.4, tag: "Compressor", desc: "Three axial compressor stages. Air enters at the rear of the engine and flows forward through the axial stages before reaching the centrifugal stage. Combined compression ratio ~6.3:1." },
+    { name: "Centrifugal compressor", color: 0x44aaee, x: 0.6, r: 0.62, h: 0.6, tag: "Compressor", desc: "Single centrifugal compressor stage. Receives air from the axial stages and accelerates it radially outward into the diffuser and then into the reverse-flow combustion chamber." },
+    { name: "Combustion chamber", color: 0xdd7722, x: 1.5, r: 0.78, h: 1.0, tag: "Combustion", desc: "Reverse-flow annular combustion chamber with 14 fuel nozzles. Hot gases reverse direction (flow rearward) to reach the turbine stages. This reverse-flow layout keeps the engine short and places the propeller shaft at the front." },
+    { name: "Compressor turbine (CT)", color: 0x33aa55, x: 2.4, r: 0.55, h: 0.35, tag: "Gas generator", desc: "Single-stage compressor turbine. Extracts energy to drive the compressor and accessories via the NG (gas generator) shaft. NG speed is the primary engine power reference." },
+    { name: "Power turbine (PT)", color: 0x88cc33, x: 3.0, r: 0.50, h: 0.35, tag: "Free turbine", desc: "Single-stage free power turbine. Mechanically independent of the gas generator — the 'free' in free turbine. Drives the propeller through the reduction gearbox via a separate concentric shaft. Speed measured as NP (propeller RPM)." },
+    { name: "Exhaust section", color: 0x8899aa, x: 3.7, r: 0.40, h: 0.6, tag: "Exhaust", desc: "Exhaust gases exit rearward after passing through the power turbine. The exhaust stack incorporates the T5 (ITT) thermocouple ring for inter-turbine temperature measurement." }
+  ];
+
+  var meshes = [];
+  ENGINE_PARTS.forEach(function (p) {
+    var geo = new THREE.CylinderGeometry(p.r, p.r * (p.name.indexOf('Exhaust') >= 0 ? 0.6 : 1), p.h, 32);
+    var mat = new THREE.MeshStandardMaterial({ color: p.color, metalness: 0.4, roughness: 0.45 });
+    var mesh = new THREE.Mesh(geo, mat);
+    mesh.rotation.z = Math.PI / 2;
+    mesh.position.x = p.x;
+    mesh.userData = p;
+    group.add(mesh);
+    meshes.push(mesh);
+  });
+
+  // Center shaft line
+  var shaftGeo = new THREE.CylinderGeometry(0.06, 0.06, 8.0, 12);
+  var shaftMat = new THREE.MeshStandardMaterial({ color: 0x334455, metalness: 0.6, roughness: 0.3 });
+  var shaft = new THREE.Mesh(shaftGeo, shaftMat);
+  shaft.rotation.z = Math.PI / 2;
+  shaft.position.x = 0.2;
+  group.add(shaft);
+
+  // Legend under canvas
+  var legendDiv = document.createElement('div');
+  legendDiv.className = 'eng-legend';
+  ENGINE_PARTS.forEach(function (p, i) {
+    var sp = document.createElement('span');
+    sp.textContent = p.name;
+    sp.style.background = '#' + p.color.toString(16).padStart(6, '0') + '33';
+    sp.style.color = '#' + p.color.toString(16).padStart(6, '0');
+    sp.addEventListener('click', function () { selectPart(i); });
+    legendDiv.appendChild(sp);
+  });
+  canvas.parentElement.appendChild(legendDiv);
+
+  var selected = -1;
+  function selectPart(i) {
+    meshes.forEach(function (m, j) {
+      m.material.emissive.setHex(j === i ? 0x224466 : 0x000000);
+      m.material.emissiveIntensity = j === i ? 0.8 : 0;
+    });
+    selected = i;
+    var p = ENGINE_PARTS[i];
+    $('eng-tag').textContent = p.tag;
+    $('eng-name').textContent = p.name;
+    $('eng-desc').textContent = p.desc;
+    legendDiv.querySelectorAll('span').forEach(function (sp, j) {
+      sp.style.borderColor = j === i ? '#fff' : 'transparent';
+    });
+  }
+
+  // Mouse drag rotation
+  var dragging = false, prevX = 0, prevY = 0, rotX = 0.3, rotY = 0;
+  canvas.addEventListener('pointerdown', function (e) { dragging = true; prevX = e.clientX; prevY = e.clientY; canvas.style.cursor = 'grabbing'; });
+  window.addEventListener('pointerup', function () { dragging = false; canvas.style.cursor = 'grab'; });
+  window.addEventListener('pointermove', function (e) {
+    if (!dragging) return;
+    rotY += (e.clientX - prevX) * 0.008;
+    rotX += (e.clientY - prevY) * 0.008;
+    rotX = Math.max(-1.2, Math.min(1.2, rotX));
+    prevX = e.clientX; prevY = e.clientY;
+  });
+  canvas.addEventListener('wheel', function (e) {
+    e.preventDefault();
+    camera.position.z = Math.max(5, Math.min(18, camera.position.z + e.deltaY * 0.01));
+  }, { passive: false });
+
+  // Click to select
+  var raycaster = new THREE.Raycaster();
+  var mouse = new THREE.Vector2();
+  canvas.addEventListener('click', function (e) {
+    if (Math.abs(e.clientX - prevX) > 5 || Math.abs(e.clientY - prevY) > 5) return;
+    var rect = canvas.getBoundingClientRect();
+    mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    raycaster.setFromCamera(mouse, camera);
+    var hits = raycaster.intersectObjects(meshes);
+    if (hits.length > 0) {
+      var idx = meshes.indexOf(hits[0].object);
+      if (idx >= 0) selectPart(idx);
+    }
+  });
+
+  // Resize
+  window.addEventListener('resize', function () {
+    var nw = canvas.clientWidth, nh = canvas.clientHeight;
+    if (nw > 0 && nh > 0) { camera.aspect = nw / nh; camera.updateProjectionMatrix(); renderer.setSize(nw, nh); }
+  });
+
+  // Render loop
+  (function animate() {
+    requestAnimationFrame(animate);
+    group.rotation.x = rotX;
+    group.rotation.y = rotY;
+    renderer.render(scene, camera);
+  })();
+}
+
+// Lazy-init when the 3D tab is selected
+var origSelectTab = selectTab;
+selectTab = function (mod) {
+  origSelectTab(mod);
+  if (mod === 'engine3d') setTimeout(initEngine3d, 50);
+};
+
+/* ---------- Restore last tab ---------- */
+selectTab(Store.getTab());
 </script>
 </body>
 </html>
