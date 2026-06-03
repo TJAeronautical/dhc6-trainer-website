@@ -1,69 +1,94 @@
 /*
   Netlify Function: /api/desktop-download
-  Deploy note:
-  - Rename/copy this file to netlify/functions/desktop-download.js in a Netlify project.
-  - Configure redirects so /.netlify/functions/desktop-download is available as /api/desktop-download.
-  - Do NOT use public GitHub release assets as the protected file.
-  - Store installers in private cloud storage and return a short-lived signed URL.
+
+  Purpose:
+  - License-gated desktop installer download endpoint.
+  - Validates email + license key against DESKTOP_LICENSE_HASHES.
+  - Returns a configured installer URL for the requested file type.
+
+  Security note:
+  - For real paid distribution, installer URLs should point to private storage
+    signed URLs or a backend-generated temporary URL.
+  - Public GitHub Release URLs are acceptable only if you accept that anyone
+    with the URL can download the installer.
 */
 
 const crypto = require("crypto");
+
+function json(statusCode, payload) {
+  return {
+    statusCode,
+    headers: {
+      "Content-Type": "application/json",
+      "Cache-Control": "no-store"
+    },
+    body: JSON.stringify(payload)
+  };
+}
 
 function sha256(value) {
   return crypto.createHash("sha256").update(value).digest("hex");
 }
 
+function normalizeType(value) {
+  const type = String(value || "exe").trim().toLowerCase();
+  if (type === "exe" || type === "msi") return type;
+  return null;
+}
+
 exports.handler = async (event) => {
   if (event.httpMethod !== "POST") {
-    return { statusCode: 405, body: JSON.stringify({ error: "Method not allowed" }) };
+    return json(405, { error: "Method not allowed" });
   }
 
   let body;
   try {
     body = JSON.parse(event.body || "{}");
   } catch {
-    return { statusCode: 400, body: JSON.stringify({ error: "Invalid JSON" }) };
+    return json(400, { error: "Invalid JSON" });
   }
 
   const licenseKey = String(body.licenseKey || "").trim().toUpperCase();
   const email = String(body.email || "").trim().toLowerCase();
+  const type = normalizeType(body.type);
 
   if (!licenseKey || !email) {
-    return { statusCode: 400, body: JSON.stringify({ error: "Missing licenseKey or email" }) };
+    return json(400, { error: "Missing licenseKey or email" });
   }
 
-  /*
-    Minimal placeholder validation:
-    DESKTOP_LICENSE_HASHES should contain comma-separated sha256 hashes of "email|licenseKey".
-    Example generation in PowerShell:
-      $value = "pilot@example.com|DHC6-AAAA-BBBB-CCCC"
-      $bytes = [Text.Encoding]::UTF8.GetBytes($value.ToLower())
-      [BitConverter]::ToString([Security.Cryptography.SHA256]::Create().ComputeHash($bytes)).Replace("-","").ToLower()
-  */
+  if (!type) {
+    return json(400, { error: "Invalid download type. Use exe or msi." });
+  }
+
   const allowedHashes = (process.env.DESKTOP_LICENSE_HASHES || "")
     .split(",")
-    .map(x => x.trim())
+    .map((x) => x.trim())
     .filter(Boolean);
+
+  if (allowedHashes.length === 0) {
+    return json(500, { error: "License system not configured" });
+  }
 
   const submittedHash = sha256(`${email}|${licenseKey}`.toLowerCase());
 
   if (!allowedHashes.includes(submittedHash)) {
-    return { statusCode: 403, body: JSON.stringify({ error: "License not valid" }) };
+    return json(403, { error: "License not valid" });
   }
 
-  /*
-    Replace this with a short-lived signed URL from private storage.
-    Do not put a permanent public GitHub Release URL here.
-  */
-  const signedDownloadUrl = process.env.DESKTOP_WINDOWS_EXE_SIGNED_URL;
-
-  if (!signedDownloadUrl) {
-    return { statusCode: 500, body: JSON.stringify({ error: "Download URL not configured" }) };
-  }
-
-  return {
-    statusCode: 200,
-    headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
-    body: JSON.stringify({ downloadUrl: signedDownloadUrl })
+  const urls = {
+    exe: process.env.DESKTOP_WINDOWS_EXE_SIGNED_URL,
+    msi: process.env.DESKTOP_WINDOWS_MSI_SIGNED_URL
   };
+
+  const downloadUrl = urls[type];
+
+  if (!downloadUrl) {
+    return json(500, { error: `Download URL not configured for ${type}` });
+  }
+
+  return json(200, {
+    platform: "windows",
+    type,
+    downloadUrl
+  });
 };
