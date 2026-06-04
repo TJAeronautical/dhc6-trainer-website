@@ -1,78 +1,67 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Changelog | DHC-6 Trainer</title>
-<meta name="description" content="Release status for DHC-6 Trainer mobile, desktop, live trainer, and website.">
+<meta name="description" content="Release history for DHC-6 Trainer — desktop, mobile, live trainer, and website.">
 <link rel="canonical" href="https://dhc6trainer.com/changelog.html">
 <meta name="theme-color" content="#06111f">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="assets/site-redesign.css">
 </head>
-<body>
-<div class="site-shell">
+<body><div class="site-shell">
 <header class="topbar"><div class="wrap"><nav>
-  <a class="brand" href="./" aria-label="DHC-6 Trainer home"><span class="brand-mark">✈</span><span>DHC-6 Trainer<small>Twin Otter Study</small></span></a>
+  <a class="brand" href="./" aria-label="DHC-6 Trainer"><span class="brand-mark">✈</span><span>DHC-6 Trainer<small>Twin Otter Study</small></span></a>
   <div class="navlinks"><a href="./">Home</a><a href="mobile.html">Mobile</a><a href="desktop.html">Desktop</a><a href="live.html">Live Trainer</a><a href="changelog.html">Changelog</a><a href="privacy.html">Privacy</a></div>
 </nav></div></header>
 <main>
 <section class="page-hero"><div class="wrap">
-  <span class="eyebrow"><span class="dot"></span> Release notes</span>
+  <span class="eyebrow"><span class="dot"></span> Release history</span>
   <h1>Changelog</h1>
-  <p class="lead">Release status and improvements for DHC-6 Trainer mobile, desktop, live trainer, and website.</p>
+  <p class="lead">Desktop, mobile, live trainer, and website release notes.</p>
 </div></section>
-
 <section><div class="wrap" style="max-width:860px">
 
   <div class="card" style="margin-bottom:16px">
     <span class="tag green">Latest</span>
-    <h2>Desktop v1.7.4 &mdash; Full 3D Systems Lab + asset wiring</h2>
-    <p>Systems Lab upgraded to nine system groups: Engine, Propeller, Fuel, Electrical, Hydraulics, Fire, Landing Gear, Bleed Air/Pneumatics, and Aircraft Variants. GLB path matching corrected to align with the 19 real models in <code>core-res</code> (PT6A-27 cutaway, Hartzell propeller, fuel system, hydraulic pack, DHC-6 aircraft variants, and more). The jMonkeyEngine 3D viewer now loads real models when built from the full project. New camera presets per system group from <code>DesktopSystemModelMap</code>. Aircraft-variant canvas height raised for the wide fuselage models.</p>
+    <h2>Desktop v1.7.6 — Grounded climb engine</h2>
+    <p>The <strong>CLIMB tab</strong> in the Performance screen now computes real climb data instead of repeating the TO/LDG outputs. Calibrated to AFM Section 5 examples: both-engine ROC at Vy (AFM Fig 5-19 anchors −10°C/2000ft/11000lb→1620 ft/min), OEI ROC at VYSE (AFM Fig 5-21 anchor +28°C/2000ft/12500lb→295 ft/min), and OEI enroute gradient (QRH 10.7 anchor +28°C/2000ft/12000lb→0.019). Negative OEI ROC is flagged in red. Also: dashboard hero card now shows the TJ Aeronautical logo; the green pill now shows the real system-group count.</p>
   </div>
 
   <div class="card" style="margin-bottom:16px">
-    <span class="tag">Desktop v1.7.3 &mdash; Proper 3D engine viewer</span>
-    <h2>jMonkeyEngine 3D viewer enabled</h2>
-    <p>Added the five jMonkeyEngine JME3 3.6.1-stable dependencies that were missing from <code>build.gradle</code> &mdash; the root cause of the 3D viewer not rendering. The viewer now has an orbit/arcball camera (drag to rotate, scroll to zoom), a 4-light premium setup, Bloom + FXAA post-processing, auto-rotate when idle, and a PT6A-27 procedural fallback engine built from JME3 cylinders. Engine group gets a tabbed view: 3D Model / Cross-section diagram.</p>
+    <span class="tag">Desktop v1.7.4 — Full 3D Systems Lab asset wiring</span>
+    <h2>Nine system groups, real GLB models</h2>
+    <p>Systems Lab extended from 6 to 9 groups: added Landing Gear/Tyres, Bleed Air/Pneumatics, and Aircraft Variants. GLB path matching corrected to align with all 19 real models in <code>core-res</code> — PT6A-27 cutaway, Hartzell propeller, fuel system, hydraulic pack, DHC-6 aircraft variants (wheels/floats/skis), and more. Aircraft-variant canvas height raised for wide fuselage models.</p>
   </div>
 
   <div class="card" style="margin-bottom:16px">
-    <span class="tag">Desktop v1.7.2 &mdash; PT6A-27 cross-section viewer</span>
-    <h2>Interactive engine diagram</h2>
-    <p>Added <code>Pt6aEngineViewer.kt</code> &mdash; an interactive PT6A-27 engine cross-section built with standard Compose layout. Eight colour-coded sections with click-to-highlight and a description panel sourced from the FCTM. Replaces the Systems Lab placeholder for the Engine group.</p>
+    <span class="tag">Desktop v1.7.3 — jMonkeyEngine 3D viewer enabled</span>
+    <h2>Proper 3D rendering unlocked</h2>
+    <p>Added the five JME3 3.6.1-stable Maven artifacts that were absent from <code>build.gradle</code> — the root cause of the 3D viewer not rendering. Orbit/arcball camera (drag to rotate, scroll to zoom), 4-light setup, Bloom + FXAA post-processing, auto-rotate when idle, PT6A-27 procedural fallback engine.</p>
   </div>
 
   <div class="card" style="margin-bottom:16px">
-    <span class="tag">Desktop v1.7.1 &mdash; Logbook + score persistence</span>
+    <span class="tag">Desktop v1.7.1 — Logbook + score persistence</span>
     <h2>Drill scores saved locally</h2>
-    <p>Added <code>DesktopProgressStore.kt</code> using <code>java.util.prefs.Preferences</code>. MCC Callout and Drill sessions now record to a local logbook. The MCC home card shows real session counts and best-score %. The Logbook screen replaced with a live history: summary tiles, focus-areas debrief (lowest average by procedure title), and a scrollable recent-attempts list with date, time, and score.</p>
+    <p>MCC Callout and Drill sessions now record to a local logbook via <code>java.util.prefs.Preferences</code>. Session counts, best %, focus-areas debrief, and a scrollable recent-attempts list with date, time, and score.</p>
   </div>
 
   <div class="card" style="margin-bottom:16px">
-    <span class="tag">Desktop v1.7.0 &mdash; Logo + drill graphics</span>
-    <h2>TJ Aeronautical logo surfaced in the UI</h2>
-    <p>Navigation-rail brand tile replaced the placeholder &ldquo;6&rdquo; with the real TJ Aeronautical Twin Otter logo. MCC Callout home hero and session view have graphics. Drill (A/B/C/D) screen has a logo banner. Severity annunciator (warning/caution/default) displayed beside the &ldquo;PM CALLS&rdquo; header, keyed to the drill category.</p>
-  </div>
-
-  <div class="card" style="margin-bottom:16px">
-    <span class="tag amber">Live Trainer &mdash; full redesign</span>
-    <h2>In-browser trainer rebuilt in the new design system</h2>
-    <p>The live trainer at <a href="live.html">live.html</a> is rebuilt using <code>site-redesign.css</code>. Seven modules: Procedures, QRH, scored Flashcards, Performance, scored Cockpit Drill, Logbook, and an interactive 3D PT6A-27 cross-section. Every session is saved to a local logbook with best scores and a focus-areas debrief. 25 flashcards covering PT6A-27 limits, V-speeds, and fuel/oil/hydraulic/electrical systems. Three QRH items: Engine Fire In-Flight, Engine Fire On Ground, and Generator Fail. Performance flags MTOW/MLW and tailwind exceedances. All content is grounded in the DHC-6 AFM/POH, operator QRH, and FCTM; data stays in the browser.</p>
+    <span class="tag amber">Live Trainer — full rebuild</span>
+    <h2>Working in-browser trainer in the new design system</h2>
+    <p><a href="live.html">live.html</a> is a full working trainer using <code>site-redesign.css</code>: Procedures, QRH, scored Flashcards, Performance (with MTOW/tailwind flags), scored Cockpit Drill, Logbook, and an interactive 3D PT6A-27 engine cross-section (Three.js, drag-orbit, click-to-learn). 25 flashcards covering PT6A-27 limits, V-speeds, fuel/oil/hydraulic/electrical systems. Three QRH items including Generator Fail. Data saved in the browser; no server required.</p>
   </div>
 
   <div class="card" style="margin-bottom:16px">
     <span class="tag">Website</span>
     <h2>Site redesign: <code>site-redesign.css</code></h2>
-    <p>All main pages now use a unified design system: navy cockpit-dark background, blue/cyan accent palette, glass cards, smooth responsive grid. Screenshots and product images updated. Desktop page corrected to show current version. Changelog migrated to the new design system.</p>
+    <p>All main pages use a unified design system — navy cockpit-dark background, blue/cyan accent, glass cards, responsive grid. Desktop access flow, privacy policy, and account/data deletion page. Changelog migrated from bespoke inline CSS to the shared design system.</p>
   </div>
 
 </div></section>
 </main>
 <footer class="footer"><div class="wrap">
-  <p>&copy; TJ Aeronautical &middot; DHC-6 Trainer. Training support only &mdash; always use the approved AFM, QRH, company procedures and current regulatory documents for operation.</p>
-  <p><a href="./">Home</a> &middot; <a href="mobile.html">Mobile</a> &middot; <a href="desktop.html">Desktop</a> &middot; <a href="live.html">Live Trainer</a> &middot; <a href="access.html">Desktop access</a> &middot; <a href="privacy.html">Privacy</a></p>
+  <p>&copy; TJ Aeronautical · DHC-6 Trainer. Training support only — always use the approved AFM, QRH, company procedures, and current regulatory documents for operation.</p>
+  <p><a href="./">Home</a> · <a href="mobile.html">Mobile</a> · <a href="desktop.html">Desktop</a> · <a href="live.html">Live Trainer</a> · <a href="access.html">Desktop access</a> · <a href="privacy.html">Privacy</a></p>
 </div></footer>
-</div>
-</body>
-</html>
+</div></body></html>
