@@ -35,6 +35,8 @@ section{padding:56px 0}.section-head{display:flex;align-items:end;justify-conten
 @media(max-width:980px){.hero-grid,.split,.preview-strip,.page-grid,.footer-grid{grid-template-columns:1fr}.grid,.grid.three{grid-template-columns:repeat(2,1fr)}.screens{grid-template-columns:repeat(2,1fr)}.navlinks{display:none}.mobile-only{display:inline-flex}.hero{padding-top:40px}.visual-card{margin-top:8px}}
 @media(max-width:560px){.wrap,.wide{width:min(100% - 24px,1180px)}.grid,.grid.three,.hero-stats{grid-template-columns:1fr}.screens{grid-template-columns:1fr 1fr}.floating-card{position:static;margin-top:10px}.hero{padding-bottom:28px}section{padding:42px 0}.btn{width:100%}h1{font-size:2.75rem}.card,.panel,.dark-panel{padding:20px}}
 
+.muted-sm{color:var(--muted);font-weight:800;font-size:.85rem}
+
 /* DHC6_PRODUCT_PREVIEW_POLISH */
 .preview-status-strip {
   display: grid;

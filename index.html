@@ -22,7 +22,7 @@
     <div class="wrap">
       <nav>
         <a class="brand" href="./" aria-label="DHC-6 Trainer home"><span class="brand-mark">✈</span><span>DHC-6 Trainer<small>Twin Otter Study</small></span></a>
-        <div class="navlinks"><a href="#features">Features</a><a href="#mcc">MCC Callout</a><a href="#screenshots">Screenshots</a><a href="mobile.html">Mobile</a><a href="desktop.html">Desktop</a><a href="privacy.html">Privacy</a></div>
+        <div class="navlinks"><a href="#features">Features</a><a href="#mcc">MCC Callout</a><a href="#screenshots">Screenshots</a><a href="mobile.html">Mobile</a><a href="desktop.html">Desktop</a><a href="live.html">Live</a><a href="privacy.html">Privacy</a></div>
         <a class="btn primary" href="https://play.google.com/store/apps/details?id=com.dhc6trainer" target="_blank" rel="noopener">Google Play</a>
       </nav>
     </div>
@@ -37,9 +37,10 @@
           <p class="lead">DHC-6 Trainer brings QRH review, MCC callouts, cockpit familiarisation, procedure drills, checklists, flashcards, systems study, and performance practice into one clean mobile-first study app.</p>
           <div class="actions">
             <a class="btn primary" href="https://play.google.com/store/apps/details?id=com.dhc6trainer" target="_blank" rel="noopener">Download on Google Play</a>
-            <a class="btn gold" href="desktop.html">Desktop coming soon</a>
-            <a class="btn ghost" href="live.html">Open live preview</a>
+            <a class="btn gold" href="desktop.html">Desktop subscription</a>
+            <a class="btn ghost" href="dhc6trainer://live" data-desktop-launch data-fallback-url="live.html" data-launch-status="#home-launch-status">Open desktop app</a>
           </div>
+          <p id="home-launch-status" class="preview-note" role="status" aria-live="polite"></p>
           <div class="hero-stats" aria-label="App content summary">
             <div class="stat"><strong>110</strong><span>Normal, abnormal, and emergency procedures</span></div>
             <div class="stat"><strong>10</strong><span>Bundled flashcard decks</span></div>
@@ -50,7 +51,7 @@
           <div class="preview-status-strip" aria-label="Current product availability">
             <div class="preview-status-card green"><strong>Android available now</strong><span>Use the live Google Play version for mobile DHC-6 study, QRH review, drills, cockpit familiarisation, and performance practice.</span></div>
             <div class="preview-status-card gold"><strong>30-minute free preview</strong><span>New signed-in users can preview protected training areas before subscription gating resumes.</span></div>
-            <div class="preview-status-card"><strong>Desktop coming soon</strong><span>The desktop build is being prepared for future large-screen and instructor-led workflows.</span></div>
+            <div class="preview-status-card"><strong>Desktop live subscription</strong><span>Licensed Windows users can launch the installed desktop app from the website, with the web trainer as a fallback.</span></div>
           </div>
           <p class="preview-note">DHC-6 Trainer is a study-support tool. Always use approved manuals, company procedures, and regulatory documents for aircraft operation.</p>
           <!-- DHC6_PREVIEW_STATUS_END -->
@@ -113,9 +114,10 @@
     <section>
       <div class="wrap split">
         <div class="panel">
-          <h2>Mobile-first. Desktop coming soon.</h2>
-          <p>Use the Android app for portable study before flights and training sessions. The desktop version is being prepared for future briefing-room, instructor review, large-screen systems study, and organization workflows.</p>
-          <div class="actions"><a class="btn primary" href="mobile.html">Mobile details</a><a class="btn gold" href="desktop.html">Desktop coming soon</a></div>
+          <h2>Mobile-first, with desktop live for large-screen study.</h2>
+          <p>Use the Android app for portable study before flights and training sessions. The Windows desktop subscription supports briefing-room review, instructor workflows, large-screen systems study, and organization use.</p>
+          <div class="actions"><a class="btn primary" href="mobile.html">Mobile details</a><a class="btn gold" href="desktop.html">Desktop subscription</a><a class="btn ghost" href="dhc6trainer://live" data-desktop-launch data-fallback-url="live.html" data-launch-status="#home-panel-launch-status">Open desktop app</a></div>
+          <p id="home-panel-launch-status" class="preview-note" role="status" aria-live="polite"></p>
         </div>
         <div class="notice">
           <h3>Training-use disclaimer</h3>
@@ -133,5 +135,6 @@
     </div>
   </footer>
 </div>
+<script src="assets/js/desktop-launch.js"></script>
 </body>
 </html>

@@ -19,16 +19,16 @@
     .feature-list li:before{content:"\2713";position:absolute;left:0;color:#9ff0bd;font-weight:900}
     .buy-buttons{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px}
     .buy-buttons .btn{flex:1;min-width:200px;justify-content:center}
-    #checkout-message,#license-gate-message{margin-top:12px;min-height:1.2em}
+    #checkout-message,#license-gate-message,#desktop-launch-status{margin-top:12px;min-height:1.2em}
     .gate-field{display:flex;flex-direction:column;gap:6px;margin:10px 0}
     .gate-field input{padding:11px 13px;border-radius:11px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.05);color:#fff;font-size:1rem}
     .save-pill{display:inline-block;margin-left:8px;font-size:.72rem;font-weight:800;color:#06111f;background:#9ff0bd;border-radius:999px;padding:2px 9px}
   </style>
 </head>
 <body>
-<header class="topbar"><div class="wrap"><nav><a class="brand" href="./"><span class="brand-mark">✈</span><span>DHC-6 Trainer<small>Desktop</small></span></a><div class="navlinks"><a href="./">Home</a><a href="mobile.html">Mobile</a><a href="desktop.html">Desktop</a><a href="access.html">Manage licence</a><a href="privacy.html">Privacy</a></div><a class="btn gold" href="#pricing">Subscribe</a></nav></div></header>
+<header class="topbar"><div class="wrap"><nav><a class="brand" href="./"><span class="brand-mark">✈</span><span>DHC-6 Trainer<small>Desktop</small></span></a><div class="navlinks"><a href="./">Home</a><a href="mobile.html">Mobile</a><a href="desktop.html">Desktop</a><a href="live.html">Live Trainer</a><a href="access.html">Manage licence</a><a href="privacy.html">Privacy</a></div><a class="btn gold" href="#pricing">Subscribe</a></nav></div></header>
 <main>
-<section class="page-hero"><div class="wide page-grid"><div><span class="eyebrow"><span class="dot"></span> Desktop subscription</span><h1>Full Twin Otter study on the big screen.</h1><p class="lead">The DHC-6 Trainer desktop app brings QRH flows, MCC callouts, procedure drills, the systems lab, and cockpit familiarisation to Windows for briefing-room and recurrent study. Subscribe online, receive your licence key by email, and activate the app.</p><div class="actions"><a class="btn primary" href="#pricing">See pricing</a><a class="btn ghost" href="#activate">I already have a key</a></div><p style="margin-top:14px">Billing and tax are handled securely by Paddle, our reseller.</p></div><div class="visual-card"><img src="assets/latest-design-mcc.webp" alt="DHC-6 Trainer desktop-style MCC callout trainer concept"><div class="floating-card"><span class="score-pill">Licensed access</span><p>Designed for licensed pilots, instructors, and training organizations.</p></div></div></div></section>
+<section class="page-hero"><div class="wide page-grid"><div><span class="eyebrow"><span class="dot"></span> Desktop subscription</span><h1>Full Twin Otter study on the big screen.</h1><p class="lead">The DHC-6 Trainer desktop app brings QRH flows, MCC callouts, procedure drills, the systems lab, and cockpit familiarisation to Windows for briefing-room and recurrent study. Subscribe online, receive your licence key by email, and activate the app.</p><div class="actions"><a class="btn primary" href="#pricing">See pricing</a><a class="btn gold" href="dhc6trainer://live" data-desktop-launch data-fallback-url="live.html" data-launch-status="#desktop-launch-status">Open desktop app</a><a class="btn ghost" href="#activate">I already have a key</a></div><p id="desktop-launch-status" role="status" aria-live="polite"></p><p style="margin-top:14px">Billing and tax are handled securely by Paddle, our reseller.</p></div><div class="visual-card"><img src="assets/latest-design-mcc.webp" alt="DHC-6 Trainer desktop-style MCC callout trainer concept"><div class="floating-card"><span class="score-pill">Licensed access</span><p>Designed for licensed pilots, instructors, and training organizations.</p></div></div></div></section>
 
 <section><div class="wrap grid three"><article class="card"><span class="tag">Pilots</span><h3>Focused recurrent study</h3><p>Review procedures, QRH flows, MCC callouts, systems, and cockpit panels on a larger display.</p></article><article class="card"><span class="tag green">Instructors</span><h3>Briefing-room support</h3><p>Walk students through procedure flows, calls, expected responses, cockpit targets, and debrief points.</p></article><article class="card"><span class="tag amber">Schools</span><h3>Controlled seats</h3><p>Each subscription activates up to three devices, suitable for an instructor and briefing-room machines.</p></article></div></section>
 
@@ -55,7 +55,7 @@
   </div>
   <div class="notice">
     <h3>How it works</h3>
-    <p>1. Subscribe through the secure Paddle checkout.<br>2. Your licence key (format <strong>DHC6-XXXX-XXXX-XXXX</strong>) arrives by email.<br>3. Enter the key in the desktop app, or check it below, to unlock full access.</p>
+    <p>1. Subscribe through the secure Paddle checkout.<br>2. Your licence key (format <strong>DHC6-XXXX-XXXX-XXXX</strong>) arrives by email.<br>3. Open the installed desktop app from this page, then enter your key to unlock full access.</p>
     <p class="muted-sm">Paddle is the merchant of record and handles payment, invoicing, and applicable taxes. Subscriptions renew automatically until canceled.</p>
   </div>
 </div>
@@ -76,9 +76,10 @@
   <div class="notice"><h3>Operational disclaimer</h3><p>DHC-6 Trainer is a study and training-support tool only. It is not an approved AFM, QRH, MEL, checklist, company manual, or operational authority. Always use approved aircraft manuals, company procedures, and applicable regulations for actual operation.</p></div>
 </div></section>
 
-<section><div class="wrap"><div class="card"><h2>Release status</h2><table><thead><tr><th>Platform</th><th>Status</th><th>Access</th></tr></thead><tbody><tr><td>Android</td><td>Available now</td><td>Google Play</td></tr><tr><td>Windows desktop</td><td>Subscription</td><td>Licence key</td></tr><tr><td>macOS</td><td>Coming later</td><td>Planned</td></tr><tr><td>Linux</td><td>Coming later</td><td>Planned</td></tr></tbody></table></div></div></section>
+<section><div class="wrap"><div class="card"><h2>Release status</h2><table><thead><tr><th>Platform</th><th>Status</th><th>Access</th></tr></thead><tbody><tr><td>Android</td><td>Available now</td><td>Google Play</td></tr><tr><td>Windows desktop</td><td>Live subscription</td><td>Licence key + app launch</td></tr><tr><td>macOS</td><td>Coming later</td><td>Planned</td></tr><tr><td>Linux</td><td>Coming later</td><td>Planned</td></tr></tbody></table></div></div></section>
 </main>
-<footer class="footer"><div class="wrap"><p>&copy; TJ Aeronautical · DHC-6 Trainer · Training support only.</p><p><a href="./">Home</a> · <a href="mobile.html">Mobile</a> · <a href="desktop.html">Desktop</a> · <a href="access.html">Manage licence</a> · <a href="privacy.html">Privacy</a></p></div></footer>
+<footer class="footer"><div class="wrap"><p>&copy; TJ Aeronautical · DHC-6 Trainer · Training support only.</p><p><a href="./">Home</a> · <a href="mobile.html">Mobile</a> · <a href="desktop.html">Desktop</a> · <a href="live.html">Live Trainer</a> · <a href="access.html">Manage licence</a> · <a href="privacy.html">Privacy</a></p></div></footer>
 <script src="assets/js/paddle-checkout.js"></script>
 <script src="assets/js/desktop-license-gate.js"></script>
+<script src="assets/js/desktop-launch.js"></script>
 </body></html>

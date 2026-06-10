@@ -70,7 +70,7 @@
 <div class="site-shell">
 <header class="topbar"><div class="wrap"><nav>
   <a class="brand" href="./" aria-label="DHC-6 Trainer home"><span class="brand-mark">✈</span><span>DHC-6 Trainer<small>Live trainer</small></span></a>
-  <div class="navlinks"><a href="./">Home</a><a href="mobile.html">Mobile</a><a href="desktop.html">Desktop</a><a href="changelog.html">Changelog</a><a href="privacy.html">Privacy</a></div>
+  <div class="navlinks"><a href="./">Home</a><a href="mobile.html">Mobile</a><a href="desktop.html">Desktop</a><a href="access.html">Manage licence</a><a href="changelog.html">Changelog</a><a href="privacy.html">Privacy</a></div>
   <a class="btn primary mobile-only" href="https://play.google.com/store/apps/details?id=com.dhc6trainer" target="_blank" rel="noopener">Google Play</a>
 </nav></div></header>
 
@@ -80,7 +80,8 @@
   <h1>Live Web Trainer</h1>
   <p class="lead">Seven interactive modules grounded in the DHC-6 Series 300 AFM/POH, operator QRH, and FCTM &mdash; plus a local logbook that records every session in this browser.</p>
   <div class="notice" style="margin-top:18px"><p>Training support only. Always fly the approved AFM, QRH, company OM-B, and current regulatory documents. Figures here are for study and planning, not for operational use.</p></div>
-  <div class="actions"><a class="btn primary" href="mobile.html">Get the Android app</a><a class="btn ghost" href="desktop.html">Desktop coming soon</a></div>
+  <div class="actions"><a class="btn primary" href="mobile.html">Get the Android app</a><a class="btn gold" href="dhc6trainer://live" data-desktop-launch data-fallback-url="live.html" data-launch-status="#live-launch-status">Open desktop app</a><a class="btn ghost" href="desktop.html">Desktop subscription</a></div>
+  <p id="live-launch-status" class="muted-sm" role="status" aria-live="polite"></p>
 </div></section>
 
 <section><div class="wrap">
@@ -668,5 +669,6 @@ function initEngine3D(){
 /* ── Restore last tab ───────────────────────────────────────────────── */
 selectTab(Store.getTab());
 </script>
+<script src="assets/js/desktop-launch.js"></script>
 </body>
 </html>

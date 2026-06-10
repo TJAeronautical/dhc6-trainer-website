@@ -174,6 +174,22 @@ Defaults you can tune in `functions/api/license/activate.js`:
 
 ---
 
+## Desktop app launch hook
+
+The website can now launch an installed desktop app with:
+
+```text
+dhc6trainer://live
+```
+
+Pages use `assets/js/desktop-launch.js` to try the custom protocol and then
+fall back to `live.html` if the app does not respond. The desktop app should
+register the `dhc6trainer` protocol during installation and route `/live` to the
+main trainer/home surface. Keep licence keys out of this URL; activation remains
+inside the app.
+
+---
+
 ## Notes & limits
 
 - The website does **not** stream the installer in this patch. Installer
