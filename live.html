@@ -6,7 +6,7 @@
 <title>Live Trainer | DHC-6 Trainer</title>
 <meta name="description" content="An in-browser DHC-6 Twin Otter trainer: scored procedures, QRH memory-item drills, flashcards, performance calculator, cockpit callout drill, a local logbook, and an interactive 3D PT6A-27 engine cross-section.">
 <meta name="theme-color" content="#06111f">
-<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="assets/favicon-32.png" type="image/png"><link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="manifest" href="assets/site.webmanifest">
 <link rel="stylesheet" href="assets/site-redesign.css">
 <style>
@@ -43,6 +43,19 @@
 /* Drill */
 .drill-call{font-size:1.45rem;font-weight:950;color:#fff;text-align:center;padding:18px 10px;min-height:1.4em}
 .drill-resp{font-size:1.7rem;font-weight:950;color:var(--green);text-align:center;padding:6px;min-height:1.2em}
+.sim-panel{margin:12px 0 14px;padding:16px;border-radius:22px;background:linear-gradient(145deg,rgba(5,16,28,.96),rgba(9,36,59,.82));border:1px solid var(--line)}
+.sim-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.sim-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.sim-control{min-height:92px;border-radius:16px;border:1px solid var(--line);background:rgba(255,255,255,.045);padding:12px;position:relative;overflow:hidden}
+.sim-control:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(34,120,255,.18),transparent);opacity:0;transition:.2s}
+.sim-control.active{border-color:rgba(255,176,32,.82);box-shadow:0 0 0 1px rgba(255,176,32,.32),0 14px 34px rgba(0,0,0,.24)}
+.sim-control.active:before{opacity:1}
+.sim-control.done{border-color:rgba(40,199,111,.44);background:rgba(40,199,111,.08)}
+.sim-control strong,.sim-control span,.sim-control small{position:relative;display:block}
+.sim-control strong{color:#fff;font-size:.9rem}.sim-control span{color:var(--amber);font-weight:950;margin-top:4px}.sim-control small{color:var(--muted);font-weight:800;margin-top:5px;line-height:1.3}
+.sim-annunciators{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.sim-lamp{border-radius:999px;padding:6px 10px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--muted);font-weight:950;font-size:.76rem}
+.sim-lamp.on{border-color:rgba(255,77,94,.45);background:rgba(255,77,94,.14);color:#ffa8b0}.sim-lamp.safe{border-color:rgba(40,199,111,.35);background:rgba(40,199,111,.12);color:#9ff0bd}
 /* Logbook rows */
 .lb-row{display:grid;grid-template-columns:68px 1fr auto;gap:12px;align-items:center;padding:11px 14px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--line);margin:6px 0}
 .lb-type{text-align:center;border-radius:9px;font-weight:950;font-size:.7rem;padding:5px 0}
@@ -63,7 +76,7 @@
 /* Misc */
 .score-badge{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:6px 12px;font-weight:950;font-size:.82rem;background:rgba(40,199,111,.12);color:#7dffb7;border:1px solid rgba(40,199,111,.28)}
 .muted-sm{color:var(--muted);font-weight:800;font-size:.85rem}
-@media(max-width:760px){.kpi-grid{grid-template-columns:1fr 1fr}.trainer-tabs{gap:6px}.t-tab{padding:8px 12px;font-size:.82rem}}
+@media(max-width:760px){.kpi-grid{grid-template-columns:1fr 1fr}.trainer-tabs{gap:6px}.t-tab{padding:8px 12px;font-size:.82rem}.sim-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -80,7 +93,7 @@
   <h1>Live Web Trainer</h1>
   <p class="lead">Seven interactive modules grounded in the DHC-6 Series 300 AFM/POH, operator QRH, and FCTM &mdash; plus a local logbook that records every session in this browser.</p>
   <div class="notice" style="margin-top:18px"><p>Training support only. Always fly the approved AFM, QRH, company OM-B, and current regulatory documents. Figures here are for study and planning, not for operational use.</p></div>
-  <div class="actions"><a class="btn primary" href="mobile.html">Get the Android app</a><a class="btn gold" href="dhc6trainer://live" data-desktop-launch data-fallback-url="live.html" data-launch-status="#live-launch-status">Open desktop app</a><a class="btn ghost" href="desktop.html">Desktop subscription</a></div>
+  <div class="actions"><a class="btn primary" href="mobile.html">Get the Android app</a><a class="btn gold" href="dhc6trainer://live" data-desktop-launch data-fallback-url="live.html" data-launch-status="#live-launch-status">Open desktop app</a><a class="btn ghost" href="#drill">Start MCC cockpit sim</a><a class="btn ghost" href="desktop.html">Desktop subscription</a></div>
   <p id="live-launch-status" class="muted-sm" role="status" aria-live="polite"></p>
 </div></section>
 
@@ -91,7 +104,7 @@
     <button class="t-tab" role="tab" aria-selected="false" data-mod="qrh">QRH</button>
     <button class="t-tab" role="tab" aria-selected="false" data-mod="flashcards">Flashcards</button>
     <button class="t-tab" role="tab" aria-selected="false" data-mod="performance">Performance</button>
-    <button class="t-tab" role="tab" aria-selected="false" data-mod="drill">Cockpit Drill</button>
+    <button class="t-tab" id="drill" role="tab" aria-selected="false" data-mod="drill">Cockpit Drill</button>
     <button class="t-tab" role="tab" aria-selected="false" data-mod="logbook">Logbook</button>
     <button class="t-tab" role="tab" aria-selected="false" data-mod="engine3d">3D Engine</button>
   </div>
@@ -190,6 +203,15 @@
         <div class="drill-call" id="drill-call"></div>
         <p class="muted-sm" style="text-align:center;margin-top:8px;font-size:.78rem;letter-spacing:.08em">EXPECTED RESPONSE / ACTION</p>
         <div class="drill-resp" id="drill-resp">&mdash;&nbsp;&mdash;&nbsp;&mdash;</div>
+      </div>
+      <div class="sim-panel" aria-label="Cockpit simulation linked to MCC drill">
+        <div class="sim-head">
+          <div><span class="tag amber" style="margin-bottom:7px">Linked cockpit simulation</span><h3 id="sim-title">Affected-engine panel</h3></div>
+          <span class="score-badge" id="sim-phase">Awaiting confirmation</span>
+        </div>
+        <div class="sim-grid" id="cockpit-sim"></div>
+        <div class="sim-annunciators" id="sim-annunciators"></div>
+        <p class="muted-sm" id="sim-note" style="margin-top:10px"></p>
       </div>
       <div style="display:flex;gap:9px;flex-wrap:wrap;align-items:center">
         <button class="btn gold" id="drill-reveal" style="font-size:.85rem">Reveal response</button>
@@ -395,6 +417,14 @@ var DRILL={
     ["CONFIRM — L/R FUEL BOOST PUMP","OFF"]
   ]
 };
+var DRILL_SIM=[
+  {id:"power",label:"Power lever",value:"RETARD to 10 PSI",zone:"Center pedestal",phase:"Confirm affected power lever",note:"The MCC prompt and the highlighted cockpit control advance together."},
+  {id:"prop",label:"Prop lever",value:"FEATHER",zone:"Center pedestal",phase:"Confirm affected prop lever",note:"The simulator keeps earlier confirmed controls green while the next control is active."},
+  {id:"fuel",label:"Engine fuel lever",value:"OFF",zone:"Condition levers",phase:"Shut off engine fuel",note:"Use Reveal response for the PM action, then mark Correct to advance the cockpit state."},
+  {id:"sov",label:"Fuel emergency SOV",value:"OFF / illuminated",zone:"Overhead fuel panel",phase:"Close emergency shutoff",note:"The annunciator strip mirrors the selected step so the drill remains cockpit-linked."},
+  {id:"fire",label:"Fire extinguisher",value:"PUSH discharged",zone:"Fire handle / bottle",phase:"Discharge extinguisher",note:"Fire warning remains shown until the extinguisher step is completed."},
+  {id:"boost",label:"Fuel boost pump",value:"OFF",zone:"Fuel pumps",phase:"Secure boost pump",note:"Final secure action before continuing with the remaining QRH items."}
+];
 
 /* ── Helpers ────────────────────────────────────────────────────────── */
 function $(id){return document.getElementById(id);}
@@ -403,7 +433,13 @@ function now(){return Date.now();}
 
 /* ── Tabs ───────────────────────────────────────────────────────────── */
 var tabs=document.querySelectorAll(".trainer-tabs [data-mod]");
+function tabFromHash(){
+  var h=(window.location.hash||"").replace(/^#/,"").toLowerCase();
+  var aliases={mcc:"drill",cockpit:"drill",simulation:"drill",sim:"drill","cockpit-drill":"drill"};
+  return aliases[h]||h;
+}
 function selectTab(mod){
+  if(!$("mod-"+mod))mod="procedures";
   tabs.forEach(function(t){t.setAttribute("aria-selected",t.dataset.mod===mod?"true":"false");});
   document.querySelectorAll(".trainer-mod").forEach(function(m){m.classList.remove("active");});
   var m=$("mod-"+mod);if(m)m.classList.add("active");
@@ -412,6 +448,7 @@ function selectTab(mod){
   if(mod==="engine3d")setTimeout(initEngine3D,40);
 }
 tabs.forEach(function(t){t.addEventListener("click",function(){selectTab(t.dataset.mod);});});
+window.addEventListener("hashchange",function(){var mod=tabFromHash();if(mod)selectTab(mod);});
 
 /* ── Procedures ─────────────────────────────────────────────────────── */
 var psel=$("proc-sel");
@@ -541,6 +578,28 @@ $("pf-ldg").addEventListener("click",function(){setPfMode("ldg");});
 /* ── Cockpit drill ──────────────────────────────────────────────────── */
 var dp=0,dr=false,dc=0,ds=0;
 $("drill-title").textContent=DRILL.title;$("drill-ctx").textContent=DRILL.ctx;
+function renderCockpitSim(completed){
+  var sim=$("cockpit-sim");
+  if(!sim)return;
+  var active=completed?null:DRILL_SIM[Math.min(dp,DRILL_SIM.length-1)];
+  $("sim-title").textContent=completed?"QRH continuation":"Affected-engine panel";
+  $("sim-phase").textContent=completed?"Memory items complete":(active?active.phase:"Awaiting confirmation");
+  sim.innerHTML=DRILL_SIM.map(function(c,i){
+    var isDone=completed||i<dp;
+    var isActive=!completed&&i===dp;
+    var cls="sim-control"+(isDone?" done":"")+(isActive?" active":"");
+    var status=isDone?"Confirmed":(isActive?(dr?"Response revealed":"Active target"):"Queued");
+    var value=(isDone||(isActive&&dr))?c.value:"Confirm before action";
+    return '<div class="'+cls+'"><strong>'+esc(c.label)+'</strong><span>'+esc(value)+'</span><small>'+esc(c.zone)+' &middot; '+esc(status)+'</small></div>';
+  }).join("");
+  $("sim-annunciators").innerHTML=[
+    '<span class="sim-lamp '+(completed?"safe":"on")+'">ENG FIRE</span>',
+    '<span class="sim-lamp '+((completed||dp>3)?"safe":"")+'">FUEL SOV</span>',
+    '<span class="sim-lamp '+((completed||dp>4)?"safe":"")+'">BOTTLE</span>',
+    '<span class="sim-lamp '+((completed||dp>5)?"safe":"")+'">BOOST PUMP</span>'
+  ].join("");
+  $("sim-note").textContent=completed?"Simulation state secured. Continue with the remaining QRH items and checklist verification.":(active?active.note:"");
+}
 function renderDrill(){
   var s=DRILL.steps[dp];
   $("drill-call").textContent=s[0];
@@ -549,6 +608,7 @@ function renderDrill(){
   $("drill-count").textContent="Memory item "+(dp+1)+" of "+DRILL.steps.length;
   $("drill-score").textContent="Score "+dc+" / "+dp;
   $("drill-reveal").disabled=dr;$("drill-correct").disabled=!dr;$("drill-miss").disabled=!dr;
+  renderCockpitSim(false);
 }
 function drillReset(){dp=0;dr=false;dc=0;ds=now();renderDrill();}
 function drillRate(ok){
@@ -561,6 +621,7 @@ function drillRate(ok){
     $("drill-count").textContent="Saved to logbook · "+dc+" / "+DRILL.steps.length;
     $("drill-score").textContent="Score "+dc+" / "+DRILL.steps.length;
     $("drill-reveal").disabled=true;$("drill-correct").disabled=true;$("drill-miss").disabled=true;
+    renderCockpitSim(true);
   }else{renderDrill();}
 }
 $("drill-reveal").addEventListener("click",function(){dr=true;renderDrill();});
@@ -667,7 +728,7 @@ function initEngine3D(){
 }
 
 /* ── Restore last tab ───────────────────────────────────────────────── */
-selectTab(Store.getTab());
+selectTab(tabFromHash()||Store.getTab());
 </script>
 <script src="assets/js/desktop-launch.js"></script>
 </body>

@@ -3,14 +3,19 @@
   "short_name": "DHC-6 Trainer",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#031f30",
-  "theme_color": "#073047",
+  "background_color": "#06111f",
+  "theme_color": "#06111f",
   "description": "DHC-6 Trainer website and privacy resources.",
   "icons": [
     {
-      "src": "assets/favicon.svg",
-      "sizes": "64x64",
-      "type": "image/svg+xml"
+      "src": "app-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "app-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
     }
   ]
 }
