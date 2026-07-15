@@ -25,6 +25,8 @@
   //   npx wrangler kv namespace create LICENSES
   // Secrets are NOT stored here - set them in the Cloudflare dashboard or via:
   //   npx wrangler pages secret put PADDLE_WEBHOOK_SECRET
+  //   npx wrangler pages secret put PADDLE_API_KEY
+  //   npx wrangler pages secret put PADDLE_ENVIRONMENT  // or set as env var: sandbox / production
   //   npx wrangler pages secret put LICENSE_SIGNING_SECRET
   "kv_namespaces": [
     {

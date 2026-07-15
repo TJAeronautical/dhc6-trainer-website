@@ -13,27 +13,83 @@
     email:<email>          -> <KEY>            (so the customer can recover it)
 */
 
-import { json, generateLicenseKey, verifyPaddleSignature } from "../_shared.js";
+import {
+  json,
+  generateLicenseKey,
+  verifyPaddleSignature,
+  getLicense,
+  writeLicense,
+  normalizeEmail
+} from "../_shared.js";
 
 async function readKey(env, subscriptionId) {
   if (!subscriptionId) return null;
   return env.LICENSES.get("sub:" + subscriptionId);
 }
 
-async function writeLicense(env, record) {
-  await env.LICENSES.put("license:" + record.key, JSON.stringify(record));
-  if (record.subscriptionId) {
-    await env.LICENSES.put("sub:" + record.subscriptionId, record.key);
-  }
-  if (record.email) {
-    await env.LICENSES.put("email:" + record.email.toLowerCase(), record.key);
-  }
+function priceIdFrom(data) {
+  const items = Array.isArray(data.items) ? data.items : [];
+  const first = items[0] || {};
+  return first.price_id || (first.price && first.price.id) || data.price_id || null;
 }
 
-async function getLicense(env, key) {
-  if (!key) return null;
-  const raw = await env.LICENSES.get("license:" + key);
-  return raw ? JSON.parse(raw) : null;
+const PLAN_BY_PRICE_ID = {
+  pri_01kxk3xtqq51jna7weqk9z374m: "premium_monthly",
+  pri_01kxk418gk6pgmzm9pw61eyfqm: "premium_annual",
+  pri_01kxk45ny35mgkwy64xqdq849n: "instructor_monthly",
+  pri_01kxk46sfrf7t6pck4cweh4k11: "instructor_annual",
+  pri_01kxk48gyh6e7v7awr0b01svpc: "enterprise_monthly",
+  pri_01kxk49k3ybfsaxhgds952ebba: "enterprise_annual"
+};
+
+function planFrom(data) {
+  const priceId = priceIdFrom(data);
+  if (priceId && PLAN_BY_PRICE_ID[priceId]) return PLAN_BY_PRICE_ID[priceId];
+  const custom = data.custom_data || {};
+  if (custom.plan && custom.billing_cycle) return custom.plan + "_" + custom.billing_cycle;
+  const interval =
+    data.billing_cycle && data.billing_cycle.interval
+      ? data.billing_cycle.interval
+      : null;
+  if (interval === "year") return "desktop_annual";
+  if (interval === "month") return "desktop_monthly";
+  return priceId ? "desktop" : "desktop";
+}
+
+function activationLimitFromPlan(plan) {
+  if (String(plan).indexOf("enterprise") === 0) return 50;
+  if (String(plan).indexOf("instructor") === 0) return 10;
+  return 3;
+}
+
+function emailFrom(data) {
+  return normalizeEmail(
+    (data.customer && data.customer.email) ||
+      (data.billing_details && data.billing_details.email) ||
+      data.customer_email ||
+      data.email ||
+      ""
+  );
+}
+
+function periodEndFrom(data) {
+  return (
+    (data.current_billing_period && data.current_billing_period.ends_at) ||
+    data.next_billed_at ||
+    data.billed_at ||
+    null
+  );
+}
+
+function statusFromPaddle(type, status) {
+  if (type === "subscription.canceled") return "canceled";
+  if (type === "subscription.paused") return "paused";
+  if (type === "subscription.past_due") return "past_due";
+  if (status === "active" || status === "trialing") return "active";
+  if (status === "paused") return "paused";
+  if (status === "past_due") return "past_due";
+  if (status === "canceled") return "canceled";
+  return null;
 }
 
 export async function onRequestPost(context) {
@@ -60,14 +116,20 @@ export async function onRequestPost(context) {
 
   const type = event.event_type || "";
   const data = event.data || {};
+  const eventId = event.event_id || event.id || null;
   const subscriptionId = data.id || data.subscription_id || null;
   const customerId = data.customer_id || null;
-  const email =
-    (data.customer && data.customer.email) ||
-    (data.billing_details && data.billing_details.email) ||
-    null;
-  const nextBilledAt = (data.current_billing_period && data.current_billing_period.ends_at) ||
-    data.next_billed_at || null;
+  const email = emailFrom(data);
+  const nextBilledAt = periodEndFrom(data);
+  const paddleStatus = statusFromPaddle(type, data.status);
+  const plan = planFrom(data);
+
+  if (eventId) {
+    const eventSeen = await env.LICENSES.get("event:" + eventId);
+    if (eventSeen) {
+      return json({ ok: true, duplicate: true });
+    }
+  }
 
   // Subscription created/activated -> ensure a licence exists and is active.
   if (type === "subscription.activated" || type === "subscription.created") {
@@ -79,40 +141,60 @@ export async function onRequestPost(context) {
       record = {
         key: key,
         email: email,
-        status: "active",
-        plan: "desktop",
+        status: paddleStatus || "active",
+        plan: plan,
+        priceId: priceIdFrom(data),
         subscriptionId: subscriptionId,
         customerId: customerId,
         createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         expiresAt: nextBilledAt,
+        activationLimit: activationLimitFromPlan(plan),
         activations: []
       };
     } else {
-      record.status = "active";
+      record.status = paddleStatus || "active";
+      record.plan = plan || record.plan;
+      record.priceId = priceIdFrom(data) || record.priceId;
+      record.customerId = customerId || record.customerId;
       record.expiresAt = nextBilledAt || record.expiresAt;
+      record.activationLimit = activationLimitFromPlan(record.plan);
       if (email && !record.email) record.email = email;
     }
 
     await writeLicense(env, record);
+    if (eventId) await env.LICENSES.put("event:" + eventId, "1", { expirationTtl: 2592000 });
     // Paddle sends the receipt email; surface the key there or via your own
     // transactional email using record.key + record.email.
     return json({ ok: true, licenseKey: record.key });
   }
 
   // Renewal / period change -> push the expiry forward.
-  if (type === "subscription.updated" || type === "transaction.completed") {
+  if (
+    type === "subscription.updated" ||
+    type === "subscription.paused" ||
+    type === "subscription.resumed" ||
+    type === "subscription.past_due" ||
+    type === "transaction.completed" ||
+    type === "transaction.paid"
+  ) {
     const key = await readKey(env, subscriptionId);
     const record = await getLicense(env, key);
     if (record) {
-      const status = data.status;
-      if (status === "active" || status === "trialing" || type === "transaction.completed") {
-        record.status = "active";
-      } else if (status === "paused") {
-        record.status = "paused";
-      }
+      if (paddleStatus) record.status = paddleStatus;
+      if (type === "subscription.resumed" || type === "transaction.completed" || type === "transaction.paid") record.status = "active";
+      record.plan = plan || record.plan;
+      record.priceId = priceIdFrom(data) || record.priceId;
+      record.customerId = customerId || record.customerId;
+      record.activationLimit = activationLimitFromPlan(record.plan);
+      if (email && !record.email) record.email = email;
       if (nextBilledAt) record.expiresAt = nextBilledAt;
+      record.cancelAt = data.scheduled_change && data.scheduled_change.effective_at
+        ? data.scheduled_change.effective_at
+        : record.cancelAt || null;
       await writeLicense(env, record);
     }
+    if (eventId) await env.LICENSES.put("event:" + eventId, "1", { expirationTtl: 2592000 });
     return json({ ok: true });
   }
 
@@ -122,11 +204,14 @@ export async function onRequestPost(context) {
     const record = await getLicense(env, key);
     if (record) {
       record.status = "canceled";
+      record.canceledAt = data.canceled_at || new Date().toISOString();
       await writeLicense(env, record);
     }
+    if (eventId) await env.LICENSES.put("event:" + eventId, "1", { expirationTtl: 2592000 });
     return json({ ok: true });
   }
 
   // Acknowledge everything else so Paddle does not retry.
+  if (eventId) await env.LICENSES.put("event:" + eventId, "1", { expirationTtl: 2592000 });
   return json({ ok: true, ignored: type });
 }

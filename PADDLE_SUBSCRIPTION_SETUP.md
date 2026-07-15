@@ -45,14 +45,24 @@ Edit `assets/js/paddle-checkout.js`, top `PADDLE_CONFIG` block:
 environment: "sandbox",                 // "production" when live
 clientToken: "test_...",                // your client-side token
 prices: {
-  monthly: "pri_...",                   // monthly price ID
-  annual:  "pri_..."                    // yearly price ID
+  premium: {
+    monthly: "pri_01kxk3xtqq51jna7weqk9z374m",
+    annual:  "pri_01kxk418gk6pgmzm9pw61eyfqm"
+  },
+  instructor: {
+    monthly: "pri_01kxk45ny35mgkwy64xqdq849n",
+    annual:  "pri_01kxk46sfrf7t6pck4cweh4k11"
+  },
+  enterprise: {
+    monthly: "pri_01kxk48gyh6e7v7awr0b01svpc",
+    annual:  "pri_01kxk49k3ybfsaxhgds952ebba"
+  }
 }
 ```
 
-Then edit the displayed `$XX/month` and `$XXX/year` text in `desktop.html`
-(section `#pricing`) to match what you set in Paddle. The actual charge always
-comes from Paddle; this text is only the marketing label.
+The displayed sandbox prices in `desktop.html` are Premium $14.99/$149.99,
+Instructor $29.99/$299.99, and Enterprise $99.99/$999.99. The actual charge
+always comes from Paddle; the page labels are only the marketing display.
 
 ## Step 3 — Create the licence store (KV) and secrets
 

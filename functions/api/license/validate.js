@@ -7,12 +7,7 @@
   on launch / periodic re-check.
 */
 
-import { json, normalizeKey } from "../_shared.js";
-
-function isExpired(record) {
-  if (!record.expiresAt) return false;
-  return new Date(record.expiresAt).getTime() < Date.now();
-}
+import { json, normalizeKey, normalizeEmail, isExpired, getLicense, publicLicense } from "../_shared.js";
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -33,21 +28,26 @@ export async function onRequestPost(context) {
     return json({ valid: false, status: "invalid_format" }, 200);
   }
 
-  const raw = await env.LICENSES.get("license:" + key);
-  if (!raw) {
+  const record = await getLicense(env, key);
+  if (!record) {
     return json({ valid: false, status: "not_found" }, 200);
   }
 
-  const record = JSON.parse(raw);
   let status = record.status;
   if (status === "active" && isExpired(record)) {
     status = "expired";
+  }
+
+  const requestedEmail = normalizeEmail(body.email);
+  if (requestedEmail && record.email && normalizeEmail(record.email) !== requestedEmail) {
+    return json({ valid: false, status: "email_mismatch" }, 200);
   }
 
   return json({
     valid: status === "active",
     status: status,
     plan: record.plan || "desktop",
-    expiresAt: record.expiresAt || null
+    expiresAt: record.expiresAt || null,
+    license: publicLicense(record)
   });
 }
