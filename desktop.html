@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Desktop Subscription | DHC-6 Trainer</title>
+  <meta name="description" content="Subscribe to the DHC-6 Trainer desktop app for full large-screen Twin Otter study: QRH flows, MCC callouts, procedures, systems lab, and cockpit familiarisation.">
+  <meta name="theme-color" content="#06111f"><link rel="icon" href="assets/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="assets/site-redesign.css">
+  <!-- Paddle.js must be loaded only from the official CDN. -->
+  <script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
+  <style>
+    .price-wrap{display:grid;gap:18px;align-items:start}
+    .plans-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+    @media (max-width:980px){.plans-grid{grid-template-columns:1fr}.price-wrap{grid-template-columns:1fr}}
+    .price-card{border:1px solid rgba(255,255,255,.14);border-radius:8px;padding:24px;background:rgba(255,255,255,.03)}
+    .price-card.featured{border-color:#59a6ff;box-shadow:0 0 0 1px rgba(89,166,255,.35)}
+    .price-amount{font-size:2.2rem;font-weight:900;margin:6px 0 2px}
+    .price-amount small{font-size:.95rem;font-weight:600;opacity:.75}
+    .feature-list{list-style:none;padding:0;margin:14px 0 0}
+    .feature-list li{padding:6px 0 6px 26px;position:relative}
+    .feature-list li:before{content:"\2713";position:absolute;left:0;color:#9ff0bd;font-weight:900}
+    .buy-buttons{display:flex;flex-wrap:wrap;gap:12px;margin-top:18px}
+    .buy-buttons .btn{flex:1;min-width:170px;justify-content:center}
+    #checkout-message,#license-gate-message{margin-top:12px;min-height:1.2em}
+    .gate-field{display:flex;flex-direction:column;gap:6px;margin:10px 0}
+    .gate-field input{padding:11px 13px;border-radius:11px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.05);color:#fff;font-size:1rem}
+    .save-pill{display:inline-block;margin-left:8px;font-size:.72rem;font-weight:800;color:#06111f;background:#9ff0bd;border-radius:999px;padding:2px 9px}
+  </style>
+</head>
+<body>
+<header class="topbar"><div class="wrap"><nav><a class="brand" href="./"><span class="brand-mark">D6</span><span>DHC-6 Trainer<small>Desktop</small></span></a><div class="navlinks"><a href="./">Home</a><a href="mobile.html">Mobile</a><a href="desktop.html">Desktop</a><a href="access.html">Manage licence</a><a href="privacy.html">Privacy</a></div><a class="btn gold" href="#pricing">Subscribe</a></nav></div></header>
+<main>
+<section class="page-hero"><div class="wide page-grid"><div><span class="eyebrow"><span class="dot"></span> Desktop subscription</span><h1>Briefing-room scale for Twin Otter study.</h1><p class="lead">The DHC-6 Trainer desktop app brings QRH flows, MCC callouts, procedure drills, the systems lab, and cockpit familiarisation to Windows for briefing-room and recurrent study. Subscribe online, receive your licence key by email, and activate the app.</p><div class="actions"><a class="btn primary" href="#pricing">See pricing</a><a class="btn ghost" href="#activate">I already have a key</a></div><p style="margin-top:14px">Billing and tax are handled securely by Paddle, our reseller.</p></div><div class="visual-card"><img src="assets/latest-design-mcc.webp" alt="DHC-6 Trainer desktop-style MCC callout trainer concept"><div class="floating-card"><span class="score-pill">Licensed access</span><p>Designed for pilots, instructors, and training organizations.</p></div></div></div></section>
+
+<section><div class="wrap grid three"><article class="card"><span class="tag">Pilots</span><h3>Focused recurrent study</h3><p>Review procedures, QRH flows, MCC callouts, systems, and cockpit panels on a larger display.</p></article><article class="card"><span class="tag green">Instructors</span><h3>Briefing-room support</h3><p>Walk students through procedure flows, calls, expected responses, cockpit targets, and debrief points.</p></article><article class="card"><span class="tag amber">Schools</span><h3>Controlled seats</h3><p>Tiered activation limits support individual pilots, instructors, and larger training organizations.</p></article></div></section>
+
+<section id="pricing"><div class="wrap"><div class="section-head"><h2>Desktop subscriptions</h2><p>Choose a desktop tier for individual study, instructor-led training, or larger organization use. All plans include a 7-day free trial.</p></div>
+<div class="price-wrap">
+  <div class="plans-grid">
+    <div class="price-card">
+      <span class="tag">Premium</span>
+      <div class="price-amount">$14.99<small>/month</small></div>
+      <p class="muted-sm">or $149.99/year <span class="save-pill">7-day trial</span></p>
+      <ul class="feature-list">
+        <li>Full desktop QRH and checklist study</li>
+        <li>MCC callouts, flashcards, and procedure drills</li>
+        <li>Systems lab and cockpit familiarisation</li>
+        <li>Performance practice and local logbook</li>
+        <li>Activate on up to 3 devices</li>
+      </ul>
+      <div class="buy-buttons">
+        <button class="btn primary" type="button" data-plan="premium" data-cycle="monthly">Premium monthly</button>
+        <button class="btn ghost" type="button" data-plan="premium" data-cycle="annual">Premium yearly</button>
+      </div>
+    </div>
+    <div class="price-card featured">
+      <span class="tag green">Instructor</span>
+      <div class="price-amount">$29.99<small>/month</small></div>
+      <p class="muted-sm">or $299.99/year <span class="save-pill">7-day trial</span></p>
+      <ul class="feature-list">
+        <li>Everything in Premium</li>
+        <li>Briefing-room and student debrief workflows</li>
+        <li>Instructor-led MCC and procedure review</li>
+        <li>Priority support for training setup</li>
+        <li>Activate on up to 10 devices</li>
+      </ul>
+      <div class="buy-buttons">
+        <button class="btn primary" type="button" data-plan="instructor" data-cycle="monthly">Instructor monthly</button>
+        <button class="btn gold" type="button" data-plan="instructor" data-cycle="annual">Instructor yearly</button>
+      </div>
+    </div>
+    <div class="price-card">
+      <span class="tag amber">Enterprise</span>
+      <div class="price-amount">$99.99<small>/month</small></div>
+      <p class="muted-sm">or $999.99/year <span class="save-pill">7-day trial</span></p>
+      <ul class="feature-list">
+        <li>Everything in Instructor</li>
+        <li>Training school and operations-room use</li>
+        <li>Organization onboarding support</li>
+        <li>Procurement-friendly billing through Paddle</li>
+        <li>Activate on up to 50 devices</li>
+      </ul>
+      <div class="buy-buttons">
+        <button class="btn primary" type="button" data-plan="enterprise" data-cycle="monthly">Enterprise monthly</button>
+        <button class="btn ghost" type="button" data-plan="enterprise" data-cycle="annual">Enterprise yearly</button>
+      </div>
+    </div>
+  </div>
+  <p id="checkout-message" role="status" aria-live="polite"></p>
+  <div class="notice">
+    <h3>How it works</h3>
+    <p>1. Subscribe through the secure Paddle checkout.<br>2. Your licence key (format <strong>DHC6-XXXX-XXXX-XXXX</strong>) arrives by email.<br>3. Enter the key in the desktop app, or check it below, to unlock full access.</p>
+    <p class="muted-sm">Paddle is the merchant of record and handles payment, invoicing, and applicable taxes. Subscriptions renew automatically until canceled.</p>
+  </div>
+</div>
+</div></section>
+
+<section id="activate"><div class="wrap split">
+  <div class="card">
+    <span class="tag green">Already subscribed</span>
+    <h2>Check your licence key</h2>
+    <p>Verify the key from your purchase email. Use this same key in the desktop app to activate full access, or open the account page to manage billing and devices.</p>
+    <form id="desktop-license-form" novalidate>
+      <div class="gate-field"><label for="licenseKey">Licence key</label><input id="licenseKey" name="licenseKey" type="text" placeholder="DHC6-XXXX-XXXX-XXXX" autocomplete="off" spellcheck="false"></div>
+      <div class="gate-field"><label for="licenseEmail">Purchase email</label><input id="licenseEmail" name="licenseEmail" type="email" placeholder="you@example.com" autocomplete="email"></div>
+      <button class="btn primary" type="submit">Verify licence</button>
+      <p id="license-gate-message" role="status" aria-live="polite"></p>
+      <div class="actions"><a class="btn ghost" href="access.html#account">Manage billing and devices</a></div>
+    </form>
+  </div>
+  <div class="notice"><h3>Operational disclaimer</h3><p>DHC-6 Trainer is a study and training-support tool only. It is not an approved AFM, QRH, MEL, checklist, company manual, or operational authority. Always use approved aircraft manuals, company procedures, and applicable regulations for actual operation.</p></div>
+</div></section>
+
+<section><div class="wrap"><div class="card"><h2>Release status</h2><table><thead><tr><th>Platform</th><th>Status</th><th>Access</th></tr></thead><tbody><tr><td>Android</td><td>Available now</td><td>Google Play</td></tr><tr><td>Windows desktop</td><td>Subscription</td><td>Licence key</td></tr><tr><td>macOS</td><td>Coming later</td><td>Planned</td></tr><tr><td>Linux</td><td>Coming later</td><td>Planned</td></tr></tbody></table></div></div></section>
+</main>
+<footer class="footer"><div class="wrap"><p>&copy; TJ Aeronautical | DHC-6 Trainer | Training support only.</p><p><a href="./">Home</a> | <a href="mobile.html">Mobile</a> | <a href="desktop.html">Desktop</a> | <a href="access.html">Manage licence</a> | <a href="privacy.html">Privacy</a></p></div></footer>
+<script src="assets/js/paddle-checkout.js"></script>
+<script src="assets/js/desktop-license-gate.js"></script>
+</body></html>

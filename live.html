@@ -1,0 +1,672 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Live Trainer | DHC-6 Trainer</title>
+<meta name="description" content="An in-browser DHC-6 Twin Otter trainer: scored procedures, QRH memory-item drills, flashcards, performance calculator, cockpit callout drill, a local logbook, and an interactive 3D PT6A-27 engine cross-section.">
+<meta name="theme-color" content="#06111f">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="assets/site.webmanifest">
+<link rel="stylesheet" href="assets/site-redesign.css">
+<style>
+/* ── Trainer-specific additions ───────────────────────────────────────── */
+.trainer-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px}
+.t-tab{border-radius:999px;padding:9px 16px;font-weight:950;font-size:.88rem;cursor:pointer;background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--muted);line-height:1}
+.t-tab[aria-selected=true]{background:linear-gradient(180deg,#3088ff,#1165ea);border-color:rgba(100,170,255,.72);color:#fff}
+.trainer-mod{display:none}.trainer-mod.active{display:block;animation:fadeUp .24s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+/* Step rows — extends .flow-row */
+.step-row{display:grid;grid-template-columns:40px 1fr 36px;gap:10px;align-items:center;padding:12px 14px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid var(--line);margin:6px 0;cursor:pointer;transition:.15s}
+.step-row:hover{border-color:rgba(89,166,255,.3);background:rgba(255,255,255,.065)}
+.step-row.done{opacity:.52}.step-row.done .step-num{background:rgba(40,199,111,.22);border-color:rgba(40,199,111,.38);color:#7dffb7}
+.step-row.mem-item{border-color:rgba(255,77,94,.28);background:rgba(255,77,94,.06)}
+.step-num{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;font-weight:950;font-size:.82rem;background:rgba(34,120,255,.14);border:1px solid rgba(34,120,255,.24);color:#8bc8ff}
+.step-action{font-weight:800;color:#fff}.step-value{color:var(--amber);font-weight:950;font-size:.86rem}
+.step-check{color:#7dffb7;font-size:1.1rem;text-align:center}
+/* Flashcard */
+.fc-wrap{perspective:1200px;cursor:pointer;margin:0 0 14px}
+.fc-inner{position:relative;min-height:210px;transition:transform .5s cubic-bezier(.4,0,.2,1);transform-style:preserve-3d}
+.fc-wrap.flipped .fc-inner{transform:rotateY(180deg)}
+.fc-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:24px;padding:28px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.035));border:1px solid var(--line)}
+.fc-back{transform:rotateY(180deg);background:linear-gradient(180deg,rgba(34,120,255,.18),rgba(34,120,255,.06));border-color:rgba(34,120,255,.32)}
+.fc-q{font-size:1.2rem;font-weight:950;color:#fff;margin:8px 0}.fc-a{font-size:2rem;font-weight:950;color:var(--amber);margin:8px 0}
+.fc-note{font-size:.82rem;color:var(--muted);font-weight:800;margin-top:6px}
+/* KPI output tiles */
+.kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:12px}
+.kpi-box{background:rgba(255,255,255,.055);border:1px solid var(--line);border-radius:18px;padding:15px}
+.kpi-v{font-size:1.9rem;font-weight:950;color:#fff;line-height:1}
+.kpi-l{font-size:.72rem;font-weight:950;color:var(--blue-2);text-transform:uppercase;letter-spacing:.06em;margin-top:4px}
+/* Progress bar */
+.prog-bar{height:7px;background:rgba(255,255,255,.1);border-radius:999px;overflow:hidden;margin:6px 0 3px}
+.prog-fill{height:100%;background:linear-gradient(90deg,#1165ea,#59a6ff);border-radius:999px;transition:width .3s}
+/* Drill */
+.drill-call{font-size:1.45rem;font-weight:950;color:#fff;text-align:center;padding:18px 10px;min-height:1.4em}
+.drill-resp{font-size:1.7rem;font-weight:950;color:var(--green);text-align:center;padding:6px;min-height:1.2em}
+/* Logbook rows */
+.lb-row{display:grid;grid-template-columns:68px 1fr auto;gap:12px;align-items:center;padding:11px 14px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--line);margin:6px 0}
+.lb-type{text-align:center;border-radius:9px;font-weight:950;font-size:.7rem;padding:5px 0}
+/* Inputs */
+.f-row{margin-bottom:12px}
+.f-row label{display:block;font-weight:950;color:var(--muted);font-size:.82rem;margin-bottom:5px;letter-spacing:.02em}
+.f-row input,.f-row select{background:#091520;border:1px solid var(--line);border-radius:12px;color:#fff;padding:11px 12px;font-weight:800;font-size:.95rem;width:100%}
+/* Sub-tabs (takeoff/landing) */
+.sub-tabs{display:flex;gap:7px;margin-bottom:14px}
+.s-tab{border-radius:999px;padding:7px 14px;font-weight:950;font-size:.82rem;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--muted)}
+.s-tab[aria-selected=true]{background:rgba(34,120,255,.2);border-color:rgba(89,166,255,.4);color:#fff}
+/* Flag warning */
+.flag{border-left:4px solid var(--amber);background:rgba(255,176,32,.1);padding:12px 14px;border-radius:13px;font-weight:800;color:#ffe4a0;margin-top:10px;font-size:.88rem}
+/* 3D canvas */
+#engine-canvas{width:100%;height:380px;border:1px solid var(--line);border-radius:20px;background:#010e18;cursor:grab;display:block}
+.eng-legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.eng-leg-btn{padding:5px 11px;border-radius:999px;font-weight:950;font-size:.72rem;cursor:pointer;border:1px solid transparent;transition:border-color .2s}
+/* Misc */
+.score-badge{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:6px 12px;font-weight:950;font-size:.82rem;background:rgba(40,199,111,.12);color:#7dffb7;border:1px solid rgba(40,199,111,.28)}
+.muted-sm{color:var(--muted);font-weight:800;font-size:.85rem}
+@media(max-width:760px){.kpi-grid{grid-template-columns:1fr 1fr}.trainer-tabs{gap:6px}.t-tab{padding:8px 12px;font-size:.82rem}}
+</style>
+</head>
+<body>
+<div class="site-shell">
+<header class="topbar"><div class="wrap"><nav>
+  <a class="brand" href="./" aria-label="DHC-6 Trainer home"><span class="brand-mark">D6</span><span>DHC-6 Trainer<small>Live trainer</small></span></a>
+  <div class="navlinks"><a href="./">Home</a><a href="mobile.html">Mobile</a><a href="desktop.html">Desktop</a><a href="changelog.html">Changelog</a><a href="privacy.html">Privacy</a></div>
+  <a class="btn primary mobile-only" href="https://play.google.com/store/apps/details?id=com.dhc6trainer" target="_blank" rel="noopener">Google Play</a>
+</nav></div></header>
+
+<main>
+<section class="page-hero"><div class="wrap">
+  <span class="eyebrow"><span class="dot"></span> Browser trainer &middot; scores saved locally &middot; runs offline</span>
+  <h1>Live Web Trainer</h1>
+  <p class="lead">Seven interactive modules grounded in the DHC-6 Series 300 AFM/POH, operator QRH, and FCTM &mdash; plus a local logbook that records every session in this browser.</p>
+  <div class="notice" style="margin-top:18px"><p>Training support only. Always fly the approved AFM, QRH, company OM-B, and current regulatory documents. Figures here are for study and planning, not for operational use.</p></div>
+  <div class="actions"><a class="btn primary" href="mobile.html">Get the Android app</a><a class="btn ghost" href="desktop.html">Desktop coming soon</a></div>
+</div></section>
+
+<section><div class="wrap">
+
+  <div class="trainer-tabs" role="tablist" aria-label="Trainer modules">
+    <button class="t-tab" role="tab" aria-selected="true"  data-mod="procedures">Procedures</button>
+    <button class="t-tab" role="tab" aria-selected="false" data-mod="qrh">QRH</button>
+    <button class="t-tab" role="tab" aria-selected="false" data-mod="flashcards">Flashcards</button>
+    <button class="t-tab" role="tab" aria-selected="false" data-mod="performance">Performance</button>
+    <button class="t-tab" role="tab" aria-selected="false" data-mod="drill">Cockpit Drill</button>
+    <button class="t-tab" role="tab" aria-selected="false" data-mod="logbook">Logbook</button>
+    <button class="t-tab" role="tab" aria-selected="false" data-mod="engine3d">3D Engine</button>
+  </div>
+
+  <!-- PROCEDURES -->
+  <div class="trainer-mod active" id="mod-procedures">
+    <div class="panel">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+        <div><span class="tag">Normal procedures</span><h2 style="margin:4px 0 0" id="proc-title">Before Starting Engines</h2></div>
+        <div class="f-row" style="margin:0;min-width:240px"><label for="proc-sel">Select procedure</label><select id="proc-sel"></select></div>
+      </div>
+      <p class="muted-sm" id="proc-ref"></p>
+      <div id="proc-caution"></div>
+      <div id="proc-steps"></div>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:14px;flex-wrap:wrap">
+        <button class="btn ghost" id="proc-reset" style="font-size:.85rem;padding:9px 14px">Reset checklist</button>
+        <span class="score-badge" id="proc-prog">0 of 0 complete</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- QRH -->
+  <div class="trainer-mod" id="mod-qrh">
+    <div class="panel">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px">
+        <div><span class="tag red">QRH &middot; abnormal &amp; emergency</span><h2 style="margin:4px 0 0" id="qrh-title"></h2></div>
+        <div class="f-row" style="margin:0;min-width:240px"><label for="qrh-sel">Select checklist</label><select id="qrh-sel"></select></div>
+      </div>
+      <p class="muted-sm" id="qrh-ref"></p>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+        <span class="tag red" style="margin:0">&#9632; Memory item</span>
+        <span class="tag" style="margin:0">Read &amp; do</span>
+        <button class="btn ghost" id="qrh-toggle" style="margin-left:auto;font-size:.8rem;padding:7px 12px">Hide memory items</button>
+      </div>
+      <div id="qrh-steps"></div>
+      <div id="qrh-note" style="margin-top:10px"></div>
+    </div>
+  </div>
+
+  <!-- FLASHCARDS -->
+  <div class="trainer-mod" id="mod-flashcards">
+    <div class="panel">
+      <span class="tag">Flashcards &middot; limits &amp; systems</span>
+      <h2>PT6A-27 limits, airspeeds &amp; systems</h2>
+      <p class="muted-sm" id="fc-counter"></p>
+      <div class="fc-wrap" id="fc-card">
+        <div class="fc-inner">
+          <div class="fc-face"><div class="tag" id="fc-cat"></div><div class="fc-q" id="fc-q"></div><p class="muted-sm" style="margin-top:8px">Tap card to reveal</p></div>
+          <div class="fc-face fc-back"><div class="tag">Answer</div><div class="fc-a" id="fc-a"></div><div class="fc-note" id="fc-note"></div></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <button class="btn" id="fc-review" style="background:rgba(255,77,94,.15);border-color:rgba(255,77,94,.3);color:#ffa8b0;font-size:.85rem">Review again</button>
+        <button class="btn" id="fc-got" style="background:rgba(40,199,111,.15);border-color:rgba(40,199,111,.3);color:#7dffb7;font-size:.85rem">Got it</button>
+        <button class="btn ghost" id="fc-shuffle" style="font-size:.85rem">Shuffle &amp; restart</button>
+        <span class="score-badge" id="fc-score" style="margin-left:auto">Score 0 / 0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PERFORMANCE -->
+  <div class="trainer-mod" id="mod-performance">
+    <div class="panel">
+      <span class="tag amber">Performance planning</span>
+      <h2>Takeoff &amp; landing distances</h2>
+      <p class="muted-sm">Same model as the apps &mdash; anchored to AFM Section 5 examples. Planning study only.</p>
+      <div class="sub-tabs"><button class="s-tab" id="pf-to" aria-selected="true">Takeoff</button><button class="s-tab" id="pf-ldg" aria-selected="false">Landing</button></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;flex-wrap:wrap" class="split">
+        <div>
+          <div class="f-row"><label for="pf-elev">Pressure altitude (ft)</label><input id="pf-elev" type="number" value="0" step="100"></div>
+          <div class="f-row"><label for="pf-oat">OAT (&deg;C)</label><input id="pf-oat" type="number" value="15"></div>
+          <div class="f-row"><label for="pf-wt">Gross weight (lb)</label><input id="pf-wt" type="number" value="12500" step="100"></div>
+          <div class="f-row"><label for="pf-wind">Wind (kt &middot; + headwind / &minus; tailwind)</label><input id="pf-wind" type="number" value="0"></div>
+          <div class="f-row" id="pf-sf-wrap"><label for="pf-surface">Surface</label><select id="pf-surface"><option>PAVED DRY</option><option>WET</option><option>GRASS</option><option>GRAVEL</option><option>SOFT</option></select></div>
+          <div class="f-row" id="pf-fl-wrap" style="display:none"><label for="pf-flaps">Landing flap</label><select id="pf-flaps"><option value="37.5">Full (37.5&deg;)</option><option value="20">20&deg;</option><option value="10">10&deg;</option><option value="0">0&deg; (flapless)</option></select></div>
+        </div>
+        <div>
+          <div class="kpi-grid" id="pf-out"></div>
+          <div id="pf-flags"></div>
+          <p class="muted-sm" id="pf-disc" style="margin-top:10px"></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COCKPIT DRILL -->
+  <div class="trainer-mod" id="mod-drill">
+    <div class="panel">
+      <span class="tag red">Cockpit drill &middot; PF / PM callout</span>
+      <h2 id="drill-title"></h2>
+      <p class="muted-sm" id="drill-ctx"></p>
+      <div class="prog-bar"><div class="prog-fill" id="drill-fill" style="width:0%"></div></div>
+      <p class="muted-sm" id="drill-count"></p>
+      <div class="dark-panel" style="margin:12px 0">
+        <p class="muted-sm" style="text-align:center;margin-bottom:4px;font-size:.78rem;letter-spacing:.08em">PF CHALLENGE</p>
+        <div class="drill-call" id="drill-call"></div>
+        <p class="muted-sm" style="text-align:center;margin-top:8px;font-size:.78rem;letter-spacing:.08em">EXPECTED RESPONSE / ACTION</p>
+        <div class="drill-resp" id="drill-resp">&mdash;&nbsp;&mdash;&nbsp;&mdash;</div>
+      </div>
+      <div style="display:flex;gap:9px;flex-wrap:wrap;align-items:center">
+        <button class="btn gold" id="drill-reveal" style="font-size:.85rem">Reveal response</button>
+        <button class="btn" id="drill-miss" disabled style="background:rgba(255,77,94,.15);border-color:rgba(255,77,94,.3);color:#ffa8b0;font-size:.85rem">Missed</button>
+        <button class="btn" id="drill-correct" disabled style="background:rgba(40,199,111,.15);border-color:rgba(40,199,111,.3);color:#7dffb7;font-size:.85rem">Correct &mdash; next</button>
+        <button class="btn ghost" id="drill-restart" style="font-size:.85rem">Restart</button>
+        <span class="score-badge" id="drill-score" style="margin-left:auto">Score 0 / 0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGBOOK -->
+  <div class="trainer-mod" id="mod-logbook">
+    <div class="panel">
+      <span class="tag green">Logbook &middot; saved in this browser</span>
+      <h2>Your training logbook</h2>
+      <div class="hero-stats" id="lb-stats" style="margin-bottom:16px"></div>
+      <div id="lb-debrief"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin:14px 0 8px;flex-wrap:wrap;gap:8px">
+        <span class="muted-sm" style="letter-spacing:.06em;font-size:.78rem;text-transform:uppercase">Recent sessions</span>
+        <button class="btn ghost" id="lb-clear" style="font-size:.8rem;color:#ffa8b0;border-color:rgba(255,77,94,.28);padding:7px 12px">Clear history</button>
+      </div>
+      <div id="lb-list"></div>
+    </div>
+  </div>
+
+  <!-- 3D ENGINE -->
+  <div class="trainer-mod" id="mod-engine3d">
+    <div class="panel">
+      <span class="tag">Interactive 3D &middot; PT6A-27 turboprop</span>
+      <h2>PT6A-27 engine cross-section</h2>
+      <p class="muted-sm">Click a section to learn about it. Drag to rotate, scroll to zoom. Grounded in FCTM / Technical DHC-6.</p>
+      <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:16px" class="split">
+        <div>
+          <canvas id="engine-canvas"></canvas>
+          <div class="eng-legend" id="eng-legend"></div>
+        </div>
+        <div>
+          <div class="dark-panel" id="engine-info">
+            <span class="tag" id="eng-tag" style="margin-bottom:8px">Select a component</span>
+            <h3 id="eng-name">PT6A-27 overview</h3>
+            <p id="eng-desc" style="font-size:.9rem">The PT6A-27 is a free-turbine reverse-flow turboprop producing 620 SHP (flat-rated). Air enters at the rear, flows forward through a three-stage axial plus one centrifugal compressor, reverses through an annular combustion chamber, then passes rearward through the compressor and power turbines. Click any section above.</p>
+          </div>
+          <div class="notice" style="margin-top:10px"><p style="font-size:.8rem">Training reference only. Refer to the P&amp;WC PT6A maintenance manual for official specifications.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div></section>
+</main>
+
+<footer class="footer"><div class="wrap">
+  <p>&copy; TJ Aeronautical &middot; DHC-6 Trainer. Training support only &mdash; always use the approved AFM, QRH, company procedures and current regulatory documents for operation. Logbook data is stored only in this browser on this device.</p>
+  <p><a href="./">Home</a> &middot; <a href="mobile.html">Mobile</a> &middot; <a href="desktop.html">Desktop</a> &middot; <a href="privacy.html">Privacy</a></p>
+</div></footer>
+</div><!-- .site-shell -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+"use strict";
+/* =====================================================================
+   DHC-6 Trainer — Live Web Trainer
+   Content grounded in: DHC-6 Series 300 AFM/POH (PSM 1-63),
+   operator QRH (HBFO002 G950 ISS01REV02), FCTM (HBTS-001 ISS03R02).
+   Performance model ported from desktop PerformanceEngine.kt.
+   ===================================================================== */
+
+/* ── localStorage persistence ──────────────────────────────────────── */
+var Store = (function(){
+  var KEY="dhc6.trainer.v1", mem={attempts:[],lastTab:"procedures",perf:{}};
+  function load(){try{var r=localStorage.getItem(KEY);if(r)mem=Object.assign(mem,JSON.parse(r));}catch(e){}}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(mem));}catch(e){}}
+  if(!Array.isArray(mem.attempts))mem.attempts=[];
+  load();
+  return{
+    record:function(type,title,correct,total,sec){
+      mem.attempts.unshift({type:type,title:String(title).slice(0,80),correct:correct,total:total,sec:sec,ts:Date.now()});
+      mem.attempts=mem.attempts.slice(0,50);save();
+    },
+    attempts:function(){return mem.attempts.slice();},
+    sessions:function(t){return mem.attempts.filter(function(a){return a.type===t;}).length;},
+    best:function(t){return mem.attempts.filter(function(a){return a.type===t;}).reduce(function(m,a){var p=a.total>0?Math.round(a.correct*100/a.total):0;return p>m?p:m;},0);},
+    total:function(){return mem.attempts.length;},
+    clear:function(){mem.attempts=[];save();},
+    setTab:function(t){mem.lastTab=t;save();},
+    getTab:function(){return mem.lastTab||"procedures";},
+    setPerf:function(o){mem.perf=o;save();},
+    getPerf:function(){return mem.perf||{};}
+  };
+})();
+
+/* ── Performance engine (1:1 port from desktop PerformanceEngine.kt) ── */
+var PE={
+  BASE_GR:808,TO50_R:1.84,MTOW:12500,MLW:12300,BASE_LDG:1510,VLOF_KT:75,VS_MLW:56,
+  _cl:function(v,lo,hi){return Math.min(Math.max(v,lo),hi);},
+  to:function(elev,oat,wt,wind,surf){
+    var w=this._cl(wt,7000,this.MTOW),wf=Math.pow(w/this.MTOW,1.4);
+    var af=1+(elev/1000)*0.035,isa=15-(elev*0.00198),td=Math.max(oat-isa,0),tf=1+(td/10)*0.02;
+    var wnd=wind>0?Math.max(1-Math.min(wind,20)*0.01,0.72):wind<0?Math.min(1+Math.min(-wind,10)*0.03,1.4):1;
+    var s=(surf||"").toUpperCase(),sf=s.indexOf("WET")>=0?1.05:s.indexOf("GRASS")>=0?1.15:s.indexOf("GRAVEL")>=0?1.12:s.indexOf("SOFT")>=0?1.3:1;
+    var gr=this.BASE_GR*wf*af*tf*wnd*sf,to50=gr*this.TO50_R;
+    var vl=Math.max(Math.trunc(this.VLOF_KT*Math.sqrt(w/this.MTOW)),60);
+    return{gr:Math.trunc(gr),d50:Math.trunc(to50),vl:vl,v2:Math.trunc(vl*1.04)};
+  },
+  ldg:function(elev,oat,wt,wind,flaps){
+    var w=this._cl(wt,7000,this.MLW),wf=Math.pow(w/this.MLW,1.4);
+    var af=1+(elev/1000)*0.03,isa=15-(elev*0.00198),td=Math.max(oat-isa,0),tf=1+(td/10)*0.015;
+    var wnd=wind>0?Math.max(1-Math.min(wind,20)*0.008,0.75):wind<0?Math.min(1+Math.min(-wind,10)*0.04,1.45):1;
+    var f=flaps||"",ff=f.indexOf("20")>=0?1.3:f.indexOf("10")>=0?1.8:(f.indexOf("0")>=0&&f.indexOf("37")<0)?2.3:1;
+    var d=this.BASE_LDG*wf*af*tf*wnd*ff,vref=Math.max(Math.trunc(this.VS_MLW*Math.sqrt(w/this.MLW)*1.3),62);
+    return{d50:Math.trunc(d),vref:vref};
+  }
+};
+
+/* ── Grounded content ──────────────────────────────────────────────── */
+var PROCS=[
+  {title:"Before Starting Engines",ref:"AFM/POH Section 4.5",
+   warn:"WARNING — Engine start is prohibited if the HYD OIL PUMP circuit breaker is pulled out.",
+   steps:[["Exterior Check Checklist","Completed"],["Cockpit Preparation Checklist","Completed"],
+          ["Cabin Preparation Checklist","Completed"],["Preflight Weight & Balance Checks","Completed"],
+          ["Passenger Briefing","Complete"],["HYD OIL PUMP circuit breaker","Confirm NOT pulled out"],
+          ["Hydraulic pressures","Within 1,225–1,625 PSI band"],["Fuel quantity","Sufficient for planned flight"],
+          ["AFT BOOST & FWD BOOST switches","ON — all four boost pump caution lights out"],["Red Anti-Collision Beacon","ON"]]},
+  {title:"Starting Engines — External Power",ref:"AFM/POH Section 4.6.1",
+   warn:"CAUTION — Do not move the FUEL lever to ON before stabilised NG. Minimum NG to introduce fuel is 12%.",
+   steps:[["EXTERNAL / BATTERY switch","EXTERNAL"],["Voltmeter","Confirm 28 V external power present"],
+          ["START switch","Select LEFT or RIGHT as required"],["Gas generator (NG)","Allow to stabilise; confirm oil pressure rising"],
+          ["FUEL lever (selected engine)","ON when NG stabilised (min 12%)"],
+          ["Light-up / T5","Check accelerates to idle (~52% NG at ISA); T5 within start limits"],
+          ["START switch","Release when NG reaches idle; confirm oil pressure satisfactory"]]}
+];
+
+var M=true;
+var QRH=[
+  {title:"Engine Fire / Failure In-Flight",ref:"QRH Engine page EN-3 (after AFTER-TAKEOFF checklist)",
+   note:"NOTE — Max power on unaffected engine: advance to first of torque, T5, or NG limit; PROP lever MAX (96% NP). ■ = memory item.",
+   steps:[["MASTER WARNING","CANCEL",false],["POWER & PROP levers (unaffected engine)","MAX POWER",false],
+          ["POWER lever (affected engine)","RETARD to 10 PSI",M],["PROP lever (affected engine)","FEATHER",M],
+          ["FUEL lever (affected engine)","OFF",M],["FUEL SOV switch (affected engine)","OFF (check illuminated)",M],
+          ["FIRE EXT switch (affected engine, if applicable)","PUSH to discharge",M],
+          ["BOOST PUMP switch (affected engine)","OFF",M],["GENERATOR switch (affected engine)","OFF",false],
+          ["DC LOADMETER","Check load",false],["FUEL SELECTOR switch","As required",false],
+          ["ATC / Company / Passengers","Advise",false],["Airstart","Consider (QRH page EN-5)",false],
+          ["Single-engine landing / go-around / descent","Complete at appropriate time",false]]},
+  {title:"Engine Fire — On Ground",ref:"QRH / OM-B(V1) 3.11.1 — Engine page EN-1",
+   note:"Park/beach/secure the aircraft with the fire on the downwind side before completing, if applicable. ■ = memory item.",
+   steps:[["MASTER WARNING","CANCEL",false],["POWER levers (both engines)","IDLE",M],
+          ["PROP levers (both engines)","FEATHER",M],["FUEL levers (both engines)","OFF",M],
+          ["FUEL SOV switch (affected engine)","OFF (check illuminated)",M],
+          ["FIRE EXT switch (affected engine)","PUSH to discharge",M],
+          ["BOOST PUMP switch (both engines)","OFF",M],["ATC / Company","Inform (if applicable)",false],
+          ["DC MASTER switch","OFF (consider leaving ON at night)",false],
+          ["Evacuate aircraft","When propellers have stopped spinning",false],
+          ["Portable fire extinguisher","Apply into exhaust (if required & safe)",false]]},
+  {title:"Generator Fail (L / R GEN FAIL)",ref:"QRH / OM-B(V1) 3.12.2.2 — Electrical page EC-2",
+   note:"CAUTION — No more than two reset attempts. The GEN RESET CB is in the engine nacelle and cannot be reset in flight. ■ = memory item.",
+   steps:[["GENERATOR switch (affected engine)","OFF",M],["GENERATOR switch (affected engine)","RESET ONCE",false],
+          ["GEN FAIL CAS message (affected)","Check extinguished",false],
+          ["BUS TIE switch (if not reset)","OPEN",false],["GENERATOR switch (affected engine)","RESET ONCE",false],
+          ["GEN FAIL CAS message (affected)","Check extinguished",false],
+          ["DC LOADMETER","Check generator loads",false],["GENERATOR switch (if still not reset)","OFF",M],
+          ["BUS TIE switch","NORMAL",false],["DC LOADMETER","Check (max 1.0 single generator in flight)",false]]}
+];
+
+var FC=[
+  {c:"Powerplant limit",q:"Maximum permissible sustained torque (PT6A-27)?",a:"50 PSI",n:"= 620 SHP at 96% NP (airframe restriction)."},
+  {c:"Powerplant limit",q:"Max T5 — take-off & max continuous?",a:"725 °C",n:"Max climb/cruise T5 limit is 695 °C."},
+  {c:"Powerplant limit",q:"Max Ng — take-off & max continuous?",a:"101.5 %",n:"Green arc 50–101.5%; acceleration (2 sec) 102.6%."},
+  {c:"Powerplant limit",q:"Max Np (propeller) red radial?",a:"96 %",n:"Green arc 75–91% post-mod 6/1687; accel Np 110%."},
+  {c:"Powerplant limit",q:"Normal oil pressure range?",a:"80–100 PSI",n:"Above 72% NG with oil temp 60–70 °C; min red 40 PSI."},
+  {c:"Powerplant limit",q:"Oil pressure that is unsafe?",a:"Below 40 PSI",n:"Shut down or land ASAP using minimum power needed."},
+  {c:"Powerplant limit",q:"Max oil temperature?",a:"99 °C",n:"Green 10–99 °C; yellow −40 to +10 °C."},
+  {c:"Powerplant limit",q:"Max T5 during starting (2 sec limit)?",a:"1090 °C",n:"Idle T5 limit is 660 °C."},
+  {c:"Powerplant limit",q:"Reverse power time limit?",a:"1 minute",n:"Max reverse: T5 725 °C, Np 91 ±1%."},
+  {c:"Airspeed (KCAS)",q:"VMC (air minimum control speed)?",a:"66 KCAS",n:"Red radial line (TC/US ASI markings)."},
+  {c:"Airspeed (KCAS)",q:"VMO (max operating speed, post-mod)?",a:"170 KCAS",n:"Top of the green arc / red radial."},
+  {c:"Airspeed (KCAS)",q:"VYSE (best single-engine ROC)?",a:"82 KCAS",n:"Blue radial line."},
+  {c:"Airspeed (KCAS)",q:"VS1 (stall, clean)?",a:"74 KCAS",n:"Bottom of the green arc."},
+  {c:"Airspeed (KCAS)",q:"VS0 (stall, landing config)?",a:"58 KCAS",n:"Bottom of the white arc."},
+  {c:"Airspeed (KCAS)",q:"VFE (max flap-extended)?",a:"95 KCAS",n:"Top of the white arc."},
+  {c:"Weights",q:"Maximum take-off weight (Series 300)?",a:"12,500 lb",n:"Max landing weight is 12,300 lb."},
+  {c:"Fuel system",q:"Forward fuel tank capacity?",a:"183 US gal",n:"152 Imp gal — feeds the RIGHT engine (cells 1–4)."},
+  {c:"Fuel system",q:"Aft fuel tank capacity?",a:"200 US gal",n:"166 Imp gal — feeds the LEFT engine (cells 5–8)."},
+  {c:"Fuel system",q:"Usable fuel (gravimetric, both tanks)?",a:"2,548 lb",n:"At +15 °C, JET-A/A1; gross 2,574 lb."},
+  {c:"Oil system",q:"Engine oil tank usable quantity (each)?",a:"1.5 US gal",n:"1.3 Imp gal usable; 2.3 US gal (1.9 Imp) total."},
+  {c:"Hydraulics",q:"Hydraulic fluid type & system pressure?",a:"MIL-H-5606",n:"System pressure 1,225–1,625 psi; reservoir 0.66 USG."},
+  {c:"Electrical",q:"Main battery rating?",a:"24 V, 48 Ah",n:"Lead-acid; powers left bus and right bus via BUS TIE."},
+  {c:"Electrical",q:"Starter-generator rating (each)?",a:"28.5 VDC, 200 A",n:"Two units; max recommended load difference 0.1 (20 A)."},
+  {c:"Electrical",q:"Max single-generator load in flight?",a:"Loadmeter 1.0",n:"= 200 A; shed non-essential loads on single-gen ops."},
+  {c:"Electrical",q:"Low oil pressure caution light comes on at?",a:"40–42 PSI",n:"Goes out again at 44–46 PSI."}
+];
+
+var DRILL={
+  title:"Engine Fire In-Flight — memory items",
+  ctx:"Source: FCTM (HBTS-001). At first sign of fire: CONFIRM, then set MAX POWER on the unaffected engine. When the decision is made to secure the affected engine, run these memory items. Touch-confirm each control, then act.",
+  steps:[
+    ["CONFIRM — L/R ENGINE POWER LEVER","RETARD (to 10 PSI)"],
+    ["CONFIRM — L/R PROP LEVER","FEATHER"],
+    ["CONFIRM — L/R ENGINE FUEL LEVER","OFF"],
+    ["CONFIRM — L/R ENGINE FUEL EMERGENCY (SOV) SWITCH","OFF (check illuminated)"],
+    ["CONFIRM — L/R ENGINE FIRE EXTINGUISHER","PUSH (discharged)"],
+    ["CONFIRM — L/R FUEL BOOST PUMP","OFF"]
+  ]
+};
+
+/* ── Helpers ────────────────────────────────────────────────────────── */
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function now(){return Date.now();}
+
+/* ── Tabs ───────────────────────────────────────────────────────────── */
+var tabs=document.querySelectorAll(".trainer-tabs [data-mod]");
+function selectTab(mod){
+  tabs.forEach(function(t){t.setAttribute("aria-selected",t.dataset.mod===mod?"true":"false");});
+  document.querySelectorAll(".trainer-mod").forEach(function(m){m.classList.remove("active");});
+  var m=$("mod-"+mod);if(m)m.classList.add("active");
+  Store.setTab(mod);
+  if(mod==="logbook")renderLogbook();
+  if(mod==="engine3d")setTimeout(initEngine3D,40);
+}
+tabs.forEach(function(t){t.addEventListener("click",function(){selectTab(t.dataset.mod);});});
+
+/* ── Procedures ─────────────────────────────────────────────────────── */
+var psel=$("proc-sel");
+PROCS.forEach(function(p,i){psel.appendChild(new Option(p.title,i));});
+var procLogged=false;
+function renderProc(i){
+  procLogged=false;var p=PROCS[i];
+  $("proc-title").textContent=p.title;$("proc-ref").textContent=p.ref;
+  $("proc-caution").innerHTML=p.warn?'<div class="notice" style="margin:8px 0"><p>'+esc(p.warn)+"</p></div>":"";
+  var el=$("proc-steps");el.innerHTML="";
+  p.steps.forEach(function(s,n){
+    var d=document.createElement("div");d.className="step-row";d.dataset.done="0";
+    d.innerHTML='<div class="step-num">'+(n+1)+'</div><div><div class="step-action">'+esc(s[0])+'</div><div class="step-value">'+esc(s[1])+'</div></div><div class="step-check"></div>';
+    d.addEventListener("click",function(){
+      var done=d.dataset.done==="1";d.dataset.done=done?"0":"1";
+      d.classList.toggle("done",!done);d.querySelector(".step-check").textContent=done?"":"✓";
+      updateProcProg(i);
+    });
+    el.appendChild(d);
+  });
+  updateProcProg(i);
+}
+function updateProcProg(i){
+  var rows=$("proc-steps").querySelectorAll(".step-row"),done=$("proc-steps").querySelectorAll(".step-row.done").length;
+  $("proc-prog").textContent=done+" of "+rows.length+" complete";
+  if(!procLogged&&rows.length>0&&done===rows.length){procLogged=true;Store.record("PROC",PROCS[i].title,done,rows.length,0);}
+}
+psel.addEventListener("change",function(){renderProc(+psel.value);});
+$("proc-reset").addEventListener("click",function(){renderProc(+psel.value);});
+renderProc(0);
+
+/* ── QRH ────────────────────────────────────────────────────────────── */
+var qsel=$("qrh-sel");
+QRH.forEach(function(q,i){qsel.appendChild(new Option(q.title,i));});
+var showMem=true;
+function renderQrh(i){
+  var q=QRH[i];$("qrh-title").textContent=q.title;$("qrh-ref").textContent=q.ref;
+  $("qrh-note").innerHTML=q.note?'<div class="notice" style="margin:8px 0"><p>'+esc(q.note)+"</p></div>":"";
+  var el=$("qrh-steps");el.innerHTML="";
+  q.steps.forEach(function(s,n){
+    var mem=s[2]===true;var d=document.createElement("div");
+    d.className="step-row"+(mem?" mem-item":"");d.dataset.done="0";
+    var val=(mem&&!showMem)?"••••••":esc(s[1]);
+    d.innerHTML='<div class="step-num">'+(n+1)+'</div><div><div class="step-action">'+(mem?'<span class="tag red" style="padding:3px 7px;margin:0 5px 0 0;font-size:.7rem">■</span>':"")+esc(s[0])+'</div><div class="step-value">'+val+'</div></div><div class="step-check"></div>';
+    d.addEventListener("click",function(){
+      var done=d.dataset.done==="1";d.dataset.done=done?"0":"1";
+      d.classList.toggle("done",!done);d.querySelector(".step-check").textContent=done?"":"✓";
+    });
+    el.appendChild(d);
+  });
+}
+qsel.addEventListener("change",function(){renderQrh(+qsel.value);});
+$("qrh-toggle").addEventListener("click",function(){
+  showMem=!showMem;$("qrh-toggle").textContent=showMem?"Hide memory items":"Show memory items";renderQrh(+qsel.value);
+});
+renderQrh(0);
+
+/* ── Flashcards ─────────────────────────────────────────────────────── */
+var fcOrd=FC.map(function(_,i){return i;}),fcPos=0,fcOk=0,fcStart=0;
+function fcReset(){
+  for(var i=fcOrd.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=fcOrd[i];fcOrd[i]=fcOrd[j];fcOrd[j]=t;}
+  fcPos=0;fcOk=0;fcStart=now();renderFc();
+  $("fc-got").disabled=false;$("fc-review").disabled=false;
+}
+function renderFc(){
+  var c=FC[fcOrd[fcPos]];
+  $("fc-card").classList.remove("flipped");
+  $("fc-cat").textContent=c.c;$("fc-q").textContent=c.q;
+  $("fc-a").textContent=c.a;$("fc-note").textContent=c.n||"";
+  $("fc-counter").textContent="Card "+(fcPos+1)+" of "+FC.length;
+  $("fc-score").textContent="Score "+fcOk+" / "+fcPos;
+}
+function fcRate(ok){
+  if(ok)fcOk++;fcPos++;
+  if(fcPos>=FC.length){
+    Store.record("CARDS","Flashcard deck",fcOk,FC.length,Math.round((now()-fcStart)/1000));
+    $("fc-a").textContent=fcOk+" / "+FC.length;$("fc-q").textContent="Deck complete";
+    $("fc-note").textContent="Saved to your logbook. Shuffle & restart to run again.";
+    $("fc-card").classList.add("flipped");
+    $("fc-score").textContent="Score "+fcOk+" / "+FC.length;
+    $("fc-got").disabled=true;$("fc-review").disabled=true;
+  }else{renderFc();}
+}
+$("fc-card").addEventListener("click",function(){$("fc-card").classList.toggle("flipped");});
+$("fc-got").addEventListener("click",function(){fcRate(true);});
+$("fc-review").addEventListener("click",function(){fcRate(false);});
+$("fc-shuffle").addEventListener("click",function(){fcReset();});
+fcReset();
+
+/* ── Performance ────────────────────────────────────────────────────── */
+var pfMode="to";
+function setPfMode(m){
+  pfMode=m;$("pf-to").setAttribute("aria-selected",m==="to");$("pf-ldg").setAttribute("aria-selected",m==="ldg");
+  $("pf-sf-wrap").style.display=m==="to"?"":"none";$("pf-fl-wrap").style.display=m==="ldg"?"":"none";calcPf();
+}
+function kbox(v,l){return'<div class="kpi-box"><div class="kpi-v">'+v+'</div><div class="kpi-l">'+l+"</div></div>";}
+function calcPf(){
+  var el=parseInt($("pf-elev").value)||0,oa=parseInt($("pf-oat").value)||0,wt=parseInt($("pf-wt").value)||0,wi=parseInt($("pf-wind").value)||0;
+  var flags=[];
+  if(pfMode==="to"){
+    var r=PE.to(el,oa,wt,wi,$("pf-surface").value);
+    $("pf-out").innerHTML=kbox(r.gr.toLocaleString()+" ft","Ground roll")+kbox(r.d50.toLocaleString()+" ft","To 50 ft")+kbox(r.vl+" kt","VLOF")+kbox(r.v2+" kt","V2");
+    if(wt>12500)flags.push("Weight exceeds MTOW 12,500 lb");
+  }else{
+    var l=PE.ldg(el,oa,wt,wi,$("pf-flaps").value);
+    $("pf-out").innerHTML=kbox(l.d50.toLocaleString()+" ft","Landing from 50 ft")+kbox(l.vref+" kt","VREF");
+    if(wt>12300)flags.push("Weight exceeds MLW 12,300 lb");
+  }
+  if(wi<-10)flags.push("Tailwind exceeds 10 kt — check AFM tailwind limit");
+  $("pf-flags").innerHTML=flags.length?flags.map(function(f){return'<div class="flag">'+esc(f)+"</div>";}).join(""):"";
+  $("pf-disc").textContent="Planning only — refer to AFM Section 5 for operations.";
+  Store.setPerf({el:el,oa:oa,wt:wt,wi:wi,surf:$("pf-surface").value,fl:$("pf-flaps").value,m:pfMode});
+}
+$("pf-to").addEventListener("click",function(){setPfMode("to");});
+$("pf-ldg").addEventListener("click",function(){setPfMode("ldg");});
+["pf-elev","pf-oat","pf-wt","pf-wind","pf-surface","pf-flaps"].forEach(function(id){
+  $(id).addEventListener("input",calcPf);$(id).addEventListener("change",calcPf);
+});
+(function restorePerf(){
+  var p=Store.getPerf();if(p&&p.wt){
+    $("pf-elev").value=p.el;$("pf-oat").value=p.oa;$("pf-wt").value=p.wt;$("pf-wind").value=p.wi;
+    if(p.surf)$("pf-surface").value=p.surf;if(p.fl)$("pf-flaps").value=p.fl;
+  }
+  setPfMode((p&&p.m)||"to");
+})();
+
+/* ── Cockpit drill ──────────────────────────────────────────────────── */
+var dp=0,dr=false,dc=0,ds=0;
+$("drill-title").textContent=DRILL.title;$("drill-ctx").textContent=DRILL.ctx;
+function renderDrill(){
+  var s=DRILL.steps[dp];
+  $("drill-call").textContent=s[0];
+  $("drill-resp").innerHTML=dr?esc(s[1]):"&mdash;&nbsp;&mdash;&nbsp;&mdash;";
+  $("drill-fill").style.width=Math.round(dp/DRILL.steps.length*100)+"%";
+  $("drill-count").textContent="Memory item "+(dp+1)+" of "+DRILL.steps.length;
+  $("drill-score").textContent="Score "+dc+" / "+dp;
+  $("drill-reveal").disabled=dr;$("drill-correct").disabled=!dr;$("drill-miss").disabled=!dr;
+}
+function drillReset(){dp=0;dr=false;dc=0;ds=now();renderDrill();}
+function drillRate(ok){
+  if(ok)dc++;dp++;dr=false;
+  if(dp>=DRILL.steps.length){
+    Store.record("DRILL","Engine Fire In-Flight",dc,DRILL.steps.length,Math.round((now()-ds)/1000));
+    $("drill-call").textContent="MEMORY ITEMS COMPLETE";
+    $("drill-resp").innerHTML="&rarr; Action remaining QRH items";
+    $("drill-fill").style.width="100%";
+    $("drill-count").textContent="Saved to logbook · "+dc+" / "+DRILL.steps.length;
+    $("drill-score").textContent="Score "+dc+" / "+DRILL.steps.length;
+    $("drill-reveal").disabled=true;$("drill-correct").disabled=true;$("drill-miss").disabled=true;
+  }else{renderDrill();}
+}
+$("drill-reveal").addEventListener("click",function(){dr=true;renderDrill();});
+$("drill-correct").addEventListener("click",function(){drillRate(true);});
+$("drill-miss").addEventListener("click",function(){drillRate(false);});
+$("drill-restart").addEventListener("click",drillReset);
+drillReset();
+
+/* ── Logbook ────────────────────────────────────────────────────────── */
+function fmtDate(ts){try{return new Date(ts).toLocaleString(undefined,{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"});}catch(e){return "";}}
+function fmtTime(s){var m=Math.floor(s/60),r=s%60;return(m<10?"0":"")+m+":"+(r<10?"0":"")+r;}
+var TCOL={CARDS:"rgba(34,120,255,.7)",DRILL:"rgba(40,199,111,.7)",PROC:"rgba(255,176,32,.7)"};
+function statTile(v,l){return'<div class="stat"><strong>'+v+'</strong><span>'+l+"</span></div>";}
+function renderLogbook(){
+  var atts=Store.attempts();
+  var cs=Store.sessions("CARDS"),ds=Store.sessions("DRILL"),cb=Store.best("CARDS"),db=Store.best("DRILL");
+  $("lb-stats").innerHTML=statTile(Store.total(),"Total sessions")+statTile(cs>0?cb+"%":"—","Flashcards best")+statTile(ds>0?db+"%":"—","Drill best");
+  if(atts.length===0){
+    $("lb-debrief").innerHTML="";
+    $("lb-list").innerHTML='<div class="dark-panel"><h3>No sessions yet</h3><p>Complete a flashcard deck or cockpit drill and your scores, times and weak areas will appear here. Data stays in this browser only.</p></div>';
+    return;
+  }
+  var scored=atts.filter(function(a){return a.type!=="PROC"&&a.total>0;});
+  var byTitle={};scored.forEach(function(a){var k=a.type+"·"+a.title;(byTitle[k]=byTitle[k]||[]).push(Math.round(a.correct*100/a.total));});
+  var weak=Object.keys(byTitle).map(function(k){var arr=byTitle[k];var avg=Math.round(arr.reduce(function(x,y){return x+y;},0)/arr.length);return{k:k,avg:avg,n:arr.length};}).sort(function(a,b){return a.avg-b.avg;}).slice(0,3);
+  $("lb-debrief").innerHTML=weak.length?'<div class="dark-panel" style="margin-bottom:12px"><span class="tag amber" style="margin-bottom:10px">Debrief — focus areas</span>'+weak.map(function(w){return'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)"><span style="font-weight:800">'+esc(w.k)+'</span><b style="color:'+(w.avg<70?"var(--red)":"var(--muted)")+'">'+w.avg+"% avg · "+w.n+"</b></div>";}).join("")+"</div>":"";
+  $("lb-list").innerHTML=atts.map(function(a){
+    var pct=a.total>0?Math.round(a.correct*100/a.total):0;var col=TCOL[a.type]||TCOL.CARDS;
+    var score=a.type==="PROC"?'<b style="color:var(--green)">'+a.correct+"/"+a.total+" done</b>":'<b style="color:'+(pct>=70?"var(--green)":"var(--red)")+'">'+a.correct+"/"+a.total+" ("+pct+"%)</b>";
+    return'<div class="lb-row"><div class="lb-type" style="background:'+col.replace(".7",".16")+';color:'+col+'">'+(a.type||"?")+'</div><div><div style="font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(a.title)+'</div><div class="muted-sm">'+fmtDate(a.ts)+(a.sec?" · "+fmtTime(a.sec):"")+'</div></div>'+score+"</div>";
+  }).join("");
+}
+$("lb-clear").addEventListener("click",function(){Store.clear();renderLogbook();});
+
+/* ── 3D Engine (Three.js PT6A-27) ───────────────────────────────────── */
+var eng3dReady=false;
+function initEngine3D(){
+  if(eng3dReady||typeof THREE==="undefined")return;
+  eng3dReady=true;
+  var canvas=$("engine-canvas"),w=canvas.clientWidth||700,h=canvas.clientHeight||380;
+  var scene=new THREE.Scene();
+  var camera=new THREE.PerspectiveCamera(42,w/h,0.1,100);camera.position.set(0,2.8,10);camera.lookAt(0,0,0);
+  var renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true,alpha:true});
+  renderer.setSize(w,h);renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+  scene.add(new THREE.AmbientLight(0x8899bb,0.6));
+  var dl=new THREE.DirectionalLight(0xffffff,0.9);dl.position.set(4,6,8);scene.add(dl);
+  var rl=new THREE.DirectionalLight(0x59a6ff,0.5);rl.position.set(-3,2,-5);scene.add(rl);
+  var grp=new THREE.Group();scene.add(grp);
+  var PARTS=[
+    {name:"Propeller shaft",tag:"Output",color:0x667788,wx:0.14,hf:0.15,desc:"Output shaft from the reduction gearbox to the constant-speed propeller. The prop lever controls feather, normal, and reverse range via the propeller governor and beta valve. NP is measured here."},
+    {name:"Reduction gearbox",tag:"Gearbox",color:0x1a6e7a,wx:0.12,hf:0.72,desc:"Two-stage planetary reduction gearbox (~15:1). Houses the propeller brake, tachometer generator, and the torquemeter that drives the torque pressure indicator."},
+    {name:"Axial compressor",tag:"Compressor",color:0x2278ff,wx:0.16,hf:0.60,desc:"Three axial compressor stages. Air enters at the rear of the engine and flows forward through these stages before reaching the centrifugal impeller. Compression ratio ~6.3:1 combined."},
+    {name:"Centrifugal compressor",tag:"Compressor",color:0x59a6ff,wx:0.10,hf:0.68,desc:"Single centrifugal compressor stage. Accelerates air radially outward into the diffuser and then into the reverse-flow annular combustion chamber. Driven by the compressor turbine."},
+    {name:"Combustion chamber",tag:"Combustion",color:0xdd7722,wx:0.16,hf:1.0,desc:"Reverse-flow annular combustion chamber with 14 fuel nozzles. Hot gases reverse direction and flow rearward to the turbine stages. This reverse-flow layout keeps the engine compact."},
+    {name:"Compressor turbine",tag:"Gas generator",color:0x28c76f,wx:0.09,hf:0.58,desc:"Single-stage compressor turbine. Extracts energy to drive the compressor and accessories via the NG shaft. NG speed is the primary engine power reference — limited to 101.5% for T/O."},
+    {name:"Power turbine",tag:"Free turbine",color:0x7dffb7,wx:0.09,hf:0.52,desc:"Single-stage free power turbine. Mechanically independent of the gas generator — the 'free' in free turbine. Drives the propeller via a concentric shaft. Max NP: 96% (red radial)."},
+    {name:"Exhaust section",tag:"Exhaust",color:0x8899aa,wx:0.14,hf:0.42,desc:"Exhaust gases exit rearward after the power turbine. The exhaust stack incorporates the T5 (ITT) thermocouple ring. T5 max take-off: 725 °C."}
+  ];
+  var maxH=2.4;var meshes=[];
+  var totalW=PARTS.reduce(function(s,p){return s+p.wx;},0);var xPos=-totalW/2;
+  PARTS.forEach(function(p){
+    var geo=new THREE.CylinderGeometry(p.hf*maxH/2,p.hf*maxH/2,p.wx*8,28);
+    var mat=new THREE.MeshStandardMaterial({color:p.color,metalness:0.42,roughness:0.44});
+    var m=new THREE.Mesh(geo,mat);m.rotation.z=Math.PI/2;
+    m.position.x=(xPos+p.wx/2)*8;m.userData=p;
+    grp.add(m);meshes.push(m);xPos+=p.wx;
+  });
+  var shGeo=new THREE.CylinderGeometry(0.06,0.06,8.8,12);
+  var shMat=new THREE.MeshStandardMaterial({color:0x334455,metalness:0.6,roughness:0.3});
+  var sh=new THREE.Mesh(shGeo,shMat);sh.rotation.z=Math.PI/2;grp.add(sh);
+  // Legend
+  var lg=$("eng-legend");lg.innerHTML="";
+  PARTS.forEach(function(p,i){
+    var sp=document.createElement("span");sp.className="eng-leg-btn";
+    sp.textContent=p.name;sp.style.background="#"+p.color.toString(16).padStart(6,"0")+"20";
+    sp.style.color="#"+p.color.toString(16).padStart(6,"0");
+    sp.addEventListener("click",function(){selectPart(i);});lg.appendChild(sp);
+  });
+  var selIdx=-1;
+  function selectPart(i){
+    meshes.forEach(function(m,j){m.material.emissive.setHex(j===i?0x224466:0);m.material.emissiveIntensity=j===i?0.7:0;});
+    selIdx=i;var p=PARTS[i];
+    $("eng-tag").textContent=p.tag;$("eng-name").textContent=p.name;$("eng-desc").textContent=p.desc;
+    lg.querySelectorAll(".eng-leg-btn").forEach(function(s,j){s.style.borderColor=j===i?"rgba(255,255,255,.5)":"transparent";});
+  }
+  // Orbit
+  var yaw=-0.35,pitch=0.22,drag=false,px=0,py=0;
+  canvas.addEventListener("pointerdown",function(e){drag=true;px=e.clientX;py=e.clientY;canvas.style.cursor="grabbing";});
+  window.addEventListener("pointerup",function(){drag=false;canvas.style.cursor="grab";});
+  window.addEventListener("pointermove",function(e){
+    if(!drag)return;yaw+=(e.clientX-px)*0.008;pitch=Math.max(-1.4,Math.min(1.4,pitch+(e.clientY-py)*0.008));px=e.clientX;py=e.clientY;
+  });
+  canvas.addEventListener("wheel",function(e){e.preventDefault();camera.position.z=Math.max(5,Math.min(18,camera.position.z+e.deltaY*0.012));},{passive:false});
+  var raycaster=new THREE.Raycaster(),mouse=new THREE.Vector2();
+  canvas.addEventListener("click",function(e){
+    var rect=canvas.getBoundingClientRect();
+    mouse.x=((e.clientX-rect.left)/rect.width)*2-1;mouse.y=-((e.clientY-rect.top)/rect.height)*2+1;
+    raycaster.setFromCamera(mouse,camera);var hits=raycaster.intersectObjects(meshes);
+    if(hits.length>0){var idx=meshes.indexOf(hits[0].object);if(idx>=0)selectPart(idx);}
+  });
+  window.addEventListener("resize",function(){var nw=canvas.clientWidth,nh=canvas.clientHeight;if(nw&&nh){camera.aspect=nw/nh;camera.updateProjectionMatrix();renderer.setSize(nw,nh);}});
+  var idle=0;
+  (function loop(){requestAnimationFrame(loop);idle+=0.016;if(!drag&&idle>2.5){yaw+=0.006;}grp.rotation.y=yaw;grp.rotation.x=pitch;renderer.render(scene,camera);})();
+}
+
+/* ── Restore last tab ───────────────────────────────────────────────── */
+selectTab(Store.getTab());
+</script>
+</body>
+</html>

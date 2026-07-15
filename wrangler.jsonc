@@ -1,0 +1,37 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "dhc6-trainer-website",
+  "compatibility_date": "2026-06-03",
+  "observability": {
+    "enabled": true
+  },
+  "assets": {
+    "directory": ".",
+    "not_found_handling": "single-page-application",
+    "exclude": [
+      ".git/**",
+      ".github/**",
+      ".idea/**",
+      ".wrangler/**",
+      "tools/**",
+      "functions/**",
+      "downloads/desktop/*.exe",
+      "downloads/desktop/*.msi",
+      "downloads/desktop/*.dmg",
+      "downloads/desktop/*.deb"
+    ]
+  },
+  // KV namespace storing licence records. Create it once, then paste its id:
+  //   npx wrangler kv namespace create LICENSES
+  // Secrets are NOT stored here - set them in the Cloudflare dashboard or via:
+  //   npx wrangler pages secret put PADDLE_WEBHOOK_SECRET
+  //   npx wrangler pages secret put PADDLE_API_KEY
+  //   npx wrangler pages secret put PADDLE_ENVIRONMENT  // or set as env var: sandbox / production
+  //   npx wrangler pages secret put LICENSE_SIGNING_SECRET
+  "kv_namespaces": [
+    {
+      "binding": "LICENSES",
+      "id": "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+    }
+  ]
+}

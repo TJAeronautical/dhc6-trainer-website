@@ -1,0 +1,10 @@
+.idea/
+downloads/desktop/*.exe
+downloads/desktop/*.msi
+downloads/desktop/*.dmg
+downloads/desktop/*.deb
+
+# Do not publish desktop installers from website repo
+downloads/desktop/*.exe
+downloads/desktop/*.msi
+_local_desktop_installer_backup/
