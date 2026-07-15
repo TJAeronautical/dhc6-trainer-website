@@ -73,7 +73,7 @@ async function verifyLicense(licenseKey, email) {
 
   if (response.ok && data.valid && data.status === "active") {
     setMessage(
-      "Licence verified. Open the DHC-6 Trainer desktop app and enter this key to unlock full access.",
+      "Licence verified. Use Open desktop app on this page, then enter this key in the app to unlock full access.",
       true
     );
   } else if (data.status === "expired") {

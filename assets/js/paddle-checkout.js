@@ -16,27 +16,17 @@ const PADDLE_CONFIG = {
 
   // Client-side token from Paddle > Developer tools > Authentication.
   // Sandbox tokens start with "test_", live tokens start with "live_".
-  clientToken: "test_d8128820fe75450386eccfcc326",
+  clientToken: "test_REPLACE_WITH_YOUR_CLIENT_SIDE_TOKEN",
 
   // Price IDs from Paddle > Catalog > Products (look like "pri_...").
-  // These are sandbox IDs for the three desktop tiers.
+  // Create ONE product ("DHC-6 Trainer Desktop") with two recurring prices.
   prices: {
-    premium: {
-      monthly: "pri_01kxk3xtqq51jna7weqk9z374m",
-      annual: "pri_01kxk418gk6pgmzm9pw61eyfqm"
-    },
-    instructor: {
-      monthly: "pri_01kxk45ny35mgkwy64xqdq849n",
-      annual: "pri_01kxk46sfrf7t6pck4cweh4k11"
-    },
-    enterprise: {
-      monthly: "pri_01kxk48gyh6e7v7awr0b01svpc",
-      annual: "pri_01kxk49k3ybfsaxhgds952ebba"
-    }
+    monthly: "pri_REPLACE_WITH_MONTHLY_PRICE_ID",
+    annual: "pri_REPLACE_WITH_ANNUAL_PRICE_ID"
   },
 
   // Where the desktop app / customer activates the key after purchase.
-  successUrl: "https://dhc6trainer.com/access.html?status=purchased#account"
+  successUrl: "https://dhc6trainer.com/access.html?status=purchased"
 };
 /* =================== END CONFIG - EDIT THESE ======================= */
 
@@ -54,14 +44,6 @@ function initPaddle() {
   if (typeof Paddle === "undefined") {
     setCheckoutMessage(
       "Checkout failed to load. Refresh the page or email tj.aeronautical@outlook.com.",
-      false
-    );
-    return;
-  }
-
-  if (!PADDLE_CONFIG.clientToken || PADDLE_CONFIG.clientToken.indexOf("REPLACE") > -1) {
-    setCheckoutMessage(
-      "Checkout prices are configured. Add your Paddle sandbox client-side token to enable checkout.",
       false
     );
     return;
@@ -102,9 +84,8 @@ function initPaddle() {
   paddleReady = true;
 }
 
-function openDesktopCheckout(plan, cycle) {
-  const tier = PADDLE_CONFIG.prices[plan] || {};
-  const priceId = tier[cycle];
+function openDesktopCheckout(plan) {
+  const priceId = PADDLE_CONFIG.prices[plan];
 
   if (!paddleReady) {
     setCheckoutMessage("Checkout is still loading. Please try again in a moment.", false);
@@ -123,11 +104,6 @@ function openDesktopCheckout(plan, cycle) {
 
   Paddle.Checkout.open({
     items: [{ priceId: priceId, quantity: 1 }],
-    customData: {
-      product: "dhc6_trainer_desktop",
-      plan: plan,
-      billing_cycle: cycle
-    },
     settings: {
       displayMode: "overlay",
       theme: "dark",
@@ -138,10 +114,10 @@ function openDesktopCheckout(plan, cycle) {
 }
 
 function bindCheckoutButtons() {
-  const buttons = document.querySelectorAll("[data-plan][data-cycle]");
+  const buttons = document.querySelectorAll("[data-plan]");
   buttons.forEach(function (btn) {
     btn.addEventListener("click", function () {
-      openDesktopCheckout(btn.getAttribute("data-plan"), btn.getAttribute("data-cycle"));
+      openDesktopCheckout(btn.getAttribute("data-plan"));
     });
   });
 }

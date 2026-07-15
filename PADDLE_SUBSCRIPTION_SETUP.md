@@ -24,48 +24,15 @@ customer email (key)  <------------------------- + Paddle receipt
 desktop app  --(POST /api/license/activate)-->  unlock (signed offline grace)
 ```
 
-The billing system also includes:
-
-- `POST /api/billing/status` for account status and activated devices.
-- `POST /api/billing/portal` for Paddle-hosted subscription management.
-- `POST /api/license/deactivate` to release a desktop device seat.
-- `access.html#account` as the customer account console.
-
----
-
-## Sandbox catalog created
-
-Current sandbox product and price mapping:
-
-| Plan | Product ID | Price | Price ID | Paddle amount |
-| --- | --- | --- | --- | --- |
-| Premium | `pro_01kxk3k651jztcw4pe9xt1zq3z` | Monthly $14.99 | `pri_01kxk3xtqq51jna7weqk9z374m` | `"1499"` |
-| Premium | `pro_01kxk3k651jztcw4pe9xt1zq3z` | Annual $149.99 | `pri_01kxk418gk6pgmzm9pw61eyfqm` | `"14999"` |
-| Instructor | `pro_01kxk446c7wktesx3cj8m8n379` | Monthly $29.99 | `pri_01kxk45ny35mgkwy64xqdq849n` | `"2999"` |
-| Instructor | `pro_01kxk446c7wktesx3cj8m8n379` | Annual $299.99 | `pri_01kxk46sfrf7t6pck4cweh4k11` | `"29999"` |
-| Enterprise | `pro_01kxk476nhtewg2tyqvtxpzyv2` | Monthly $99.99 | `pri_01kxk48gyh6e7v7awr0b01svpc` | `"9999"` |
-| Enterprise | `pro_01kxk476nhtewg2tyqvtxpzyv2` | Annual $999.99 | `pri_01kxk49k3ybfsaxhgds952ebba` | `"99999"` |
-
-Activation limits:
-
-- Premium: 3 devices
-- Instructor: 10 devices
-- Enterprise: 50 devices
-
-All sandbox prices include a 7-day trial and GB/IE/AU local price overrides.
-
 ---
 
 ## Step 1 — Paddle account and product
 
 1. Create a Paddle account and start in the **sandbox** (Paddle dashboard has a sandbox/live switch).
-2. **Catalog > Products**: create one product per tier:
-   - `DHC-6 Trainer Desktop Premium`
-   - `DHC-6 Trainer Desktop Instructor`
-   - `DHC-6 Trainer Desktop Enterprise`
-3. Add two **recurring prices** to each product:
-   - Monthly
-   - Annual
+2. **Catalog > Products**: create one product, e.g. `DHC-6 Trainer Desktop`.
+3. Add two **recurring prices** to that product:
+   - Monthly (your monthly amount + currency)
+   - Yearly (your annual amount + currency)
 4. Copy each **price ID** (looks like `pri_01h...`).
 5. **Developer tools > Authentication**: copy a **client-side token**
    (sandbox tokens start with `test_`, live with `live_`).
@@ -78,24 +45,14 @@ Edit `assets/js/paddle-checkout.js`, top `PADDLE_CONFIG` block:
 environment: "sandbox",                 // "production" when live
 clientToken: "test_...",                // your client-side token
 prices: {
-  premium: {
-    monthly: "pri_...",
-    annual: "pri_..."
-  },
-  instructor: {
-    monthly: "pri_...",
-    annual: "pri_..."
-  },
-  enterprise: {
-    monthly: "pri_...",
-    annual: "pri_..."
-  }
+  monthly: "pri_...",                   // monthly price ID
+  annual:  "pri_..."                    // yearly price ID
 }
 ```
 
-The displayed prices in `desktop.html` already match the sandbox catalog above.
-When you create live Paddle prices later, update both `assets/js/paddle-checkout.js`
-and the visible pricing labels in `desktop.html`.
+Then edit the displayed `$XX/month` and `$XXX/year` text in `desktop.html`
+(section `#pricing`) to match what you set in Paddle. The actual charge always
+comes from Paddle; this text is only the marketing label.
 
 ## Step 3 — Create the licence store (KV) and secrets
 
@@ -105,8 +62,6 @@ npx wrangler kv namespace create LICENSES
 # copy the printed id into wrangler.jsonc -> kv_namespaces[0].id
 
 npx wrangler pages secret put PADDLE_WEBHOOK_SECRET     # paste from Step 4
-npx wrangler pages secret put PADDLE_API_KEY            # Paddle API key for portal sessions
-npx wrangler pages secret put PADDLE_ENVIRONMENT        # sandbox or production
 npx wrangler pages secret put LICENSE_SIGNING_SECRET    # any long random string
 ```
 
@@ -116,8 +71,6 @@ npx wrangler kv namespace create LICENSES
 # copy the printed id into wrangler.jsonc -> kv_namespaces[0].id
 
 npx wrangler pages secret put PADDLE_WEBHOOK_SECRET
-npx wrangler pages secret put PADDLE_API_KEY
-npx wrangler pages secret put PADDLE_ENVIRONMENT
 npx wrangler pages secret put LICENSE_SIGNING_SECRET
 ```
 
@@ -138,9 +91,7 @@ head -c 32 /dev/urandom | base64
 2. Paddle **Developer tools > Notifications** (sandbox): add a destination:
    - URL: `https://<your-pages-domain>/api/paddle/webhook`
    - Events: `subscription.activated`, `subscription.updated`,
-     `subscription.canceled`, `subscription.paused`,
-     `subscription.resumed`, `subscription.past_due`,
-     `transaction.completed`, `transaction.paid`
+     `subscription.canceled`, `transaction.completed`
 3. Copy the destination's **secret key** and set it as `PADDLE_WEBHOOK_SECRET`
    (Step 3). Re-deploy after setting secrets.
 
@@ -161,7 +112,7 @@ Check the API is alive:
 
 ```bash
 curl https://<your-pages-domain>/api/health
-# expect: {"ok":true,"service":"dhc6-trainer-billing","kv":true,"paddleApi":true}
+# expect: {"ok":true,"service":"dhc6-trainer-licenses","kv":true}
 ```
 
 ## Step 6 — Test in sandbox (no real money)
@@ -177,18 +128,13 @@ curl https://<your-pages-domain>/api/health
    You should see a `license:DHC6-...`, `sub:...`, and `email:...` entry.
 4. On `desktop.html#activate`, enter the key + purchase email → expect
    "Licence verified".
-5. On `access.html#account`, enter the purchase email + key. Expect active
-   status, renewal/expiry date, and a device-seat summary.
-6. Click **Open billing portal**. Expect Paddle's hosted customer portal.
-7. Test activation directly:
+5. Test activation directly:
    ```bash
    curl -X POST https://<your-pages-domain>/api/license/activate \
      -H "Content-Type: application/json" \
      -d '{"licenseKey":"DHC6-XXXX-XXXX-XXXX","deviceId":"test-device-1"}'
    # expect: {"activated":true,...,"token":"..."}
    ```
-8. Return to `access.html#account`, refresh status, and confirm the test device
-   appears. Release it and confirm the activation count drops.
 
 ## Step 7 — Go live
 
@@ -223,56 +169,24 @@ project is a different repo — I can deliver it as its own patch. The contract:
   with a copy of `LICENSE_SIGNING_SECRET` baked in, or simply trust the server
   response. Server-side remains the source of truth.
 
-Defaults you can tune:
-`activationLimit = 3` devices per licence record, and `GRACE_DAYS = 7` offline
-days in `functions/api/license/activate.js`.
+Defaults you can tune in `functions/api/license/activate.js`:
+`MAX_ACTIVATIONS = 3` devices, `GRACE_DAYS = 7` offline days.
 
 ---
 
-## Billing API contract
+## Desktop app launch hook
 
-### Check account status
+The website can now launch an installed desktop app with:
 
-```http
-POST /api/billing/status
-Content-Type: application/json
-
-{
-  "email": "buyer@example.com",
-  "licenseKey": "DHC6-XXXX-XXXX-XXXX"
-}
+```text
+dhc6trainer://live
 ```
 
-Returns `{ ok:true, license:{ status, plan, expiresAt, activationCount, activationLimit, activations } }`.
-
-### Open Paddle billing portal
-
-```http
-POST /api/billing/portal
-Content-Type: application/json
-
-{
-  "email": "buyer@example.com",
-  "licenseKey": "DHC6-XXXX-XXXX-XXXX"
-}
-```
-
-Returns `{ ok:true, url:"https://..." }`. Redirect the customer to `url`.
-
-### Release a device seat
-
-```http
-POST /api/license/deactivate
-Content-Type: application/json
-
-{
-  "email": "buyer@example.com",
-  "licenseKey": "DHC6-XXXX-XXXX-XXXX",
-  "deviceId": "stable-machine-id"
-}
-```
-
-Returns the updated public licence state.
+Pages use `assets/js/desktop-launch.js` to try the custom protocol and then
+fall back to `live.html` if the app does not respond. The desktop app should
+register the `dhc6trainer` protocol during installation and route `/live` to the
+main trainer/home surface. Keep licence keys out of this URL; activation remains
+inside the app.
 
 ---
 

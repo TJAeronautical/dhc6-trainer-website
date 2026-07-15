@@ -2,7 +2,7 @@
   POST /api/license/activate
   Body: { "licenseKey": "DHC6-....", "deviceId": "stable-machine-id", "deviceName": "optional" }
 
-  Binds a device to a licence (up to record.activationLimit, default 3) and returns a signed
+  Binds a device to a licence (up to MAX_ACTIVATIONS) and returns a signed
   activation token the desktop app can cache for an offline grace period.
 
   Required:
@@ -10,9 +10,15 @@
     - Secret: LICENSE_SIGNING_SECRET   (any long random string you set)
 */
 
-import { json, normalizeKey, hmacHex, isExpired, getLicense, writeLicense } from "../_shared.js";
+import { json, normalizeKey, hmacHex } from "../_shared.js";
 
+const MAX_ACTIVATIONS = 3;          // devices per subscription
 const GRACE_DAYS = 7;               // offline grace before re-validation
+
+function isExpired(record) {
+  if (!record.expiresAt) return false;
+  return new Date(record.expiresAt).getTime() < Date.now();
+}
 
 export async function onRequestPost(context) {
   const { request, env } = context;
@@ -39,35 +45,27 @@ export async function onRequestPost(context) {
     return json({ activated: false, error: "missing_device_id" }, 400);
   }
 
-  const record = await getLicense(env, key);
-  if (!record) {
+  const raw = await env.LICENSES.get("license:" + key);
+  if (!raw) {
     return json({ activated: false, status: "not_found" }, 200);
   }
 
+  const record = JSON.parse(raw);
   if (record.status !== "active" || isExpired(record)) {
     return json({ activated: false, status: isExpired(record) ? "expired" : record.status }, 200);
   }
 
   record.activations = Array.isArray(record.activations) ? record.activations : [];
-  const activationLimit = record.activationLimit || 3;
   let device = record.activations.find(function (d) { return d.deviceId === deviceId; });
 
   if (!device) {
-    if (record.activations.length >= activationLimit) {
-      return json({ activated: false, status: "activation_limit", max: activationLimit }, 200);
+    if (record.activations.length >= MAX_ACTIVATIONS) {
+      return json({ activated: false, status: "activation_limit", max: MAX_ACTIVATIONS }, 200);
     }
-    device = {
-      deviceId: deviceId,
-      deviceName: deviceName,
-      activatedAt: new Date().toISOString(),
-      lastSeenAt: new Date().toISOString()
-    };
+    device = { deviceId: deviceId, deviceName: deviceName, activatedAt: new Date().toISOString() };
     record.activations.push(device);
-  } else {
-    device.deviceName = deviceName || device.deviceName;
-    device.lastSeenAt = new Date().toISOString();
+    await env.LICENSES.put("license:" + key, JSON.stringify(record));
   }
-  await writeLicense(env, record);
 
   // Signed token: app stores it and works offline until graceExpiresAt.
   const graceExpiresAt = new Date(Date.now() + GRACE_DAYS * 86400000).toISOString();
@@ -79,8 +77,6 @@ export async function onRequestPost(context) {
     status: "active",
     plan: record.plan || "desktop",
     expiresAt: record.expiresAt || null,
-    activationCount: record.activations.length,
-    activationLimit: activationLimit,
     graceExpiresAt: graceExpiresAt,
     token: payload + "|" + signature
   });
