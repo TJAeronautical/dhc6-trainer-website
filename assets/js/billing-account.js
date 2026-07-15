@@ -72,6 +72,8 @@ async function postJson(path, body) {
 function renderAccount(license) {
   loadedAccount = license;
   if (portalButton) portalButton.disabled = !license || !license.customerId;
+  const keyInput = document.getElementById("billingKey");
+  if (license && keyInput && !keyInput.value.trim()) keyInput.value = license.key;
 
   if (!license) {
     billingSummary.innerHTML = "<h2>No account loaded</h2><p>Load your subscription to see current status, renewal date, and activated devices.</p>";
@@ -106,11 +108,11 @@ async function loadBillingStatus() {
   const email = (document.getElementById("billingEmail")?.value || "").trim();
   const licenseKey = (document.getElementById("billingKey")?.value || "").trim().toUpperCase();
 
-  if (!email || !licenseKey) {
-    billingSetMessage("Enter your purchase email and licence key.", false);
+  if (!email) {
+    billingSetMessage("Enter your purchase email.", false);
     return;
   }
-  if (!BILLING_KEY_PATTERN.test(licenseKey)) {
+  if (licenseKey && !BILLING_KEY_PATTERN.test(licenseKey)) {
     billingSetMessage("Licence key format should look like DHC6-XXXX-XXXX-XXXX.", false);
     return;
   }
@@ -119,17 +121,17 @@ async function loadBillingStatus() {
   const data = await postJson("/api/billing/status", { email: email, licenseKey: licenseKey });
   if (!data.ok || !data.license) {
     renderAccount(null);
-    billingSetMessage("No matching subscription was found.", false);
+    billingSetMessage("No subscription was found for that email yet. If you just purchased, wait a minute and try again.", false);
     return;
   }
   renderAccount(data.license);
-  billingSetMessage("Billing status loaded.", true);
+  billingSetMessage("Billing status loaded. Your licence key is shown on the right.", true);
 }
 
 async function openPortal() {
   if (!loadedAccount) return;
   const email = (document.getElementById("billingEmail")?.value || "").trim();
-  const licenseKey = (document.getElementById("billingKey")?.value || "").trim().toUpperCase();
+  const licenseKey = ((document.getElementById("billingKey")?.value || "").trim() || loadedAccount.key || "").toUpperCase();
   billingSetMessage("Opening Paddle billing portal...", true);
   const data = await postJson("/api/billing/portal", { email: email, licenseKey: licenseKey });
   if (data.ok && data.url) {
@@ -141,7 +143,7 @@ async function openPortal() {
 
 async function releaseDevice(deviceId) {
   const email = (document.getElementById("billingEmail")?.value || "").trim();
-  const licenseKey = (document.getElementById("billingKey")?.value || "").trim().toUpperCase();
+  const licenseKey = ((document.getElementById("billingKey")?.value || "").trim() || (loadedAccount && loadedAccount.key) || "").toUpperCase();
   billingSetMessage("Releasing device seat...", true);
   const data = await postJson("/api/license/deactivate", { email: email, licenseKey: licenseKey, deviceId: deviceId });
   if (data.ok && data.license) {
