@@ -19,7 +19,8 @@ import {
   verifyPaddleSignature,
   getLicense,
   writeLicense,
-  normalizeEmail
+  normalizeEmail,
+  paddleApi
 } from "../_shared.js";
 
 async function readKey(env, subscriptionId) {
@@ -31,6 +32,12 @@ function priceIdFrom(data) {
   const items = Array.isArray(data.items) ? data.items : [];
   const first = items[0] || {};
   return first.price_id || (first.price && first.price.id) || data.price_id || null;
+}
+
+function subscriptionIdFrom(type, data) {
+  if (data.subscription_id) return data.subscription_id;
+  if (String(type).indexOf("subscription.") === 0) return data.id || null;
+  return null;
 }
 
 const PLAN_BY_PRICE_ID = {
@@ -72,6 +79,13 @@ function emailFrom(data) {
   );
 }
 
+async function emailFromCustomer(context, customerId) {
+  if (!customerId) return "";
+  const result = await paddleApi(context, "/customers/" + customerId, { method: "GET" });
+  if (!result.ok || !result.data || !result.data.data) return "";
+  return normalizeEmail(result.data.data.email || "");
+}
+
 function periodEndFrom(data) {
   return (
     (data.current_billing_period && data.current_billing_period.ends_at) ||
@@ -90,6 +104,10 @@ function statusFromPaddle(type, status) {
   if (status === "past_due") return "past_due";
   if (status === "canceled") return "canceled";
   return null;
+}
+
+async function markEventSeen(env, eventId) {
+  if (eventId) await env.LICENSES.put("event:" + eventId, "1", { expirationTtl: 2592000 });
 }
 
 export async function onRequestPost(context) {
@@ -117,22 +135,22 @@ export async function onRequestPost(context) {
   const type = event.event_type || "";
   const data = event.data || {};
   const eventId = event.event_id || event.id || null;
-  const subscriptionId = data.id || data.subscription_id || null;
+  const subscriptionId = subscriptionIdFrom(type, data);
   const customerId = data.customer_id || null;
-  const email = emailFrom(data);
+  const email = emailFrom(data) || await emailFromCustomer(context, customerId);
   const nextBilledAt = periodEndFrom(data);
   const paddleStatus = statusFromPaddle(type, data.status);
   const plan = planFrom(data);
 
-  if (eventId) {
-    const eventSeen = await env.LICENSES.get("event:" + eventId);
-    if (eventSeen) {
-      return json({ ok: true, duplicate: true });
-    }
-  }
+  const duplicate = eventId ? Boolean(await env.LICENSES.get("event:" + eventId)) : false;
 
-  // Subscription created/activated -> ensure a licence exists and is active.
-  if (type === "subscription.activated" || type === "subscription.created") {
+  // Subscription created/activated, or a paid transaction with a subscription
+  // link -> ensure a licence exists and is active.
+  if (
+    type === "subscription.activated" ||
+    type === "subscription.created" ||
+    (subscriptionId && (type === "transaction.completed" || type === "transaction.paid"))
+  ) {
     let key = await readKey(env, subscriptionId);
     let record = await getLicense(env, key);
 
@@ -163,10 +181,10 @@ export async function onRequestPost(context) {
     }
 
     await writeLicense(env, record);
-    if (eventId) await env.LICENSES.put("event:" + eventId, "1", { expirationTtl: 2592000 });
+    await markEventSeen(env, eventId);
     // Paddle sends the receipt email; surface the key there or via your own
     // transactional email using record.key + record.email.
-    return json({ ok: true, licenseKey: record.key });
+    return json({ ok: true, duplicate: duplicate, licenseKey: record.key });
   }
 
   // Renewal / period change -> push the expiry forward.
@@ -194,8 +212,8 @@ export async function onRequestPost(context) {
         : record.cancelAt || null;
       await writeLicense(env, record);
     }
-    if (eventId) await env.LICENSES.put("event:" + eventId, "1", { expirationTtl: 2592000 });
-    return json({ ok: true });
+    await markEventSeen(env, eventId);
+    return json({ ok: true, duplicate: duplicate });
   }
 
   // Cancellation -> mark canceled (keep the record for recovery/audit).
@@ -207,11 +225,11 @@ export async function onRequestPost(context) {
       record.canceledAt = data.canceled_at || new Date().toISOString();
       await writeLicense(env, record);
     }
-    if (eventId) await env.LICENSES.put("event:" + eventId, "1", { expirationTtl: 2592000 });
-    return json({ ok: true });
+    await markEventSeen(env, eventId);
+    return json({ ok: true, duplicate: duplicate });
   }
 
   // Acknowledge everything else so Paddle does not retry.
-  if (eventId) await env.LICENSES.put("event:" + eventId, "1", { expirationTtl: 2592000 });
-  return json({ ok: true, ignored: type });
+  await markEventSeen(env, eventId);
+  return json({ ok: true, duplicate: duplicate, ignored: type });
 }
