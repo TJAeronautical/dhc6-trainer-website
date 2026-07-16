@@ -24,6 +24,10 @@
       "downloads/desktop/*.deb"
     ]
   },
-  // Add the LICENSES KV namespace and Paddle secrets in the Cloudflare
-  // dashboard under this Worker's Bindings and Variables settings.
+  "kv_namespaces": [
+    {
+      "binding": "LICENSES",
+      "id": "bf9eec9ca8e748ee8c6802751fafecaf"
+    }
+  ]
 }
