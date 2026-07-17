@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Live Trainer | DHC-6 Trainer</title>
-<meta name="description" content="An in-browser DHC-6 Twin Otter trainer: scored procedures, QRH memory-item drills, flashcards, performance calculator, cockpit callout drill, a local logbook, and an interactive 3D PT6A-27 engine cross-section.">
+<meta name="description" content="An in-browser DHC-6 Twin Otter trainer: scored procedures, QRH memory-item drills, flashcards, performance calculator, cockpit callout drill, a local logbook, and an app-aligned DHC-6 cockpit simulator preview.">
 <meta name="theme-color" content="#06111f">
 <link rel="icon" href="assets/favicon-32.png" type="image/png"><link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
 <link rel="manifest" href="assets/site.webmanifest">
@@ -56,6 +56,26 @@
 .sim-annunciators{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .sim-lamp{border-radius:999px;padding:6px 10px;border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--muted);font-weight:950;font-size:.76rem}
 .sim-lamp.on{border-color:rgba(255,77,94,.45);background:rgba(255,77,94,.14);color:#ffa8b0}.sim-lamp.safe{border-color:rgba(40,199,111,.35);background:rgba(40,199,111,.12);color:#9ff0bd}
+.cockpit-viewport{position:relative;aspect-ratio:16/9;border:1px solid rgba(89,166,255,.28);border-radius:18px;overflow:hidden;background:#000;margin-bottom:12px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.035)}
+.cockpit-art{position:absolute;left:0;top:-22%;width:100%;height:auto;user-select:none;pointer-events:none;filter:saturate(1.03) contrast(1.02)}
+.cockpit-shade{position:absolute;inset:0;background:radial-gradient(circle at 50% 44%,transparent 0,rgba(0,0,0,.03) 46%,rgba(0,0,0,.62) 100%);pointer-events:none}
+.cockpit-hotspot{position:absolute;border:2px solid rgba(255,176,32,.88);background:rgba(255,176,32,.18);border-radius:10px;box-shadow:0 0 0 999px rgba(0,0,0,.08),0 0 24px rgba(255,176,32,.24);transition:.18s;pointer-events:none}
+.cockpit-hotspot.done{border-color:rgba(40,199,111,.86);background:rgba(40,199,111,.16);box-shadow:0 0 18px rgba(40,199,111,.22)}
+.cockpit-hotspot.active{animation:pulseHotspot 1.4s ease-in-out infinite}
+@keyframes pulseHotspot{0%,100%{box-shadow:0 0 0 999px rgba(0,0,0,.08),0 0 18px rgba(255,176,32,.20)}50%{box-shadow:0 0 0 999px rgba(0,0,0,.08),0 0 34px rgba(255,176,32,.45)}}
+.cockpit-state-strip{position:absolute;left:12px;right:12px;bottom:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.cockpit-state-strip span{border-radius:999px;padding:6px 10px;background:rgba(2,11,18,.86);border:1px solid rgba(255,255,255,.16);color:#d8e5f2;font-weight:950;font-size:.72rem}
+.app-sim-grid{display:grid;grid-template-columns:1.35fr .85fr;gap:16px;align-items:stretch}
+.app-sim-screen{position:relative;min-height:430px;border:1px solid rgba(89,166,255,.30);border-radius:22px;overflow:hidden;background:#02070b}
+.app-sim-shot{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(1.02) contrast(1.03)}
+.app-sim-overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(2,7,11,.08),rgba(2,7,11,.58))}
+.flight-badges{position:absolute;top:12px;left:12px;right:12px;display:flex;gap:7px;flex-wrap:wrap}
+.flight-badges span,.instrument-strip span{border-radius:999px;padding:6px 10px;background:rgba(2,11,18,.86);border:1px solid rgba(85,199,255,.42);color:#d8e5f2;font-weight:950;font-size:.72rem}
+.instrument-strip{position:absolute;left:12px;right:12px;bottom:12px;display:flex;gap:7px;flex-wrap:wrap}
+.app-sim-controls{display:grid;gap:10px;align-content:start}
+.camera-buttons{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.camera-buttons button{border-radius:999px;padding:8px 12px;font-weight:950;font-size:.76rem;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--muted)}
+.camera-buttons button[aria-pressed=true]{background:rgba(34,120,255,.22);border-color:rgba(89,166,255,.48);color:#fff}
 /* Logbook rows */
 .lb-row{display:grid;grid-template-columns:68px 1fr auto;gap:12px;align-items:center;padding:11px 14px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid var(--line);margin:6px 0}
 .lb-type{text-align:center;border-radius:9px;font-weight:950;font-size:.7rem;padding:5px 0}
@@ -69,14 +89,11 @@
 .s-tab[aria-selected=true]{background:rgba(34,120,255,.2);border-color:rgba(89,166,255,.4);color:#fff}
 /* Flag warning */
 .flag{border-left:4px solid var(--amber);background:rgba(255,176,32,.1);padding:12px 14px;border-radius:13px;font-weight:800;color:#ffe4a0;margin-top:10px;font-size:.88rem}
-/* 3D canvas */
-#engine-canvas{width:100%;height:380px;border:1px solid var(--line);border-radius:20px;background:#010e18;cursor:grab;display:block}
-.eng-legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
-.eng-leg-btn{padding:5px 11px;border-radius:999px;font-weight:950;font-size:.72rem;cursor:pointer;border:1px solid transparent;transition:border-color .2s}
 /* Misc */
 .score-badge{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:6px 12px;font-weight:950;font-size:.82rem;background:rgba(40,199,111,.12);color:#7dffb7;border:1px solid rgba(40,199,111,.28)}
 .muted-sm{color:var(--muted);font-weight:800;font-size:.85rem}
-@media(max-width:760px){.kpi-grid{grid-template-columns:1fr 1fr}.trainer-tabs{gap:6px}.t-tab{padding:8px 12px;font-size:.82rem}.sim-grid{grid-template-columns:1fr}}
+@media(max-width:980px){.app-sim-grid{grid-template-columns:1fr}.app-sim-screen{min-height:360px}}
+@media(max-width:760px){.kpi-grid{grid-template-columns:1fr 1fr}.trainer-tabs{gap:6px}.t-tab{padding:8px 12px;font-size:.82rem}.sim-grid{grid-template-columns:1fr}.cockpit-viewport{aspect-ratio:4/3}.app-sim-screen{min-height:320px}}
 </style>
 </head>
 <body>
@@ -106,7 +123,7 @@
     <button class="t-tab" role="tab" aria-selected="false" data-mod="performance">Performance</button>
     <button class="t-tab" id="drill" role="tab" aria-selected="false" data-mod="drill">Cockpit Drill</button>
     <button class="t-tab" role="tab" aria-selected="false" data-mod="logbook">Logbook</button>
-    <button class="t-tab" role="tab" aria-selected="false" data-mod="engine3d">3D Engine</button>
+    <button class="t-tab" role="tab" aria-selected="false" data-mod="engine3d">Aircraft Sim</button>
   </div>
 
   <!-- PROCEDURES -->
@@ -209,6 +226,12 @@
           <div><span class="tag amber" style="margin-bottom:7px">Linked cockpit simulation</span><h3 id="sim-title">Affected-engine panel</h3></div>
           <span class="score-badge" id="sim-phase">Awaiting confirmation</span>
         </div>
+        <div class="cockpit-viewport" aria-label="DHC-6 cockpit control panel">
+          <img class="cockpit-art" src="assets/cockpit/legacy-cockpit-base-clean.webp" alt="DHC-6 cockpit controls from the desktop app">
+          <div class="cockpit-shade"></div>
+          <div id="cockpit-hotspots"></div>
+          <div class="cockpit-state-strip" id="cockpit-state-strip"></div>
+        </div>
         <div class="sim-grid" id="cockpit-sim"></div>
         <div class="sim-annunciators" id="sim-annunciators"></div>
         <p class="muted-sm" id="sim-note" style="margin-top:10px"></p>
@@ -238,24 +261,36 @@
     </div>
   </div>
 
-  <!-- 3D ENGINE -->
+  <!-- AIRCRAFT SIM PREVIEW -->
   <div class="trainer-mod" id="mod-engine3d">
     <div class="panel">
-      <span class="tag">Interactive 3D &middot; PT6A-27 turboprop</span>
-      <h2>PT6A-27 engine cross-section</h2>
-      <p class="muted-sm">Click a section to learn about it. Drag to rotate, scroll to zoom. Grounded in FCTM / Technical DHC-6.</p>
-      <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:16px" class="split">
-        <div>
-          <canvas id="engine-canvas"></canvas>
-          <div class="eng-legend" id="eng-legend"></div>
+      <span class="tag">Desktop app simulator &middot; DHC-6 free flight</span>
+      <h2>DHC-6 aircraft simulator preview</h2>
+      <p class="muted-sm">This mirrors the installed desktop app surface: DHC-6 aircraft focus, camera modes, cockpit drill context, and live training state. The full flyable 3D scene runs in the desktop app after purchase.</p>
+      <div class="app-sim-grid">
+        <div class="app-sim-screen">
+          <img class="app-sim-shot" id="aircraft-sim-shot" src="assets/screenshots/aircraft-focus-snapshot.webp" alt="DHC-6 desktop app simulator preview">
+          <div class="app-sim-overlay"></div>
+          <div class="flight-badges" id="aircraft-sim-badges"></div>
+          <div class="instrument-strip" id="aircraft-sim-instruments"></div>
         </div>
-        <div>
-          <div class="dark-panel" id="engine-info">
-            <span class="tag" id="eng-tag" style="margin-bottom:8px">Select a component</span>
-            <h3 id="eng-name">PT6A-27 overview</h3>
-            <p id="eng-desc" style="font-size:.9rem">The PT6A-27 is a free-turbine reverse-flow turboprop producing 620 SHP (flat-rated). Air enters at the rear, flows forward through a three-stage axial plus one centrifugal compressor, reverses through an annular combustion chamber, then passes rearward through the compressor and power turbines. Click any section above.</p>
+        <div class="app-sim-controls">
+          <div class="dark-panel">
+            <span class="tag" style="margin-bottom:8px">App-aligned views</span>
+            <h3 id="aircraft-sim-title">Cockpit focus</h3>
+            <p id="aircraft-sim-copy" style="font-size:.9rem">The web trainer now uses the same DHC-6 training surfaces as the desktop app, instead of the old placeholder engine cylinders.</p>
+            <div class="camera-buttons" aria-label="Simulator preview views">
+              <button class="btn ghost" data-sim-view="cockpit" aria-pressed="true">Cockpit focus</button>
+              <button class="btn ghost" data-sim-view="aircraft" aria-pressed="false">3D viewer</button>
+              <button class="btn ghost" data-sim-view="state" aria-pressed="false">State trainer</button>
+            </div>
           </div>
-          <div class="notice" style="margin-top:10px"><p style="font-size:.8rem">Training reference only. Refer to the P&amp;WC PT6A maintenance manual for official specifications.</p></div>
+          <div class="dark-panel">
+            <span class="tag amber" style="margin-bottom:8px">Desktop controls</span>
+            <div class="step-row done" style="cursor:default"><div class="step-num">1</div><div><div class="step-action">Camera modes</div><div class="step-value">Orbit, cockpit focus, aircraft inspection</div></div><div class="step-check">✓</div></div>
+            <div class="step-row done" style="cursor:default"><div class="step-num">2</div><div><div class="step-action">Cockpit drill state</div><div class="step-value">Controls highlight with the memory-item flow</div></div><div class="step-check">✓</div></div>
+            <div class="step-row done" style="cursor:default"><div class="step-num">3</div><div><div class="step-action">Aircraft assets</div><div class="step-value">DHC-6 desktop training package, not generic web placeholders</div></div><div class="step-check">✓</div></div>
+          </div>
         </div>
       </div>
     </div>
@@ -270,7 +305,6 @@
 </div></footer>
 </div><!-- .site-shell -->
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 "use strict";
 /* =====================================================================
@@ -418,12 +452,12 @@ var DRILL={
   ]
 };
 var DRILL_SIM=[
-  {id:"power",label:"Power lever",value:"RETARD to 10 PSI",zone:"Center pedestal",phase:"Confirm affected power lever",note:"The MCC prompt and the highlighted cockpit control advance together."},
-  {id:"prop",label:"Prop lever",value:"FEATHER",zone:"Center pedestal",phase:"Confirm affected prop lever",note:"The simulator keeps earlier confirmed controls green while the next control is active."},
-  {id:"fuel",label:"Engine fuel lever",value:"OFF",zone:"Condition levers",phase:"Shut off engine fuel",note:"Use Reveal response for the PM action, then mark Correct to advance the cockpit state."},
-  {id:"sov",label:"Fuel emergency SOV",value:"OFF / illuminated",zone:"Overhead fuel panel",phase:"Close emergency shutoff",note:"The annunciator strip mirrors the selected step so the drill remains cockpit-linked."},
-  {id:"fire",label:"Fire extinguisher",value:"PUSH discharged",zone:"Fire handle / bottle",phase:"Discharge extinguisher",note:"Fire warning remains shown until the extinguisher step is completed."},
-  {id:"boost",label:"Fuel boost pump",value:"OFF",zone:"Fuel pumps",phase:"Secure boost pump",note:"Final secure action before continuing with the remaining QRH items."}
+  {id:"power",label:"Power lever",value:"RETARD to 10 PSI",zone:"Center pedestal",phase:"Confirm affected power lever",lamp:"POWER",hotspot:{left:43,top:48,width:8,height:34},note:"The MCC prompt and the highlighted cockpit control advance together."},
+  {id:"prop",label:"Prop lever",value:"FEATHER",zone:"Center pedestal",phase:"Confirm affected prop lever",lamp:"PROP",hotspot:{left:52,top:48,width:7,height:30},note:"The simulator keeps earlier confirmed controls green while the next control is active."},
+  {id:"fuel",label:"Engine fuel lever",value:"OFF",zone:"Condition levers",phase:"Shut off engine fuel",lamp:"FUEL",hotspot:{left:60,top:48,width:7,height:30},note:"Use Reveal response for the PM action, then mark Correct to advance the cockpit state."},
+  {id:"sov",label:"Fuel emergency SOV",value:"OFF / illuminated",zone:"Overhead fuel panel",phase:"Close emergency shutoff",lamp:"FUEL SOV",hotspot:{left:32,top:13,width:9,height:12},note:"The annunciator strip mirrors the selected step so the drill remains cockpit-linked."},
+  {id:"fire",label:"Fire extinguisher",value:"PUSH discharged",zone:"Fire handle / bottle",phase:"Discharge extinguisher",lamp:"FIRE BOTTLE",hotspot:{left:42,top:16,width:15,height:10},note:"Fire warning remains shown until the extinguisher step is completed."},
+  {id:"boost",label:"Fuel boost pump",value:"OFF",zone:"Fuel pumps",phase:"Secure boost pump",lamp:"BOOST",hotspot:{left:6,top:20,width:14,height:30},note:"Final secure action before continuing with the remaining QRH items."}
 ];
 
 /* ── Helpers ────────────────────────────────────────────────────────── */
@@ -445,7 +479,7 @@ function selectTab(mod){
   var m=$("mod-"+mod);if(m)m.classList.add("active");
   Store.setTab(mod);
   if(mod==="logbook")renderLogbook();
-  if(mod==="engine3d")setTimeout(initEngine3D,40);
+  if(mod==="engine3d")setTimeout(renderAircraftSim,40);
 }
 tabs.forEach(function(t){t.addEventListener("click",function(){selectTab(t.dataset.mod);});});
 window.addEventListener("hashchange",function(){var mod=tabFromHash();if(mod)selectTab(mod);});
@@ -592,6 +626,24 @@ function renderCockpitSim(completed){
     var value=(isDone||(isActive&&dr))?c.value:"Confirm before action";
     return '<div class="'+cls+'"><strong>'+esc(c.label)+'</strong><span>'+esc(value)+'</span><small>'+esc(c.zone)+' &middot; '+esc(status)+'</small></div>';
   }).join("");
+  var hotspots=$("cockpit-hotspots");
+  if(hotspots){
+    hotspots.innerHTML=DRILL_SIM.map(function(c,i){
+      var hs=c.hotspot||{left:0,top:0,width:0,height:0};
+      var isDone=completed||i<dp;
+      var isActive=!completed&&i===dp;
+      return '<span class="cockpit-hotspot '+(isDone?"done ":"")+(isActive?"active":"")+'" style="left:'+hs.left+'%;top:'+hs.top+'%;width:'+hs.width+'%;height:'+hs.height+'%" aria-hidden="true"></span>';
+    }).join("");
+  }
+  var strip=$("cockpit-state-strip");
+  if(strip){
+    strip.innerHTML=[
+      '<span>'+esc(completed?"Memory items complete":(active?active.phase:"Awaiting confirmation"))+'</span>',
+      '<span>ENG FIRE '+(completed?"SAFE":"ON")+'</span>',
+      '<span>Torque target 10 PSI</span>',
+      '<span>Desktop cockpit artwork</span>'
+    ].join("");
+  }
   $("sim-annunciators").innerHTML=[
     '<span class="sim-lamp '+(completed?"safe":"on")+'">ENG FIRE</span>',
     '<span class="sim-lamp '+((completed||dp>3)?"safe":"")+'">FUEL SOV</span>',
@@ -656,76 +708,50 @@ function renderLogbook(){
 }
 $("lb-clear").addEventListener("click",function(){Store.clear();renderLogbook();});
 
-/* ── 3D Engine (Three.js PT6A-27) ───────────────────────────────────── */
-var eng3dReady=false;
-function initEngine3D(){
-  if(eng3dReady||typeof THREE==="undefined")return;
-  eng3dReady=true;
-  var canvas=$("engine-canvas"),w=canvas.clientWidth||700,h=canvas.clientHeight||380;
-  var scene=new THREE.Scene();
-  var camera=new THREE.PerspectiveCamera(42,w/h,0.1,100);camera.position.set(0,2.8,10);camera.lookAt(0,0,0);
-  var renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:true,alpha:true});
-  renderer.setSize(w,h);renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
-  scene.add(new THREE.AmbientLight(0x8899bb,0.6));
-  var dl=new THREE.DirectionalLight(0xffffff,0.9);dl.position.set(4,6,8);scene.add(dl);
-  var rl=new THREE.DirectionalLight(0x59a6ff,0.5);rl.position.set(-3,2,-5);scene.add(rl);
-  var grp=new THREE.Group();scene.add(grp);
-  var PARTS=[
-    {name:"Propeller shaft",tag:"Output",color:0x667788,wx:0.14,hf:0.15,desc:"Output shaft from the reduction gearbox to the constant-speed propeller. The prop lever controls feather, normal, and reverse range via the propeller governor and beta valve. NP is measured here."},
-    {name:"Reduction gearbox",tag:"Gearbox",color:0x1a6e7a,wx:0.12,hf:0.72,desc:"Two-stage planetary reduction gearbox (~15:1). Houses the propeller brake, tachometer generator, and the torquemeter that drives the torque pressure indicator."},
-    {name:"Axial compressor",tag:"Compressor",color:0x2278ff,wx:0.16,hf:0.60,desc:"Three axial compressor stages. Air enters at the rear of the engine and flows forward through these stages before reaching the centrifugal impeller. Compression ratio ~6.3:1 combined."},
-    {name:"Centrifugal compressor",tag:"Compressor",color:0x59a6ff,wx:0.10,hf:0.68,desc:"Single centrifugal compressor stage. Accelerates air radially outward into the diffuser and then into the reverse-flow annular combustion chamber. Driven by the compressor turbine."},
-    {name:"Combustion chamber",tag:"Combustion",color:0xdd7722,wx:0.16,hf:1.0,desc:"Reverse-flow annular combustion chamber with 14 fuel nozzles. Hot gases reverse direction and flow rearward to the turbine stages. This reverse-flow layout keeps the engine compact."},
-    {name:"Compressor turbine",tag:"Gas generator",color:0x28c76f,wx:0.09,hf:0.58,desc:"Single-stage compressor turbine. Extracts energy to drive the compressor and accessories via the NG shaft. NG speed is the primary engine power reference — limited to 101.5% for T/O."},
-    {name:"Power turbine",tag:"Free turbine",color:0x7dffb7,wx:0.09,hf:0.52,desc:"Single-stage free power turbine. Mechanically independent of the gas generator — the 'free' in free turbine. Drives the propeller via a concentric shaft. Max NP: 96% (red radial)."},
-    {name:"Exhaust section",tag:"Exhaust",color:0x8899aa,wx:0.14,hf:0.42,desc:"Exhaust gases exit rearward after the power turbine. The exhaust stack incorporates the T5 (ITT) thermocouple ring. T5 max take-off: 725 °C."}
-  ];
-  var maxH=2.4;var meshes=[];
-  var totalW=PARTS.reduce(function(s,p){return s+p.wx;},0);var xPos=-totalW/2;
-  PARTS.forEach(function(p){
-    var geo=new THREE.CylinderGeometry(p.hf*maxH/2,p.hf*maxH/2,p.wx*8,28);
-    var mat=new THREE.MeshStandardMaterial({color:p.color,metalness:0.42,roughness:0.44});
-    var m=new THREE.Mesh(geo,mat);m.rotation.z=Math.PI/2;
-    m.position.x=(xPos+p.wx/2)*8;m.userData=p;
-    grp.add(m);meshes.push(m);xPos+=p.wx;
-  });
-  var shGeo=new THREE.CylinderGeometry(0.06,0.06,8.8,12);
-  var shMat=new THREE.MeshStandardMaterial({color:0x334455,metalness:0.6,roughness:0.3});
-  var sh=new THREE.Mesh(shGeo,shMat);sh.rotation.z=Math.PI/2;grp.add(sh);
-  // Legend
-  var lg=$("eng-legend");lg.innerHTML="";
-  PARTS.forEach(function(p,i){
-    var sp=document.createElement("span");sp.className="eng-leg-btn";
-    sp.textContent=p.name;sp.style.background="#"+p.color.toString(16).padStart(6,"0")+"20";
-    sp.style.color="#"+p.color.toString(16).padStart(6,"0");
-    sp.addEventListener("click",function(){selectPart(i);});lg.appendChild(sp);
-  });
-  var selIdx=-1;
-  function selectPart(i){
-    meshes.forEach(function(m,j){m.material.emissive.setHex(j===i?0x224466:0);m.material.emissiveIntensity=j===i?0.7:0;});
-    selIdx=i;var p=PARTS[i];
-    $("eng-tag").textContent=p.tag;$("eng-name").textContent=p.name;$("eng-desc").textContent=p.desc;
-    lg.querySelectorAll(".eng-leg-btn").forEach(function(s,j){s.style.borderColor=j===i?"rgba(255,255,255,.5)":"transparent";});
+/* Aircraft simulator preview */
+var aircraftSimView="cockpit";
+var AIRCRAFT_SIM_VIEWS={
+  cockpit:{
+    title:"Cockpit focus",
+    image:"assets/screenshots/aircraft-focus-snapshot.webp",
+    copy:"Matches the desktop app training surface: DHC-6 cockpit focus with procedure state, callouts, and the same training context as the installed simulator.",
+    badges:["COCKPIT FOCUS","FREE FLIGHT","ENG FIRE DRILL"],
+    instruments:["IAS 82 kt","ALT 1,500 ft","TRQ 50 PSI","FLAP 10"]
+  },
+  aircraft:{
+    title:"3D viewer",
+    image:"assets/screenshots/3d-viewer.webp",
+    copy:"Shows the desktop app's DHC-6 and engine viewer preview. The old website-only cylinder model has been removed so the web page no longer misrepresents the aircraft assets.",
+    badges:["APP 3D VIEWER","DHC-6 ASSETS","PINNED GROUPS"],
+    instruments:["Orbit camera","Zoom controls","Asset-linked notes"]
+  },
+  state:{
+    title:"State trainer",
+    image:"assets/screenshots/aircraft-state.webp",
+    copy:"Uses the app-style before, during, and after training state flow so the website supports the same cockpit learning path as the desktop app.",
+    badges:["STATE SNAPSHOT","BEFORE / DURING / AFTER","8 TARGETS"],
+    instruments:["Power levers max","Prop levers fine","Engine checks"]
   }
-  // Orbit
-  var yaw=-0.35,pitch=0.22,drag=false,px=0,py=0;
-  canvas.addEventListener("pointerdown",function(e){drag=true;px=e.clientX;py=e.clientY;canvas.style.cursor="grabbing";});
-  window.addEventListener("pointerup",function(){drag=false;canvas.style.cursor="grab";});
-  window.addEventListener("pointermove",function(e){
-    if(!drag)return;yaw+=(e.clientX-px)*0.008;pitch=Math.max(-1.4,Math.min(1.4,pitch+(e.clientY-py)*0.008));px=e.clientX;py=e.clientY;
+};
+function renderAircraftSim(view){
+  if(view)aircraftSimView=view;
+  var cfg=AIRCRAFT_SIM_VIEWS[aircraftSimView]||AIRCRAFT_SIM_VIEWS.cockpit;
+  var shot=$("aircraft-sim-shot");
+  if(!shot)return;
+  shot.src=cfg.image;
+  shot.alt="DHC-6 desktop app "+cfg.title+" simulator preview";
+  $("aircraft-sim-title").textContent=cfg.title;
+  $("aircraft-sim-copy").textContent=cfg.copy;
+  $("aircraft-sim-badges").innerHTML=cfg.badges.map(function(b){return"<span>"+esc(b)+"</span>";}).join("");
+  $("aircraft-sim-instruments").innerHTML=cfg.instruments.map(function(i){return"<span>"+esc(i)+"</span>";}).join("");
+  document.querySelectorAll("[data-sim-view]").forEach(function(btn){
+    btn.setAttribute("aria-pressed",btn.dataset.simView===aircraftSimView?"true":"false");
   });
-  canvas.addEventListener("wheel",function(e){e.preventDefault();camera.position.z=Math.max(5,Math.min(18,camera.position.z+e.deltaY*0.012));},{passive:false});
-  var raycaster=new THREE.Raycaster(),mouse=new THREE.Vector2();
-  canvas.addEventListener("click",function(e){
-    var rect=canvas.getBoundingClientRect();
-    mouse.x=((e.clientX-rect.left)/rect.width)*2-1;mouse.y=-((e.clientY-rect.top)/rect.height)*2+1;
-    raycaster.setFromCamera(mouse,camera);var hits=raycaster.intersectObjects(meshes);
-    if(hits.length>0){var idx=meshes.indexOf(hits[0].object);if(idx>=0)selectPart(idx);}
-  });
-  window.addEventListener("resize",function(){var nw=canvas.clientWidth,nh=canvas.clientHeight;if(nw&&nh){camera.aspect=nw/nh;camera.updateProjectionMatrix();renderer.setSize(nw,nh);}});
-  var idle=0;
-  (function loop(){requestAnimationFrame(loop);idle+=0.016;if(!drag&&idle>2.5){yaw+=0.006;}grp.rotation.y=yaw;grp.rotation.x=pitch;renderer.render(scene,camera);})();
 }
+document.querySelectorAll("[data-sim-view]").forEach(function(btn){
+  btn.addEventListener("click",function(){renderAircraftSim(btn.dataset.simView);});
+});
+renderAircraftSim("cockpit");
 
 /* ── Restore last tab ───────────────────────────────────────────────── */
 selectTab(tabFromHash()||Store.getTab());
