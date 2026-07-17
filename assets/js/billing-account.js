@@ -11,6 +11,9 @@ const billingMessage = document.getElementById("billing-message");
 const billingSummary = document.getElementById("billing-summary");
 const deviceList = document.getElementById("device-list");
 const portalButton = document.getElementById("billing-portal-button");
+const purchaseNotice = document.getElementById("purchase-complete-notice");
+const downloadMessage = document.getElementById("desktop-download-message");
+const downloadButtons = document.querySelectorAll("[data-desktop-download]");
 
 let loadedAccount = null;
 
@@ -19,6 +22,13 @@ function billingSetMessage(text, ok) {
   billingMessage.textContent = text || "";
   billingMessage.style.color = ok ? "#9ff0bd" : "#ffd6d6";
   billingMessage.style.fontWeight = "900";
+}
+
+function downloadSetMessage(text, ok) {
+  if (!downloadMessage) return;
+  downloadMessage.textContent = text || "";
+  downloadMessage.style.color = ok ? "#9ff0bd" : "#ffd6d6";
+  downloadMessage.style.fontWeight = "900";
 }
 
 function esc(text) {
@@ -49,6 +59,27 @@ function statusLabel(status) {
   return status || "Unknown";
 }
 
+function isActiveLicense(license) {
+  return Boolean(license && license.status === "active");
+}
+
+function updateDownloadUi(license) {
+  const enabled = isActiveLicense(license);
+  downloadButtons.forEach(function (button) {
+    button.disabled = !enabled;
+    button.setAttribute("aria-disabled", enabled ? "false" : "true");
+  });
+
+  if (!downloadButtons.length) return;
+  if (enabled) {
+    downloadSetMessage("Licence active. Choose an installer to start a protected download.", true);
+  } else if (!license) {
+    downloadSetMessage("Load your subscription first, then the installer buttons will unlock.", true);
+  } else {
+    downloadSetMessage("Downloads unlock when the subscription status is active.", false);
+  }
+}
+
 async function postJson(path, body) {
   const response = await fetch((BILLING_API_BASE || "") + path, {
     method: "POST",
@@ -72,6 +103,7 @@ async function postJson(path, body) {
 function renderAccount(license) {
   loadedAccount = license;
   if (portalButton) portalButton.disabled = !license || !license.customerId;
+  updateDownloadUi(license);
   const keyInput = document.getElementById("billingKey");
   if (license && keyInput && !keyInput.value.trim()) keyInput.value = license.key;
 
@@ -122,10 +154,88 @@ async function loadBillingStatus() {
   if (!data.ok || !data.license) {
     renderAccount(null);
     billingSetMessage("No subscription was found for that email yet. If you just purchased, wait a minute and try again.", false);
-    return;
+    return null;
   }
   renderAccount(data.license);
   billingSetMessage("Billing status loaded. Your licence key is shown on the right.", true);
+  return data.license;
+}
+
+function downloadFailureMessage(status) {
+  if (status === "download_not_configured") {
+    return "The payment check passed, but the private installer location is not configured yet.";
+  }
+  if (status === "expired") return "This subscription has expired. Renew before downloading.";
+  if (status === "canceled") return "This subscription was canceled. Resubscribe before downloading.";
+  if (status === "past_due") return "Payment is past due. Update billing before downloading.";
+  if (status === "email_mismatch") return "That email does not match this licence key.";
+  if (status === "not_found") return "No active licence was found for that key.";
+  return "The installer could not be prepared. Try again later or email support.";
+}
+
+async function startDesktopDownload(installerType) {
+  let account = loadedAccount;
+  if (!isActiveLicense(account)) {
+    account = await loadBillingStatus();
+  }
+
+  if (!isActiveLicense(account)) {
+    downloadSetMessage("Load an active subscription before downloading.", false);
+    return;
+  }
+
+  const email = (document.getElementById("billingEmail")?.value || "").trim();
+  const licenseKey = ((document.getElementById("billingKey")?.value || "").trim() || account.key || "").toUpperCase();
+
+  downloadSetMessage("Preparing protected installer link...", true);
+  let data;
+  try {
+    data = await postJson("/api/desktop/download", {
+      email: email,
+      licenseKey: licenseKey,
+      platform: "windows",
+      installerType: installerType
+    });
+  } catch (err) {
+    downloadSetMessage(downloadFailureMessage(err && err.data && (err.data.status || err.data.error)), false);
+    return;
+  }
+
+  if (data.ok && data.downloadUrl) {
+    downloadSetMessage("Download link ready. Your browser should start the installer download now.", true);
+    window.location.href = data.downloadUrl;
+  } else {
+    downloadSetMessage(downloadFailureMessage(data.status || data.error), false);
+  }
+}
+
+function prefillFromCompletedCheckout() {
+  const params = new URLSearchParams(window.location.search);
+  const purchased = params.get("status") === "purchased" || params.get("download") === "1";
+  if (purchaseNotice) purchaseNotice.hidden = !purchased;
+
+  if (purchased) {
+    downloadSetMessage("Payment complete. Load your subscription to unlock the installer buttons.", true);
+  }
+
+  try {
+    const storage = window.sessionStorage;
+    if (!storage) return;
+    const raw = storage.getItem("dhc6TrainerCheckout");
+    if (!raw) return;
+    const checkout = JSON.parse(raw);
+    const emailInput = document.getElementById("billingEmail");
+    if (checkout.email && emailInput && !emailInput.value.trim()) {
+      emailInput.value = checkout.email;
+      if (purchased) {
+        loadBillingStatus().catch(function () {
+          billingSetMessage("Payment was completed. If your licence is not ready yet, wait a minute and check again.", false);
+        });
+      }
+    }
+  } catch (e) {
+    // Ignore malformed session storage; the form still works manually.
+  }
 }
 
 async function openPortal() {
@@ -180,3 +290,14 @@ if (deviceList) {
     });
   });
 }
+
+downloadButtons.forEach(function (button) {
+  button.addEventListener("click", function () {
+    startDesktopDownload(button.getAttribute("data-desktop-download")).catch(function () {
+      downloadSetMessage("Download preparation failed. Try again later or email support.", false);
+    });
+  });
+});
+
+prefillFromCompletedCheckout();
+updateDownloadUi(loadedAccount);

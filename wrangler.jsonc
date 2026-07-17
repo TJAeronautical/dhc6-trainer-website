@@ -3,8 +3,21 @@
   "name": "dhc6-trainer-website",
   "main": "worker.js",
   "compatibility_date": "2026-06-03",
+  "keep_vars": true,
   "observability": {
     "enabled": true
+  },
+  "vars": {
+    "DESKTOP_RELEASE_VERSION": "1.7.0",
+    "PADDLE_ENVIRONMENT": "production",
+    "PADDLE_SUCCESS_URL": "https://dhc6trainer.com/access.html?status=purchased&download=1#download"
+  },
+  "secrets": {
+    "required": [
+      "PADDLE_API_KEY",
+      "PADDLE_WEBHOOK_SECRET",
+      "LICENSE_SIGNING_SECRET"
+    ]
   },
   "assets": {
     "directory": ".",
@@ -28,6 +41,12 @@
     {
       "binding": "LICENSES",
       "id": "bf9eec9ca8e748ee8c6802751fafecaf"
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "DESKTOP_RELEASES",
+      "bucket_name": "dhc6-trainer-private-releases"
     }
   ]
 }

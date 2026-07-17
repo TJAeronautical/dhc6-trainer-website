@@ -38,10 +38,10 @@ dhc6-trainer-private-releases
 Recommended R2 object layout:
 
 ```text
-desktop/windows/1.6.9/DHC6TrainerDesktop-1.6.9.exe
-desktop/windows/1.6.9/DHC6TrainerDesktop-1.6.9.msi
-desktop/windows/1.6.9/manifest.json
-desktop/windows/1.6.9/checksums.txt
+desktop/windows/1.7.0/DHC6TrainerDesktop-1.7.0.exe
+desktop/windows/1.7.0/DHC6TrainerDesktop-1.7.0.msi
+desktop/windows/1.7.0/manifest.json
+desktop/windows/1.7.0/checksums.txt
 ```
 
 R2 installer objects must remain private. Do not enable public bucket access for installers.
@@ -113,7 +113,7 @@ Example response:
 ```json
 {
   "current": {
-    "version": "1.6.9",
+    "version": "1.7.0",
     "platforms": ["windows"],
     "installerTypes": ["exe", "msi"],
     "releaseNotes": "Desktop trainer build for controlled release."
@@ -245,10 +245,10 @@ Example request:
 
 ```json
 {
-  "version": "1.6.9",
+  "version": "1.7.0",
   "platform": "windows",
   "installerType": "exe",
-  "r2ObjectKey": "desktop/windows/1.6.9/DHC6TrainerDesktop-1.6.9.exe",
+  "r2ObjectKey": "desktop/windows/1.7.0/DHC6TrainerDesktop-1.7.0.exe",
   "sha256": "actual-sha256-here",
   "sizeBytes": 123456789,
   "isActive": true
@@ -444,7 +444,7 @@ Public page
 Avoid:
 
 ```text
-Website link -> /downloads/desktop/DHC6TrainerDesktop-1.6.9.exe
+Website link -> /downloads/desktop/DHC6TrainerDesktop-1.7.0.exe
 ```
 
 Do not commit installer files to GitHub.

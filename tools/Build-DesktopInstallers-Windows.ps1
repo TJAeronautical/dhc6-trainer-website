@@ -1,30 +1,64 @@
 <#
 Build-DesktopInstallers-Windows.ps1
-Run from the ROOT of the DHC-6-Trainer project on Windows.
+Run from the ROOT of the DHC-6-Trainer-Desktop project on Windows.
 Produces Windows EXE/MSI desktop installers for the Compose Desktop module.
 #>
 param(
-    [string]$ProjectRoot = (Get-Location).Path,
+    [string]$ProjectRoot = "",
     [string]$WebsiteRoot = "",
-    [string]$Version = "1.6.9"
+    [string]$Version = "1.7.0"
 )
 
 $ErrorActionPreference = "Stop"
+
+function Resolve-DesktopProjectRoot {
+    param([string]$RequestedRoot)
+
+    $candidates = @()
+    if ($RequestedRoot -ne "") {
+        $candidates += $RequestedRoot
+    }
+    $candidates += (Get-Location).Path
+    $candidates += (Join-Path $PSScriptRoot "..\..\DHC-6-Trainer-Desktop")
+    $candidates += (Join-Path $PSScriptRoot "..\..\DHC-6-Trainer")
+
+    foreach ($candidate in $candidates) {
+        $resolved = Resolve-Path $candidate -ErrorAction SilentlyContinue
+        if (!$resolved) { continue }
+        $path = $resolved.Path
+        $embedded = Join-Path $path "desktop-app"
+        if ((Test-Path (Join-Path $path "gradlew.bat")) -and (Test-Path (Join-Path $embedded "build.gradle"))) {
+            return $path
+        }
+        if ((Test-Path (Join-Path $path "gradlew.bat")) -and (Test-Path (Join-Path $path "build.gradle"))) {
+            return $path
+        }
+    }
+
+    throw "Could not find a desktop Gradle project. Pass -ProjectRoot `"C:\Android Studio\DHC-6-Trainer-Desktop`"."
+}
+
+$ProjectRoot = Resolve-DesktopProjectRoot $ProjectRoot
 Set-Location $ProjectRoot
 
 if (!(Test-Path ".\gradlew.bat")) {
-    throw "gradlew.bat was not found. Run this from the main DHC-6-Trainer project root."
+    throw "gradlew.bat was not found in $ProjectRoot."
 }
-if (!(Test-Path ".\desktop-app\build.gradle")) {
-    throw "desktop-app/build.gradle was not found. Confirm the desktop-app module is included."
+
+$isEmbeddedModule = Test-Path ".\desktop-app\build.gradle"
+$moduleRoot = if ($isEmbeddedModule) { Join-Path $ProjectRoot "desktop-app" } else { $ProjectRoot }
+$gradleTasks = if ($isEmbeddedModule) {
+    @(":desktop-app:clean", ":desktop-app:packageMsi", ":desktop-app:packageExe")
+} else {
+    @("clean", "packageMsi", "packageExe")
 }
 
 Write-Host "Building DHC-6 Trainer Desktop Windows installers..." -ForegroundColor Cyan
 .\gradlew.bat --stop | Out-Null
-.\gradlew.bat :desktop-app:clean :desktop-app:packageMsi :desktop-app:packageExe --stacktrace
+& .\gradlew.bat @gradleTasks --stacktrace
 
-$distRoot = Join-Path $ProjectRoot "desktop-app\build\compose\binaries\main"
-$releaseDir = Join-Path $ProjectRoot "desktop-app\build\release-installers"
+$distRoot = Join-Path $moduleRoot "build\compose\binaries\main"
+$releaseDir = Join-Path $moduleRoot "build\release-installers"
 New-Item -ItemType Directory -Force -Path $releaseDir | Out-Null
 
 $exe = Get-ChildItem $distRoot -Recurse -Filter "*.exe" | Sort-Object LastWriteTime -Descending | Select-Object -First 1

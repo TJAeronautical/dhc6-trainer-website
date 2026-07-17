@@ -18,7 +18,10 @@ desktop.html  --(Paddle.js overlay)-->  Paddle checkout (payment + tax)
       |                         functions/api/paddle/webhook.js
       |                          generates DHC6-XXXX-XXXX-XXXX, stores in KV
       v                                          |
-customer email (key)  <------------------------- + Paddle receipt
+access.html?status=purchased&download=1#download <- + Paddle receipt
+      |
+      v
+account lookup -> /api/desktop/download -> short-lived installer link
       |
       v
 desktop app  --(POST /api/license/activate)-->  unlock (signed offline grace)
@@ -30,35 +33,39 @@ desktop app  --(POST /api/license/activate)-->  unlock (signed offline grace)
 
 1. Create a Paddle account and start in the **sandbox** (Paddle dashboard has a sandbox/live switch).
 2. **Catalog > Products**: create one product, e.g. `DHC-6 Trainer Desktop`.
-3. Add two **recurring prices** to that product:
-   - Monthly (your monthly amount + currency)
-   - Yearly (your annual amount + currency)
+3. Add recurring monthly and annual prices for each desktop tier:
+   - Premium monthly and annual
+   - Instructor monthly and annual
+   - Enterprise monthly and annual
 4. Copy each **price ID** (looks like `pri_01h...`).
 5. **Developer tools > Authentication**: copy a **client-side token**
    (sandbox tokens start with `test_`, live with `live_`).
 
-## Step 2 — Put your IDs in the site
+## Step 2 — Configure public Paddle checkout vars
 
-Edit `assets/js/paddle-checkout.js`, top `PADDLE_CONFIG` block:
+Production checkout config is served by:
 
-```js
-environment: "sandbox",                 // "production" when live
-clientToken: "test_...",                // your client-side token
-prices: {
-  premium: {
-    monthly: "pri_01kxk3xtqq51jna7weqk9z374m",
-    annual:  "pri_01kxk418gk6pgmzm9pw61eyfqm"
-  },
-  instructor: {
-    monthly: "pri_01kxk45ny35mgkwy64xqdq849n",
-    annual:  "pri_01kxk46sfrf7t6pck4cweh4k11"
-  },
-  enterprise: {
-    monthly: "pri_01kxk48gyh6e7v7awr0b01svpc",
-    annual:  "pri_01kxk49k3ybfsaxhgds952ebba"
-  }
-}
+```text
+GET /api/billing/config
 ```
+
+Set these Cloudflare Worker variables in the production deployment:
+
+```text
+PADDLE_ENVIRONMENT=production
+PADDLE_CLIENT_TOKEN=live_...
+PADDLE_PRICE_PREMIUM_MONTHLY=pri_...
+PADDLE_PRICE_PREMIUM_ANNUAL=pri_...
+PADDLE_PRICE_INSTRUCTOR_MONTHLY=pri_...
+PADDLE_PRICE_INSTRUCTOR_ANNUAL=pri_...
+PADDLE_PRICE_ENTERPRISE_MONTHLY=pri_...
+PADDLE_PRICE_ENTERPRISE_ANNUAL=pri_...
+PADDLE_SUCCESS_URL=https://dhc6trainer.com/access.html?status=purchased&download=1#download
+```
+
+The checkout script uses the Worker config on hosted domains. It only falls
+back to the checked-in sandbox IDs on `localhost`, `.local`, or `file://`
+previews, so the production site cannot silently charge against sandbox.
 
 The displayed sandbox prices in `desktop.html` are Premium $14.99/$149.99,
 Instructor $29.99/$299.99, and Enterprise $99.99/$999.99. The actual charge
@@ -71,6 +78,7 @@ always comes from Paddle; the page labels are only the marketing display.
 npx wrangler kv namespace create LICENSES
 # copy the printed id into wrangler.jsonc -> kv_namespaces[0].id
 
+npx wrangler pages secret put PADDLE_API_KEY            # live Paddle API key
 npx wrangler pages secret put PADDLE_WEBHOOK_SECRET     # paste from Step 4
 npx wrangler pages secret put LICENSE_SIGNING_SECRET    # any long random string
 ```
@@ -80,6 +88,7 @@ npx wrangler pages secret put LICENSE_SIGNING_SECRET    # any long random string
 npx wrangler kv namespace create LICENSES
 # copy the printed id into wrangler.jsonc -> kv_namespaces[0].id
 
+npx wrangler pages secret put PADDLE_API_KEY
 npx wrangler pages secret put PADDLE_WEBHOOK_SECRET
 npx wrangler pages secret put LICENSE_SIGNING_SECRET
 ```
@@ -97,7 +106,7 @@ head -c 32 /dev/urandom | base64
 
 ## Step 4 — Point Paddle at the webhook
 
-1. Deploy once first (Step 5) so your URL exists.
+1. Deploy once first (Step 6) so your URL exists.
 2. Paddle **Developer tools > Notifications** (sandbox): add a destination:
    - URL: `https://<your-pages-domain>/api/paddle/webhook`
    - Events: `subscription.activated`, `subscription.updated`,
@@ -105,7 +114,63 @@ head -c 32 /dev/urandom | base64
 3. Copy the destination's **secret key** and set it as `PADDLE_WEBHOOK_SECRET`
    (Step 3). Re-deploy after setting secrets.
 
-## Step 5 — Deploy to Cloudflare Pages
+## Step 5 — Configure private installer delivery
+
+The checkout success page now opens:
+
+```text
+https://dhc6trainer.com/access.html?status=purchased&download=1#download
+```
+
+The **Download Windows EXE/MSI** buttons call:
+
+```text
+POST /api/desktop/download
+GET  /api/desktop/download?token=...
+```
+
+The POST checks the buyer's active licence and creates a 15-minute token. The
+GET either streams from a private R2 binding named `DESKTOP_RELEASES`, or
+redirects to a private installer URL configured in the Worker environment.
+
+Current desktop release version:
+
+```text
+DESKTOP_RELEASE_VERSION=1.7.0
+```
+
+Choose one installer storage path:
+
+### Option A - private R2 bucket
+
+Create the private bucket `dhc6-trainer-private-releases`. The Worker config
+binds that bucket as `DESKTOP_RELEASES`, then upload:
+
+```text
+desktop/windows/1.7.0/DHC6TrainerDesktop-1.7.0.exe
+desktop/windows/1.7.0/DHC6TrainerDesktop-1.7.0.msi
+```
+
+Optional overrides:
+
+```text
+DESKTOP_WINDOWS_EXE_R2_KEY=desktop/windows/1.7.0/DHC6TrainerDesktop-1.7.0.exe
+DESKTOP_WINDOWS_MSI_R2_KEY=desktop/windows/1.7.0/DHC6TrainerDesktop-1.7.0.msi
+```
+
+### Option B - private expiring URLs
+
+Set these environment variables to private installer links from your storage
+provider:
+
+```text
+DESKTOP_WINDOWS_EXE_URL=https://...
+DESKTOP_WINDOWS_MSI_URL=https://...
+```
+
+Do not use public permanent GitHub Release asset URLs for paid installers.
+
+## Step 6 — Deploy to Cloudflare Pages
 
 ```bash
 # Termux / Linux / macOS
@@ -122,10 +187,16 @@ Check the API is alive:
 
 ```bash
 curl https://<your-pages-domain>/api/health
-# expect: {"ok":true,"service":"dhc6-trainer-licenses","kv":true}
+# expect ok=true plus:
+# kv=true
+# paddleCheckoutConfigured=true
+# paddleApi=true
+# paddleWebhookSecret=true
+# licenseSigningSecret=true
+# desktopDownloadConfigured=true
 ```
 
-## Step 6 — Test in sandbox (no real money)
+## Step 7 — Test in sandbox (no real money)
 
 1. Open `desktop.html`, click **Subscribe monthly**.
 2. Complete the Paddle **sandbox** checkout using Paddle's published sandbox
@@ -136,9 +207,15 @@ curl https://<your-pages-domain>/api/health
    npx wrangler kv key list --binding LICENSES
    ```
    You should see a `license:DHC6-...`, `sub:...`, and `email:...` entry.
-4. On `desktop.html#activate`, enter the key + purchase email → expect
+4. Open `access.html?status=purchased&download=1#download`, enter the purchase
+   email, and click **Check status**. Expect the licence key and enabled
+   installer buttons.
+5. Click **Download Windows EXE**. Expect a protected `/api/desktop/download`
+   token URL and then either an installer stream from R2 or a redirect to your
+   private installer URL.
+6. On `desktop.html#activate`, enter the key + purchase email and expect
    "Licence verified".
-5. Test activation directly:
+7. Test activation directly:
    ```bash
    curl -X POST https://<your-pages-domain>/api/license/activate \
      -H "Content-Type: application/json" \
@@ -146,14 +223,15 @@ curl https://<your-pages-domain>/api/health
    # expect: {"activated":true,...,"token":"..."}
    ```
 
-## Step 7 — Go live
+## Step 8 — Go live
 
 1. In Paddle, move the product/prices to the **live** environment (live price IDs).
-2. In `assets/js/paddle-checkout.js`: set `environment: "production"`, swap in
-   the **live** client token and **live** price IDs.
-3. Add a **live** Notifications destination in Paddle and set its secret as
+2. Set the production Cloudflare variables from Step 2 with the **live** client
+   token and **live** price IDs.
+3. Set `PADDLE_API_KEY` to a live Paddle API key.
+4. Add a **live** Notifications destination in Paddle and set its secret as
    `PADDLE_WEBHOOK_SECRET` for the live deployment.
-4. Re-deploy. Do one real low-value purchase to confirm end to end, then refund
+5. Re-deploy. Do one real low-value purchase to confirm end to end, then refund
    it from the Paddle dashboard if you wish.
 
 ---
@@ -202,13 +280,13 @@ inside the app.
 
 ## Notes & limits
 
-- The website does **not** stream the installer in this patch. Installer
-  distribution stays the separately-planned private R2 flow (see
-  `API_BACKEND_PLAN.md`); subscription + key issuance is what this patch adds.
+- The website now supports a paid-download tap after checkout through
+  `/api/desktop/download`. Keep installer binaries private and configure either
+  the `DESKTOP_RELEASES` R2 binding or private expiring installer URLs.
 - License keys are minted by your webhook (Paddle Billing does not generate
   keys itself), so the loop is fully under your control and stored in your KV.
 - Everything here was verified statically (JS/ESM syntax, HTML wiring, function
   import paths, JSONC validity). The live payment, webhook delivery, and
-  activation must be tested by you in the Paddle sandbox per Step 6 — those
+  activation must be tested by you in the Paddle sandbox per Step 7 — those
   need your Paddle account and a deployed URL, which can't be exercised from a
   build sandbox.

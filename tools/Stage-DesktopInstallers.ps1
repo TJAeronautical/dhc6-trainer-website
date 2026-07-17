@@ -5,7 +5,7 @@ Copies built desktop installers into the website downloads/desktop folder and wr
 param(
     [Parameter(Mandatory=$true)][string]$InstallerDir,
     [string]$WebsiteRoot = (Get-Location).Path,
-    [string]$Version = "1.6.9"
+    [string]$Version = "1.7.0"
 )
 $ErrorActionPreference = "Stop"
 $target = Join-Path $WebsiteRoot "downloads\desktop"

@@ -31,8 +31,8 @@ Do not commit:
 - downloads/desktop/*.deb
 
 Current Windows installer names:
-- DHC6TrainerDesktop-1.6.9.exe
-- DHC6TrainerDesktop-1.6.9.msi
+- DHC6TrainerDesktop-1.7.0.exe
+- DHC6TrainerDesktop-1.7.0.msi
 
 Before every push, confirm:
 - git status --ignored
@@ -41,6 +41,35 @@ Before every push, confirm:
 Expected:
 - Installer files may appear under ignored files.
 - Installer files must not appear in git ls-files.
+
+## Paid download workflow
+
+User flow:
+1. User visits desktop.html.
+2. User subscribes through Paddle checkout.
+3. Paddle redirects to access.html?status=purchased&download=1#download.
+4. User enters the purchase email and checks account status.
+5. If the subscription is active, the installer buttons unlock.
+6. User taps Download Windows EXE or Download Windows MSI.
+7. /api/desktop/download creates a short-lived token and streams from private R2 or redirects to a private expiring installer URL.
+
+Required private delivery configuration:
+- LICENSES KV binding
+- DESKTOP_RELEASE_VERSION=1.7.0
+- Either `dhc6-trainer-private-releases` R2 bucket bound as DESKTOP_RELEASES
+- Or DESKTOP_WINDOWS_EXE_URL / DESKTOP_WINDOWS_MSI_URL set to private expiring links
+
+Required production payment configuration:
+- PADDLE_ENVIRONMENT=production
+- PADDLE_CLIENT_TOKEN=live_...
+- PADDLE_PRICE_PREMIUM_MONTHLY / PADDLE_PRICE_PREMIUM_ANNUAL
+- PADDLE_PRICE_INSTRUCTOR_MONTHLY / PADDLE_PRICE_INSTRUCTOR_ANNUAL
+- PADDLE_PRICE_ENTERPRISE_MONTHLY / PADDLE_PRICE_ENTERPRISE_ANNUAL
+- PADDLE_API_KEY secret
+- PADDLE_WEBHOOK_SECRET secret
+- LICENSE_SIGNING_SECRET secret
+
+Do not configure these download URLs with public permanent GitHub Release asset links.
 
 ## Manual request workflow
 
@@ -88,8 +117,8 @@ Do not place public GitHub release installer links on the website.
 ## Checksums
 
 Generate SHA256 checksums for each installer before issuing access:
-- Get-FileHash .\DHC6TrainerDesktop-1.6.9.exe -Algorithm SHA256
-- Get-FileHash .\DHC6TrainerDesktop-1.6.9.msi -Algorithm SHA256
+- Get-FileHash .\DHC6TrainerDesktop-1.7.0.exe -Algorithm SHA256
+- Get-FileHash .\DHC6TrainerDesktop-1.7.0.msi -Algorithm SHA256
 
 Store checksums privately with the release notes.
 
@@ -177,7 +206,7 @@ Hello,
 Your DHC-6 Trainer desktop access request has been reviewed and approved.
 
 Version:
-DHC6TrainerDesktop 1.6.9
+DHC6TrainerDesktop 1.7.0
 
 Installer:
 [EXE/MSI]

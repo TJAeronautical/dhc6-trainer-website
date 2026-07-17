@@ -166,7 +166,7 @@ export async function paddleApi(context, path, init) {
 
 // Verify a Paddle Billing webhook signature.
 // Header format: "ts=1700000000;h1=<hex hmac of `${ts}:${rawBody}`>"
-export async function verifyPaddleSignature(signatureHeader, rawBody, secret) {
+export async function verifyPaddleSignature(signatureHeader, rawBody, secret, toleranceSeconds) {
   if (!signatureHeader || !secret) return false;
   const parts = {};
   signatureHeader.split(";").forEach(function (pair) {
@@ -174,6 +174,13 @@ export async function verifyPaddleSignature(signatureHeader, rawBody, secret) {
     if (idx > -1) parts[pair.slice(0, idx).trim()] = pair.slice(idx + 1).trim();
   });
   if (!parts.ts || !parts.h1) return false;
+
+  const parsedTolerance = Number(toleranceSeconds || 5);
+  const toleranceMs = (Number.isFinite(parsedTolerance) ? Math.max(0, parsedTolerance) : 5) * 1000;
+  const sentAtMs = Number(parts.ts) * 1000;
+  if (!Number.isFinite(sentAtMs) || Math.abs(Date.now() - sentAtMs) > toleranceMs) {
+    return false;
+  }
 
   const expected = await hmacHex(secret, parts.ts + ":" + rawBody);
   return timingSafeEqual(expected, parts.h1);

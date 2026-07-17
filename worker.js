@@ -1,7 +1,12 @@
 import { onRequest as apiMiddleware } from "./functions/api/_middleware.js";
 import { onRequestGet as health } from "./functions/api/health.js";
+import { onRequestGet as billingConfig } from "./functions/api/billing/config.js";
 import { onRequestPost as billingPortal } from "./functions/api/billing/portal.js";
 import { onRequestPost as billingStatus } from "./functions/api/billing/status.js";
+import {
+  onRequestGet as desktopDownloadGet,
+  onRequestPost as desktopDownloadPost
+} from "./functions/api/desktop/download.js";
 import { onRequestPost as licenseActivate } from "./functions/api/license/activate.js";
 import { onRequestPost as licenseDeactivate } from "./functions/api/license/deactivate.js";
 import { onRequestPost as licenseValidate } from "./functions/api/license/validate.js";
@@ -28,8 +33,10 @@ async function routeApi(context) {
       service: "dhc6-trainer-billing",
       routes: [
         "/api/health",
+        "/api/billing/config",
         "/api/billing/status",
         "/api/billing/portal",
+        "/api/desktop/download",
         "/api/license/activate",
         "/api/license/deactivate",
         "/api/license/validate",
@@ -39,8 +46,11 @@ async function routeApi(context) {
   }
 
   if (method === "GET" && path === "/api/health") return health(context);
+  if (method === "GET" && path === "/api/billing/config") return billingConfig(context);
   if (method === "POST" && path === "/api/billing/status") return billingStatus(context);
   if (method === "POST" && path === "/api/billing/portal") return billingPortal(context);
+  if (method === "GET" && path === "/api/desktop/download") return desktopDownloadGet(context);
+  if (method === "POST" && path === "/api/desktop/download") return desktopDownloadPost(context);
   if (method === "POST" && path === "/api/license/activate") return licenseActivate(context);
   if (method === "POST" && path === "/api/license/deactivate") return licenseDeactivate(context);
   if (method === "POST" && path === "/api/license/validate") return licenseValidate(context);

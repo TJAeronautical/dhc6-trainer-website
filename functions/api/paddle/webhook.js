@@ -120,7 +120,12 @@ export async function onRequestPost(context) {
   const rawBody = await request.text();
   const signature = request.headers.get("Paddle-Signature");
 
-  const verified = await verifyPaddleSignature(signature, rawBody, env.PADDLE_WEBHOOK_SECRET);
+  const verified = await verifyPaddleSignature(
+    signature,
+    rawBody,
+    env.PADDLE_WEBHOOK_SECRET,
+    env.PADDLE_WEBHOOK_TOLERANCE_SECONDS || 5
+  );
   if (!verified) {
     return json({ ok: false, error: "invalid_signature" }, 401);
   }

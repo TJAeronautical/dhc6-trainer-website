@@ -1,25 +1,19 @@
 /*
   DHC-6 Trainer - Paddle subscription checkout (Paddle Billing / Paddle.js v2)
   -------------------------------------------------------------------------
-  This is the ONLY file you normally edit to wire up billing.
-  Everything you must change lives in the CONFIG block below.
+  Production billing is loaded from /api/billing/config so live Paddle IDs
+  can be managed as Cloudflare Worker variables. The static config below is
+  only a local sandbox fallback for file:// or localhost previews.
 
   Paddle.js is loaded from https://cdn.paddle.com/paddle/v2/paddle.js in
   desktop.html. For security/compliance Paddle.js must be loaded only from
   that CDN URL.
 */
 
-/* ======================= CONFIG - EDIT THESE ======================= */
-const PADDLE_CONFIG = {
-  // "sandbox" while testing, "production" when you go live.
+/* ======================= LOCAL SANDBOX FALLBACK ======================= */
+const STATIC_SANDBOX_PADDLE_CONFIG = {
   environment: "sandbox",
-
-  // Client-side token from Paddle > Developer tools > Authentication.
-  // Sandbox tokens start with "test_", live tokens start with "live_".
   clientToken: "test_d8128820fe75450386eccfcc326",
-
-  // Price IDs from Paddle > Catalog > Products (look like "pri_...").
-  // These are sandbox IDs for the three desktop tiers.
   prices: {
     premium: {
       monthly: "pri_01kxk3xtqq51jna7weqk9z374m",
@@ -34,13 +28,30 @@ const PADDLE_CONFIG = {
       annual: "pri_01kxk49k3ybfsaxhgds952ebba"
     }
   },
-
-  // Where the desktop app / customer activates the key after purchase.
-  successUrl: "https://dhc6trainer.com/access.html?status=purchased#account"
+  successUrl: "https://dhc6trainer.com/access.html?status=purchased&download=1#download"
 };
-/* =================== END CONFIG - EDIT THESE ======================= */
+/* =================== END LOCAL SANDBOX FALLBACK ======================= */
 
+let PADDLE_CONFIG = null;
 let paddleReady = false;
+let paddleLoading = false;
+
+function rememberCompletedCheckout(event) {
+  if (!event || !event.data) return;
+  const customer = event.data.customer || {};
+  const payload = {
+    email: customer.email || "",
+    customerId: customer.id || "",
+    checkoutId: event.data.id || "",
+    transactionId: event.data.transaction_id || "",
+    completedAt: new Date().toISOString()
+  };
+  try {
+    window.sessionStorage.setItem("dhc6TrainerCheckout", JSON.stringify(payload));
+  } catch (storageError) {
+    // Non-critical: the access page still works when storage is unavailable.
+  }
+}
 
 function setCheckoutMessage(text, ok) {
   const el = document.getElementById("checkout-message");
@@ -50,20 +61,114 @@ function setCheckoutMessage(text, ok) {
   el.style.fontWeight = "800";
 }
 
-function initPaddle() {
+function isLocalCheckoutHost() {
+  const host = window.location.hostname;
+  return (
+    !host ||
+    host === "localhost" ||
+    host === "127.0.0.1" ||
+    host === "::1" ||
+    host.endsWith(".local")
+  );
+}
+
+function canUseSandboxFallback() {
+  return window.location.protocol === "file:" || isLocalCheckoutHost();
+}
+
+function normalizePaddleConfig(raw) {
+  raw = raw || {};
+  return {
+    environment: raw.environment === "sandbox" ? "sandbox" : "production",
+    clientToken: String(raw.clientToken || ""),
+    prices: raw.prices || {},
+    successUrl:
+      raw.successUrl ||
+      window.location.origin + "/access.html?status=purchased&download=1#download"
+  };
+}
+
+async function loadPaddleConfig() {
+  try {
+    const response = await fetch("/api/billing/config", { cache: "no-store" });
+    if (response.ok) {
+      const data = await response.json();
+      if (data && data.ok) return normalizePaddleConfig(data);
+    }
+  } catch (e) {
+    // Local file/static previews cannot reach the Worker config endpoint.
+  }
+
+  if (canUseSandboxFallback()) {
+    return normalizePaddleConfig(STATIC_SANDBOX_PADDLE_CONFIG);
+  }
+
+  return normalizePaddleConfig({
+    environment: "production",
+    clientToken: "",
+    prices: {},
+    successUrl: window.location.origin + "/access.html?status=purchased&download=1#download"
+  });
+}
+
+function isPlaceholder(value) {
+  return !value || String(value).indexOf("REPLACE") > -1;
+}
+
+function priceIdFor(plan, cycle) {
+  const tier = (PADDLE_CONFIG && PADDLE_CONFIG.prices && PADDLE_CONFIG.prices[plan]) || {};
+  return tier[cycle] || "";
+}
+
+function checkoutConfigError(config) {
+  if (!config || isPlaceholder(config.clientToken)) {
+    return config && config.environment === "production"
+      ? "Production checkout is not configured yet. Add the live Paddle client token in Cloudflare."
+      : "Sandbox checkout is not configured yet. Add the Paddle sandbox client-side token.";
+  }
+
+  if (config.environment === "production" && config.clientToken.indexOf("live_") !== 0) {
+    return "Production checkout needs a live Paddle client token.";
+  }
+
+  if (config.environment === "sandbox" && config.clientToken.indexOf("test_") !== 0) {
+    return "Sandbox checkout needs a test Paddle client token.";
+  }
+
+  const plans = ["premium", "instructor", "enterprise"];
+  const cycles = ["monthly", "annual"];
+  for (let i = 0; i < plans.length; i++) {
+    for (let j = 0; j < cycles.length; j++) {
+      if (isPlaceholder((config.prices[plans[i]] || {})[cycles[j]])) {
+        return config.environment === "production"
+          ? "Production checkout is missing one or more live Paddle price IDs."
+          : "Sandbox checkout is missing one or more Paddle price IDs.";
+      }
+    }
+  }
+
+  return "";
+}
+
+async function initPaddle() {
+  if (paddleLoading || paddleReady) return;
+  paddleLoading = true;
+
+  PADDLE_CONFIG = await loadPaddleConfig();
+
   if (typeof Paddle === "undefined") {
     setCheckoutMessage(
       "Checkout failed to load. Refresh the page or email tj.aeronautical@outlook.com.",
       false
     );
+    paddleLoading = false;
     return;
   }
 
-  if (!PADDLE_CONFIG.clientToken || PADDLE_CONFIG.clientToken.indexOf("REPLACE") > -1) {
-    setCheckoutMessage(
-      "Checkout prices are configured. Add your Paddle sandbox client-side token to enable checkout.",
-      false
-    );
+  const configError = checkoutConfigError(PADDLE_CONFIG);
+  if (configError) {
+    setCheckoutMessage(configError, false);
+    paddleLoading = false;
     return;
   }
 
@@ -71,40 +176,46 @@ function initPaddle() {
     Paddle.Environment.set("sandbox");
   }
 
-  Paddle.Initialize({
-    token: PADDLE_CONFIG.clientToken,
-    checkout: {
-      settings: {
-        displayMode: "overlay",
-        theme: "dark",
-        locale: "en",
-        successUrl: PADDLE_CONFIG.successUrl
+  try {
+    Paddle.Initialize({
+      token: PADDLE_CONFIG.clientToken,
+      checkout: {
+        settings: {
+          displayMode: "overlay",
+          theme: "dark",
+          locale: "en",
+          successUrl: PADDLE_CONFIG.successUrl
+        }
+      },
+      eventCallback: function (event) {
+        // Full event reference: developer.paddle.com/paddlejs/events
+        if (!event || !event.name) return;
+        if (event.name === "checkout.completed") {
+          rememberCompletedCheckout(event);
+          setCheckoutMessage(
+            "Payment complete. Opening your licence and download page...",
+            true
+          );
+        } else if (event.name === "checkout.error") {
+          setCheckoutMessage(
+            "Checkout could not be completed. No charge was made. Please try again.",
+            false
+          );
+        }
       }
-    },
-    eventCallback: function (event) {
-      // Full event reference: developer.paddle.com/paddlejs/events
-      if (!event || !event.name) return;
-      if (event.name === "checkout.completed") {
-        setCheckoutMessage(
-          "Payment complete. Your licence key is on its way by email - " +
-            "enter it below or in the desktop app to activate.",
-          true
-        );
-      } else if (event.name === "checkout.error") {
-        setCheckoutMessage(
-          "Checkout could not be completed. No charge was made. Please try again.",
-          false
-        );
-      }
-    }
-  });
+    });
+  } catch (e) {
+    setCheckoutMessage("Checkout could not be initialized. Check the Paddle production settings.", false);
+    paddleLoading = false;
+    return;
+  }
 
   paddleReady = true;
+  paddleLoading = false;
 }
 
 function openDesktopCheckout(plan, cycle) {
-  const tier = PADDLE_CONFIG.prices[plan] || {};
-  const priceId = tier[cycle];
+  const priceId = priceIdFor(plan, cycle);
 
   if (!paddleReady) {
     setCheckoutMessage("Checkout is still loading. Please try again in a moment.", false);
