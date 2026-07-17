@@ -14,23 +14,10 @@ import {
   publicLicense,
   generateLicenseKey,
   writeLicense,
-  paddleApi
+  paddleApi,
+  planFromConfiguredPrice,
+  activationLimitFromPlan
 } from "../_shared.js";
-
-const PLAN_BY_PRICE_ID = {
-  pri_01kxk3xtqq51jna7weqk9z374m: "premium_monthly",
-  pri_01kxk418gk6pgmzm9pw61eyfqm: "premium_annual",
-  pri_01kxk45ny35mgkwy64xqdq849n: "instructor_monthly",
-  pri_01kxk46sfrf7t6pck4cweh4k11: "instructor_annual",
-  pri_01kxk48gyh6e7v7awr0b01svpc: "enterprise_monthly",
-  pri_01kxk49k3ybfsaxhgds952ebba: "enterprise_annual"
-};
-
-function activationLimitFromPlan(plan) {
-  if (String(plan).indexOf("enterprise") === 0) return 50;
-  if (String(plan).indexOf("instructor") === 0) return 10;
-  return 3;
-}
 
 function priceIdFromSubscription(subscription) {
   const items = Array.isArray(subscription.items) ? subscription.items : [];
@@ -106,7 +93,7 @@ async function recoverLicenseFromPaddle(context, email) {
       if (!canRecoverSubscription(subscription)) continue;
 
       const priceId = priceIdFromSubscription(subscription);
-      const plan = PLAN_BY_PRICE_ID[priceId];
+      const plan = planFromConfiguredPrice(env, priceId);
       if (!plan) continue;
 
       const existingKey = await env.LICENSES.get("sub:" + subscription.id);

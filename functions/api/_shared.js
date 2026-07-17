@@ -108,6 +108,35 @@ export function publicLicense(record) {
   };
 }
 
+const PRICE_PLAN_ENV_KEYS = {
+  premium_monthly: "PADDLE_PRICE_PREMIUM_MONTHLY",
+  premium_annual: "PADDLE_PRICE_PREMIUM_ANNUAL",
+  instructor_monthly: "PADDLE_PRICE_INSTRUCTOR_MONTHLY",
+  instructor_annual: "PADDLE_PRICE_INSTRUCTOR_ANNUAL",
+  enterprise_monthly: "PADDLE_PRICE_ENTERPRISE_MONTHLY",
+  enterprise_annual: "PADDLE_PRICE_ENTERPRISE_ANNUAL"
+};
+
+export function planFromConfiguredPrice(env, priceId) {
+  const id = String(priceId || "").trim();
+  if (!id || !env) return "";
+
+  const plans = Object.keys(PRICE_PLAN_ENV_KEYS);
+  for (let i = 0; i < plans.length; i++) {
+    const plan = plans[i];
+    const configuredId = String(env[PRICE_PLAN_ENV_KEYS[plan]] || "").trim();
+    if (configuredId && configuredId === id) return plan;
+  }
+
+  return "";
+}
+
+export function activationLimitFromPlan(plan) {
+  if (String(plan).indexOf("enterprise") === 0) return 50;
+  if (String(plan).indexOf("instructor") === 0) return 10;
+  return 3;
+}
+
 export async function getLicense(env, key) {
   if (!env.LICENSES || !key) return null;
   const raw = await env.LICENSES.get("license:" + normalizeKey(key));

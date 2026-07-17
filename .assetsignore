@@ -4,6 +4,7 @@
 .wrangler/**
 .agents/**
 .codex/**
+.codex_tools/**
 tools/**
 functions/**
 _local_desktop_installer_backup/**

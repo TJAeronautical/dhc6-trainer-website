@@ -35,6 +35,7 @@ const STATIC_SANDBOX_PADDLE_CONFIG = {
 let PADDLE_CONFIG = null;
 let paddleReady = false;
 let paddleLoading = false;
+let lastCheckoutAttempt = null;
 
 function rememberCompletedCheckout(event) {
   if (!event || !event.data) return;
@@ -197,8 +198,17 @@ async function initPaddle() {
             true
           );
         } else if (event.name === "checkout.error") {
+          if (window.console && window.console.warn) {
+            window.console.warn("Paddle checkout error", {
+              attempt: lastCheckoutAttempt,
+              event: event
+            });
+          }
+          const label = lastCheckoutAttempt
+            ? lastCheckoutAttempt.plan + " " + lastCheckoutAttempt.cycle
+            : "checkout";
           setCheckoutMessage(
-            "Checkout could not be completed. No charge was made. Please try again.",
+            "Checkout for " + label + " could not be completed. No charge was made. Please try again.",
             false
           );
         }
@@ -230,22 +240,33 @@ function openDesktopCheckout(plan, cycle) {
     return;
   }
 
-  setCheckoutMessage("", true);
+  lastCheckoutAttempt = { plan: plan, cycle: cycle, priceId: priceId };
+  setCheckoutMessage("Opening " + plan + " " + cycle + " checkout...", true);
 
-  Paddle.Checkout.open({
-    items: [{ priceId: priceId, quantity: 1 }],
-    customData: {
-      product: "dhc6_trainer_desktop",
-      plan: plan,
-      billing_cycle: cycle
-    },
-    settings: {
-      displayMode: "overlay",
-      theme: "dark",
-      locale: "en",
-      successUrl: PADDLE_CONFIG.successUrl
+  try {
+    Paddle.Checkout.open({
+      items: [{ priceId: priceId, quantity: 1 }],
+      customData: {
+        product: "dhc6_trainer_desktop",
+        plan: plan,
+        billing_cycle: cycle
+      },
+      settings: {
+        displayMode: "overlay",
+        theme: "dark",
+        locale: "en",
+        successUrl: PADDLE_CONFIG.successUrl
+      }
+    });
+  } catch (e) {
+    if (window.console && window.console.error) {
+      window.console.error("Paddle checkout open failed", lastCheckoutAttempt, e);
     }
-  });
+    setCheckoutMessage(
+      "Checkout for " + plan + " " + cycle + " could not be opened. Please try again.",
+      false
+    );
+  }
 }
 
 function bindCheckoutButtons() {

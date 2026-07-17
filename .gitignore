@@ -1,4 +1,5 @@
 .idea/
+.codex_tools/
 downloads/desktop/*.exe
 downloads/desktop/*.msi
 downloads/desktop/*.dmg

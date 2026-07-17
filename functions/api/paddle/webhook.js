@@ -20,7 +20,9 @@ import {
   getLicense,
   writeLicense,
   normalizeEmail,
-  paddleApi
+  paddleApi,
+  planFromConfiguredPrice,
+  activationLimitFromPlan
 } from "../_shared.js";
 
 async function readKey(env, subscriptionId) {
@@ -40,18 +42,10 @@ function subscriptionIdFrom(type, data) {
   return null;
 }
 
-const PLAN_BY_PRICE_ID = {
-  pri_01kxk3xtqq51jna7weqk9z374m: "premium_monthly",
-  pri_01kxk418gk6pgmzm9pw61eyfqm: "premium_annual",
-  pri_01kxk45ny35mgkwy64xqdq849n: "instructor_monthly",
-  pri_01kxk46sfrf7t6pck4cweh4k11: "instructor_annual",
-  pri_01kxk48gyh6e7v7awr0b01svpc: "enterprise_monthly",
-  pri_01kxk49k3ybfsaxhgds952ebba: "enterprise_annual"
-};
-
-function planFrom(data) {
+function planFrom(data, env) {
   const priceId = priceIdFrom(data);
-  if (priceId && PLAN_BY_PRICE_ID[priceId]) return PLAN_BY_PRICE_ID[priceId];
+  const configuredPlan = planFromConfiguredPrice(env, priceId);
+  if (configuredPlan) return configuredPlan;
   const custom = data.custom_data || {};
   if (custom.plan && custom.billing_cycle) return custom.plan + "_" + custom.billing_cycle;
   const interval =
@@ -61,12 +55,6 @@ function planFrom(data) {
   if (interval === "year") return "desktop_annual";
   if (interval === "month") return "desktop_monthly";
   return priceId ? "desktop" : "desktop";
-}
-
-function activationLimitFromPlan(plan) {
-  if (String(plan).indexOf("enterprise") === 0) return 50;
-  if (String(plan).indexOf("instructor") === 0) return 10;
-  return 3;
 }
 
 function emailFrom(data) {
@@ -145,7 +133,7 @@ export async function onRequestPost(context) {
   const email = emailFrom(data) || await emailFromCustomer(context, customerId);
   const nextBilledAt = periodEndFrom(data);
   const paddleStatus = statusFromPaddle(type, data.status);
-  const plan = planFrom(data);
+  const plan = planFrom(data, env);
 
   const duplicate = eventId ? Boolean(await env.LICENSES.get("event:" + eventId)) : false;
 
