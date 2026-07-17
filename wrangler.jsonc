@@ -23,19 +23,7 @@
     "directory": ".",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
-    "run_worker_first": true,
-    "exclude": [
-      ".git/**",
-      ".github/**",
-      ".idea/**",
-      ".wrangler/**",
-      "tools/**",
-      "functions/**",
-      "downloads/desktop/*.exe",
-      "downloads/desktop/*.msi",
-      "downloads/desktop/*.dmg",
-      "downloads/desktop/*.deb"
-    ]
+    "run_worker_first": true
   },
   "kv_namespaces": [
     {
