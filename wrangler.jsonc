@@ -9,6 +9,9 @@
   },
   "vars": {
     "DESKTOP_RELEASE_VERSION": "1.7.0",
+    "FIREBASE_PROJECT_ID": "dhc-6-trainer",
+    "MOBILE_ANDROID_PACKAGE": "com.dhc6trainer",
+    "OPENAI_MODEL": "gpt-4.1-mini",
     "PADDLE_ENVIRONMENT": "production",
     "PADDLE_SUCCESS_URL": "https://dhc6trainer.com/access.html?status=purchased&download=1#download"
   },
@@ -16,7 +19,11 @@
     "required": [
       "PADDLE_API_KEY",
       "PADDLE_WEBHOOK_SECRET",
-      "LICENSE_SIGNING_SECRET"
+      "LICENSE_SIGNING_SECRET",
+      "OPENAI_API_KEY",
+      "FIREBASE_WEB_API_KEY",
+      "GOOGLE_PLAY_SERVICE_ACCOUNT_EMAIL",
+      "GOOGLE_PLAY_SERVICE_ACCOUNT_PRIVATE_KEY"
     ]
   },
   "assets": {

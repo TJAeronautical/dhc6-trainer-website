@@ -19,6 +19,20 @@ export async function onRequestGet(context) {
   const hasDesktopR2 = Boolean(context.env && context.env.DESKTOP_RELEASES);
   const hasDesktopExeUrl = Boolean(context.env && context.env.DESKTOP_WINDOWS_EXE_URL);
   const hasDesktopMsiUrl = Boolean(context.env && context.env.DESKTOP_WINDOWS_MSI_URL);
+  const hasOpenAiApi = Boolean(context.env && context.env.OPENAI_API_KEY);
+  const hasFirebaseWebApi = Boolean(context.env && context.env.FIREBASE_WEB_API_KEY);
+  const hasFirebaseProject = Boolean(context.env && context.env.FIREBASE_PROJECT_ID);
+  const hasGooglePlayServiceAccount = Boolean(
+    context.env &&
+      context.env.GOOGLE_PLAY_SERVICE_ACCOUNT_EMAIL &&
+      context.env.GOOGLE_PLAY_SERVICE_ACCOUNT_PRIVATE_KEY
+  );
+  const mobileBackendConfigured = Boolean(
+    hasOpenAiApi &&
+      hasFirebaseWebApi &&
+      hasFirebaseProject &&
+      hasGooglePlayServiceAccount
+  );
   return new Response(
     JSON.stringify({
       ok: true,
@@ -35,7 +49,12 @@ export async function onRequestGet(context) {
       desktopDownloadConfigured: hasDesktopR2 || hasDesktopExeUrl || hasDesktopMsiUrl,
       desktopDownloadR2: hasDesktopR2,
       desktopDownloadExeUrl: hasDesktopExeUrl,
-      desktopDownloadMsiUrl: hasDesktopMsiUrl
+      desktopDownloadMsiUrl: hasDesktopMsiUrl,
+      mobileBackendConfigured: mobileBackendConfigured,
+      openAiApi: hasOpenAiApi,
+      firebaseWebApi: hasFirebaseWebApi,
+      firebaseProject: hasFirebaseProject,
+      googlePlayServiceAccount: hasGooglePlayServiceAccount
     }),
     { headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } }
   );

@@ -57,6 +57,25 @@ Required production secrets:
 - `PADDLE_API_KEY`
 - `PADDLE_WEBHOOK_SECRET`
 - `LICENSE_SIGNING_SECRET`
+- `OPENAI_API_KEY`
+- `FIREBASE_WEB_API_KEY`
+- `GOOGLE_PLAY_SERVICE_ACCOUNT_EMAIL`
+- `GOOGLE_PLAY_SERVICE_ACCOUNT_PRIVATE_KEY`
+
+Required mobile backend variables:
+
+- `FIREBASE_PROJECT_ID=dhc-6-trainer`
+- `MOBILE_ANDROID_PACKAGE=com.dhc6trainer`
+- `OPENAI_MODEL=gpt-4.1-mini`
+
+Mobile release APIs:
+
+- `POST /api/ai/oral-exam` verifies the Firebase user token, then proxies the
+  Oral Examiner request to OpenAI without exposing the OpenAI key in the app.
+- `POST /api/play/validate-purchase` verifies the Firebase user token, checks
+  Google Play purchase status with the Android Publisher API, acknowledges the
+  purchase server-side when needed, and writes the verified entitlement snapshot
+  to Firestore.
 
 Required private download source:
 
@@ -65,7 +84,8 @@ Required private download source:
 
 Check `/api/health` after deploy. Production is not ready until
 `paddleCheckoutConfigured`, `paddleApi`, `paddleWebhookSecret`,
-`licenseSigningSecret`, and `desktopDownloadConfigured` are all `true`.
+`licenseSigningSecret`, `desktopDownloadConfigured`, and
+`mobileBackendConfigured` are all `true`.
 
 ## Website-to-desktop launch
 
