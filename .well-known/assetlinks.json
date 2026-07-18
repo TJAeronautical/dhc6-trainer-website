@@ -1,0 +1,15 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls",
+      "delegate_permission/common.get_login_creds"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.dhc6trainer",
+      "sha256_cert_fingerprints": [
+        "7A:00:D7:98:71:24:B4:7E:A1:29:5B:63:2D:5A:FC:F8:E4:90:8C:33:C7:BA:F3:AD:E4:36:4B:A6:15:59:93:62"
+      ]
+    }
+  }
+]
