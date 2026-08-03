@@ -2,10 +2,12 @@ import { json } from "./_shared.js";
 
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const FIREBASE_LOOKUP_URL = "https://identitytoolkit.googleapis.com/v1/accounts:lookup";
+const FIREBASE_APP_CHECK_JWKS_URL = "https://firebaseappcheck.googleapis.com/v1/jwks";
 const ANDROID_PUBLISHER_SCOPE = "https://www.googleapis.com/auth/androidpublisher";
 const DATASTORE_SCOPE = "https://www.googleapis.com/auth/datastore";
 
 let cachedGoogleToken = null;
+let cachedAppCheckJwks = null;
 
 export const GOOGLE_API_SCOPES = ANDROID_PUBLISHER_SCOPE + " " + DATASTORE_SCOPE;
 
@@ -52,6 +54,106 @@ export async function verifyFirebaseUser(context) {
   }
 
   return { ok: true, uid: String(data.users[0].localId), user: data.users[0] };
+}
+
+function base64UrlDecode(value) {
+  const normalized = String(value || "").replace(/-/g, "+").replace(/_/g, "/");
+  const padded = normalized + "=".repeat((4 - normalized.length % 4) % 4);
+  const binary = atob(padded);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+}
+
+function decodeJwtJson(segment) {
+  return JSON.parse(new TextDecoder().decode(base64UrlDecode(segment)));
+}
+
+async function firebaseAppCheckJwks() {
+  if (cachedAppCheckJwks && cachedAppCheckJwks.expiresAtMillis > Date.now()) {
+    return cachedAppCheckJwks.keys;
+  }
+
+  const response = await fetch(FIREBASE_APP_CHECK_JWKS_URL, {
+    headers: { "Accept": "application/json" }
+  });
+  if (!response.ok) throw new Error("app_check_jwks_unavailable");
+
+  const data = await response.json();
+  if (!data || !Array.isArray(data.keys) || data.keys.length === 0) {
+    throw new Error("app_check_jwks_invalid");
+  }
+
+  const cacheControl = response.headers.get("Cache-Control") || "";
+  const maxAgeMatch = cacheControl.match(/max-age=(\d+)/i);
+  const maxAgeSeconds = maxAgeMatch ? Number(maxAgeMatch[1]) : 21600;
+  cachedAppCheckJwks = {
+    keys: data.keys,
+    expiresAtMillis: Date.now() + Math.max(300, Math.min(maxAgeSeconds, 21600)) * 1000
+  };
+  return data.keys;
+}
+
+export async function verifyFirebaseAppCheck(context) {
+  const { request, env } = context;
+  const token = String(request.headers.get("X-Firebase-AppCheck") || "").trim();
+  const projectNumber = String(env.FIREBASE_PROJECT_NUMBER || "").trim();
+
+  if (!token) {
+    return { ok: false, response: json({ ok: false, error: "app_check_token_missing" }, 401) };
+  }
+  if (!/^\d+$/.test(projectNumber)) {
+    return { ok: false, response: json({ ok: false, error: "firebase_project_number_missing" }, 503) };
+  }
+
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) throw new Error("invalid_token_shape");
+    const header = decodeJwtJson(parts[0]);
+    const claims = decodeJwtJson(parts[1]);
+    if (header.alg !== "RS256" || header.typ !== "JWT" || !header.kid) {
+      throw new Error("invalid_token_header");
+    }
+
+    const keys = await firebaseAppCheckJwks();
+    const jwk = keys.find(function (candidate) { return candidate.kid === header.kid; });
+    if (!jwk) throw new Error("signing_key_not_found");
+    const key = await crypto.subtle.importKey(
+      "jwk",
+      jwk,
+      { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+      false,
+      ["verify"]
+    );
+    const signatureValid = await crypto.subtle.verify(
+      { name: "RSASSA-PKCS1-v1_5" },
+      key,
+      base64UrlDecode(parts[2]),
+      new TextEncoder().encode(parts[0] + "." + parts[1])
+    );
+    if (!signatureValid) throw new Error("signature_invalid");
+
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    const expectedIssuer = "https://firebaseappcheck.googleapis.com/" + projectNumber;
+    const expectedAudience = "projects/" + projectNumber;
+    const audiences = Array.isArray(claims.aud) ? claims.aud : [claims.aud];
+    if (claims.iss !== expectedIssuer) throw new Error("issuer_invalid");
+    if (!audiences.includes(expectedAudience)) throw new Error("audience_invalid");
+    if (!Number.isFinite(Number(claims.exp)) || Number(claims.exp) <= nowSeconds) {
+      throw new Error("token_expired");
+    }
+    if (Number.isFinite(Number(claims.iat)) && Number(claims.iat) > nowSeconds + 300) {
+      throw new Error("issued_at_invalid");
+    }
+    if (!claims.sub || typeof claims.sub !== "string") throw new Error("subject_invalid");
+    if (env.FIREBASE_ANDROID_APP_ID && claims.sub !== String(env.FIREBASE_ANDROID_APP_ID)) {
+      throw new Error("app_id_invalid");
+    }
+
+    return { ok: true, appId: claims.sub, claims: claims };
+  } catch (e) {
+    return { ok: false, response: json({ ok: false, error: "app_check_token_invalid" }, 401) };
+  }
 }
 
 function base64UrlEncode(input) {

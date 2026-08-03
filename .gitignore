@@ -1,5 +1,6 @@
 .idea/
 .codex_tools/
+.wrangler/
 downloads/desktop/*.exe
 downloads/desktop/*.msi
 downloads/desktop/*.dmg
