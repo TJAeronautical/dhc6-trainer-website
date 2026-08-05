@@ -3,27 +3,34 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>DHC-6 Trainer | Twin Otter QRH, MCC callouts, drills, and recurrent study</title>
-  <meta name="description" content="DHC-6 Trainer is a focused Twin Otter study platform for QRH drills, MCC callouts, cockpit familiarisation, procedures, flashcards, performance review, and recurrent prep.">
+  <title>DHC-6 Trainer | Twin Otter QRH, MCC, systems and recurrent study</title>
+  <meta name="description" content="Focused DHC-6 Twin Otter training for QRH recall, MCC callouts, procedures, cockpit familiarisation, systems, flashcards and performance practice on Android, Windows and the web.">
   <link rel="canonical" href="https://dhc6trainer.com/">
-  <meta property="og:title" content="DHC-6 Trainer">
-  <meta property="og:description" content="Twin Otter QRH drills, MCC callouts, cockpit familiarisation, systems study, and recurrent prep.">
+  <meta property="og:title" content="DHC-6 Trainer — Train the flow. Recall the action.">
+  <meta property="og:description" content="Twin Otter QRH drills, MCC callouts, procedures, cockpit familiarisation, systems study and recurrent preparation.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://dhc6trainer.com/">
-  <meta property="og:image" content="assets/latest-design-overview.webp">
+  <meta property="og:image" content="https://dhc6trainer.com/assets/latest-design-overview.webp">
+  <meta name="twitter:card" content="summary_large_image">
   <meta name="theme-color" content="#06111f">
-  <link rel="icon" href="assets/favicon-32.png" type="image/png"><link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="icon" href="assets/favicon-32.png" type="image/png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="manifest" href="assets/site.webmanifest">
+  <link rel="preload" href="assets/latest-design-overview.webp" as="image" type="image/webp">
   <link rel="stylesheet" href="assets/site-redesign.css">
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"SoftwareApplication","name":"DHC-6 Trainer","applicationCategory":"EducationalApplication","operatingSystem":"Android, Windows, Web","description":"DHC-6 Twin Otter study platform for QRH drills, MCC callouts, procedures, cockpit familiarisation, systems and performance practice.","url":"https://dhc6trainer.com/"}
+  </script>
+  <script src="assets/js/site.js" defer></script>
 </head>
 <body>
 <div class="site-shell">
   <header class="topbar">
     <div class="wrap">
-      <nav>
-        <a class="brand" href="./" aria-label="DHC-6 Trainer home"><span class="brand-mark">✈</span><span>DHC-6 Trainer<small>Twin Otter Study</small></span></a>
-        <div class="navlinks"><a href="#features">Features</a><a href="#mcc">MCC Callout</a><a href="#screenshots">Screenshots</a><a href="mobile.html">Mobile</a><a href="desktop.html">Desktop</a><a href="live.html">Live</a><a href="privacy.html">Privacy</a></div>
-        <a class="btn primary" href="https://play.google.com/store/apps/details?id=com.dhc6trainer" target="_blank" rel="noopener">Google Play</a>
+      <nav aria-label="Primary navigation">
+        <a class="brand" href="./" aria-label="DHC-6 Trainer home"><span class="brand-mark">DHC-6</span><span>DHC-6 Trainer<small>Twin Otter Study</small></span></a>
+        <div class="navlinks"><a href="./">Home</a><a href="#features">Features</a><a href="mobile.html">Mobile</a><a href="desktop.html">Desktop</a><a href="live.html">Live Trainer</a><a href="changelog.html">Changelog</a></div>
+        <a class="btn primary" href="https://play.google.com/store/apps/details?id=com.dhc6trainer" target="_blank" rel="noopener">Get Android app</a>
       </nav>
     </div>
   </header>
@@ -31,152 +38,173 @@
   <main>
     <section class="hero">
       <div class="wide hero-grid">
-        <div class="wrap" style="width:100%">
-          <span class="eyebrow"><span class="dot"></span> Updated DHC-6 training interface</span>
-          <h1>Carry your Twin Otter trainer in your pocket.</h1>
-          <p class="lead">DHC-6 Trainer brings QRH review, MCC callouts, cockpit familiarisation, procedure drills, checklists, flashcards, systems study, and performance practice into one clean mobile-first study app.</p>
+        <div class="hero-copy">
+          <span class="eyebrow"><span class="dot"></span> Purpose-built DHC-6 training ecosystem</span>
+          <h1><span class="gradient-text">Train the flow.</span><br>Recall the action.</h1>
+          <p class="lead">A focused Twin Otter study platform for QRH recall, MCC callouts, cockpit familiarisation, procedures, systems, flashcards and performance practice—built for revision before sim, recurrent and line training.</p>
           <div class="actions">
-            <a class="btn primary" href="https://play.google.com/store/apps/details?id=com.dhc6trainer" target="_blank" rel="noopener">Download on Google Play</a>
-            <a class="btn gold" href="desktop.html">Desktop subscription</a>
-            <a class="btn ghost" href="dhc6trainer://live" data-desktop-launch data-fallback-url="live.html" data-launch-status="#home-launch-status">Open desktop app</a>
+            <a class="btn primary" href="https://play.google.com/store/apps/details?id=com.dhc6trainer" target="_blank" rel="noopener">Download for Android</a>
+            <a class="btn gold" href="live.html">Launch free web trainer</a>
+            <a class="btn ghost" href="desktop.html">Explore desktop</a>
           </div>
-          <p id="home-launch-status" class="preview-note" role="status" aria-live="polite"></p>
-          <div class="hero-stats" aria-label="App content summary">
-            <div class="stat"><strong>110</strong><span>Normal, abnormal, and emergency procedures</span></div>
-            <div class="stat"><strong>10</strong><span>Bundled flashcard decks</span></div>
-            <div class="stat"><strong>MCC</strong><span>Callout trainer and session scoring</span></div>
+          <div class="hero-chips" aria-label="Product highlights">
+            <span class="hero-chip">Procedure-driven practice</span>
+            <span class="hero-chip">Local progress tracking</span>
+            <span class="hero-chip">Training-support disclaimer built in</span>
           </div>
-          <!-- DHC6_PREVIEW_STATUS_START -->
-          <div class="preview-status-strip" aria-label="Current product availability">
-            <div class="preview-status-card green"><strong>Android available now</strong><span>Use the live Google Play version for mobile DHC-6 study, QRH review, drills, cockpit familiarisation, and performance practice.</span></div>
-            <div class="preview-status-card gold"><strong>30-minute free preview</strong><span>New signed-in users can preview protected training areas before subscription gating resumes.</span></div>
-            <div class="preview-status-card"><strong>Desktop live subscription</strong><span>Licensed Windows users can launch the installed desktop app from the website, with the web trainer as a fallback.</span></div>
+          <div class="hero-stats" aria-label="Training content summary">
+            <div class="stat"><strong>110</strong><span>Normal, abnormal and emergency procedures</span></div>
+            <div class="stat"><strong>7</strong><span>Interactive browser trainer modules</span></div>
+            <div class="stat"><strong>3</strong><span>Android, Windows and web study surfaces</span></div>
           </div>
-          <p class="preview-note">DHC-6 Trainer is a study-support tool. Always use approved manuals, company procedures, and regulatory documents for aircraft operation.</p>
-          <!-- DHC6_PREVIEW_STATUS_END -->
         </div>
         <div class="visual-card">
-          <img src="assets/latest-design-overview.webp" alt="DHC-6 Trainer latest mobile interface concept showing QRH, drills, checklists, and performance screens">
+          <img src="assets/latest-design-overview.webp" width="1270" height="720" fetchpriority="high" alt="DHC-6 Trainer interface showing QRH, drills, checklists and performance screens">
           <div class="floating-card">
-            <span class="score-pill">✓ Latest visual direction</span>
-            <h3 style="margin-top:10px">Dark cockpit-style layout with sharp QRH and drill screens</h3>
-            <p>Website styling now follows the latest app mockups: dark navy cockpit panels, bright blue training actions, clean white checklist surfaces, and aviation-style status cards.</p>
+            <span class="score-pill">✓ Cockpit-focused interface</span>
+            <h3 style="margin-top:10px">One training flow across every screen</h3>
+            <p>Move from knowledge review to active recall, cockpit targeting and debrief without rebuilding your study process.</p>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="trainer-preview" aria-labelledby="trainer-preview-title">
-      <div class="wide trainer-frame">
-        <aside class="trainer-rail" aria-label="Trainer preview navigation">
-          <a class="trainer-logo" href="#trainer-preview-title" aria-label="DHC-6 Trainer preview home"><span class="brand-mark"></span><strong>DHC-6</strong><small>Trainer</small></a>
-          <a class="rail-link active" href="#trainer-preview-title"><span>⌂</span>Home</a>
-          <a class="rail-link" href="#features"><span>▤</span>QRH</a>
-          <a class="rail-link" href="#mcc"><span>◴</span>Drill</a>
-          <a class="rail-link" href="#screenshots"><span>☑</span>Checklists</a>
-          <a class="rail-link" href="mobile.html"><span>↗</span>Performance</a>
-          <div class="rail-status"><small>Sync status</small><span><i></i> Up to date</span></div>
-        </aside>
-        <div class="trainer-stage">
-          <div class="trainer-stage-copy">
-            <span class="eyebrow"><span class="dot"></span> Flight-deck study flow</span>
-            <h2 id="trainer-preview-title">Welcome, Pilot.</h2>
-            <p>DHC-6 Series 300 Twin Otter</p>
-          </div>
-          <div class="trainer-modules" aria-label="Core trainer modules">
-            <a href="#features"><span class="module-icon">▤</span><strong>QRH</strong><small>Quick Reference Handbook</small></a>
-            <a href="#mcc"><span class="module-icon">◴</span><strong>Drill</strong><small>Practice questions</small></a>
-            <a href="#screenshots"><span class="module-icon">☑</span><strong>Checklists</strong><small>Normal and emergency</small></a>
-            <a href="mobile.html"><span class="module-icon">⌁</span><strong>Performance</strong><small>Takeoff, climb, landing</small></a>
-          </div>
-          <div class="trainer-activity">
-            <div><small>Recent activity</small><strong>Engine Fire in Flight</strong><span>QRH · Emergency</span></div>
-            <a href="live.html#drill">Resume <span aria-hidden="true">→</span></a>
-          </div>
-        </div>
-        <div class="trainer-checklist" aria-label="Sample emergency procedure">
-          <div class="checklist-top"><span>‹ QRH</span><strong>Engine Fire in Flight</strong><span>3 of 4</span></div>
-          <div class="checklist-body">
-            <span class="tag red">Emergency</span>
-            <h3>Engine fire in flight</h3>
-            <p class="procedure-label">Procedure preview</p>
-            <ol>
-              <li><span>Power lever (affected engine)</span><b>Idle</b></li>
-              <li><span>Prop lever (affected engine)</span><b>Feather</b></li>
-              <li><span>Condition lever (affected engine)</span><b>Cutoff</b></li>
-              <li><span>Fuel boost pump (affected engine)</span><b>Off</b></li>
-            </ol>
-            <div class="procedure-note"><strong>Training preview</strong><span>Refer to the approved AFM, QRH, and company procedures for operation.</span></div>
-          </div>
+    <section class="section-tight">
+      <div class="wrap">
+        <div class="logo-strip" aria-label="Designed study contexts">
+          <span>Pre-sim preparation</span><span>Recurrent review</span><span>Line-study refresh</span><span>Instructor briefing</span><span>Oral exam practice</span>
         </div>
       </div>
     </section>
 
     <section id="features">
       <div class="wrap">
-        <div class="section-head"><div><h2>Everything centred around DHC-6 study flow.</h2><p>Designed for quick revision before training, sim prep, oral review, recurrent checks, and line flying study.</p></div></div>
-        <div class="grid">
-          <article class="card"><span class="tag red">QRH</span><div class="feature-icon">📖</div><h3>QRH categories</h3><p>Emergency, abnormal, normal, and complete checklist flows with fast category access.</p></article>
-          <article class="card"><span class="tag">Drill</span><div class="feature-icon">🎯</div><h3>Procedure drills</h3><p>Question-based and cockpit-linked practice to build recall rather than only reading.</p></article>
-          <article class="card"><span class="tag green">MCC</span><div class="feature-icon">🎧</div><h3>MCC callout trainer</h3><p>PF/PM call and response practice with session progress, prompts, and scoring.</p></article>
-          <article class="card"><span class="tag amber">Performance</span><div class="feature-icon">📈</div><h3>Performance practice</h3><p>Takeoff, climb, and landing calculation review from one focused training workflow.</p></article>
-          <article class="card"><span class="tag">Checklists</span><div class="feature-icon">📋</div><h3>Normal and emergency</h3><p>Clear checklist groups for before start, starting, taxi, takeoff, climb, cruise, and more.</p></article>
-          <article class="card"><span class="tag">Cockpit</span><div class="feature-icon">🕹️</div><h3>Cockpit familiarisation</h3><p>Visual cockpit learning for panel awareness, switch location, and procedure target recall.</p></article>
-          <article class="card"><span class="tag">Systems</span><div class="feature-icon">⚙️</div><h3>Systems lab</h3><p>Fuel, electrical, hydraulic, propeller, PT6A, and technical study pathways.</p></article>
-          <article class="card"><span class="tag">Flashcards</span><div class="feature-icon">🧠</div><h3>Fast memory review</h3><p>Study cards and SRS-style repetition to keep limitations, systems, and callouts fresh.</p></article>
+        <div class="section-head">
+          <div><span class="section-label">Training architecture</span><h2>Built around how pilots actually revise.</h2><p>Read less passively. Move through a deliberate loop of review, recall, cockpit context and debrief.</p></div>
+        </div>
+        <div class="bento">
+          <article class="card wide-card">
+            <span class="tag red">QRH + procedures</span>
+            <div class="feature-icon" aria-hidden="true">↯</div>
+            <h3>From memory item to complete checklist flow</h3>
+            <p>Review immediate actions, then continue into the supporting abnormal or emergency procedure in a clean, category-led interface.</p>
+            <ul class="check-list"><li>Emergency, abnormal and normal categories</li><li>Step-by-step drill progression</li><li>Clear operational-source disclaimers</li></ul>
+          </article>
+          <article class="card tall-card">
+            <span class="tag green">MCC</span>
+            <div class="feature-icon" aria-hidden="true">◉</div>
+            <h3>Practise the words and timing</h3>
+            <p>PF/PM call-and-response sessions reinforce sequence, expected response and crew coordination.</p>
+            <div class="flow-row"><b>PF</b><div><span>Power set</span><small>Callout prompt</small></div><span class="check">✓</span></div>
+            <div class="flow-row"><b>PM</b><div><span>Checked</span><small>Expected response</small></div><span class="check">✓</span></div>
+          </article>
+          <article class="card">
+            <span class="tag">Cockpit</span>
+            <div class="feature-icon" aria-hidden="true">⌖</div>
+            <h3>Target the correct panel</h3>
+            <p>Connect procedure recall to switch location, instrument state and cockpit awareness.</p>
+          </article>
+          <article class="card">
+            <span class="tag amber">Performance</span>
+            <div class="feature-icon" aria-hidden="true">⌁</div>
+            <h3>Review planning logic</h3>
+            <p>Practise takeoff, climb and landing calculations with prominent limitation and planning flags.</p>
+          </article>
+          <article class="card wide-card">
+            <span class="tag">Systems lab</span>
+            <div class="feature-icon" aria-hidden="true">⚙</div>
+            <h3>Link technical knowledge to aircraft behaviour</h3>
+            <p>Study PT6A, propeller, fuel, electrical, hydraulic, pneumatic and aircraft-variant content through focused system pathways and model-linked notes.</p>
+            <div class="platform-meta"><span>PT6A-27</span><span>Propeller</span><span>Fuel</span><span>Electrical</span><span>Hydraulic</span><span>Pneumatic</span></div>
+          </article>
+          <article class="card">
+            <span class="tag">Flashcards</span>
+            <div class="feature-icon" aria-hidden="true">◇</div>
+            <h3>Fast memory reinforcement</h3>
+            <p>Keep limitations, speeds, systems and callouts accessible through short active-recall sessions.</p>
+          </article>
         </div>
       </div>
     </section>
 
-    <section id="mcc">
+    <section class="section-muted">
       <div class="wide preview-strip">
-        <div class="preview-img"><img src="assets/latest-design-mcc.webp" alt="MCC callout trainer mockup with cockpit background, PF/PM callouts, response selection, and score summary"></div>
+        <div class="preview-img"><img src="assets/latest-design-mcc.webp" loading="lazy" width="1400" height="800" alt="MCC callout trainer with cockpit background, PF and PM prompts, response selection and score summary"></div>
         <div class="dark-panel">
-          <span class="eyebrow"><span class="dot"></span> MCC Callout Trainer</span>
-          <h2>Practice the words, timing, and crew coordination.</h2>
-          <p>The latest design direction gives MCC callouts a more immersive cockpit-style session: PF/PM tabs, progress timeline, response options, audio prompts, a linked cockpit simulation, and a clean debrief score.</p>
-          <div class="flow-row"><b>1</b><div><span>Your call</span><small>Power Set</small></div><em class="check">PF</em></div>
-          <div class="flow-row"><b>2</b><div><span>Expected response</span><small>Power is set</small></div><em class="check">PM ✓</em></div>
-          <div class="flow-row"><b>3</b><div><span>Session complete</span><small>Accuracy, call flow, crew coordination</small></div><em class="check">85%</em></div>
-          <div class="actions"><a class="btn primary" href="live.html#drill">Open cockpit simulation</a><a class="btn ghost" href="mobile.html">Mobile app details</a></div>
+          <span class="eyebrow"><span class="dot"></span> The study loop</span>
+          <h2>Review. Recall. Apply. Debrief.</h2>
+          <p>Each training surface supports a different stage of the same learning process, instead of presenting a disconnected library of notes.</p>
+          <div class="flow-row"><b>01</b><div><span>Review</span><small>Understand the procedure and technical context.</small></div></div>
+          <div class="flow-row"><b>02</b><div><span>Recall</span><small>Use cards, callouts and memory-item drills.</small></div></div>
+          <div class="flow-row"><b>03</b><div><span>Apply</span><small>Connect the action to cockpit state and system behaviour.</small></div></div>
+          <div class="flow-row"><b>04</b><div><span>Debrief</span><small>Use scores and local session history to identify weak areas.</small></div></div>
+          <div class="actions"><a class="btn primary" href="live.html#drill">Try the cockpit drill</a><a class="btn ghost" href="changelog.html">See recent upgrades</a></div>
         </div>
       </div>
     </section>
 
     <section id="screenshots">
       <div class="wrap">
-        <div class="section-head"><div><h2>Current app areas</h2><p>Core study screens remain visible, but the website now uses the newer cockpit-dark visual language from the latest design mockups.</p></div></div>
+        <div class="section-head"><div><span class="section-label">Inside the trainer</span><h2>Focused screens, not generic courseware.</h2><p>Select any screenshot to inspect the current training interface in more detail.</p></div></div>
         <div class="screens">
-          <article class="shot"><img src="assets/screenshots/dashboard.webp" alt="Dashboard screenshot" loading="lazy"><div><h3>Dashboard</h3><p>Quick access to study areas.</p></div></article>
-          <article class="shot"><img src="assets/screenshots/qrh-checklist.webp" alt="QRH screenshot" loading="lazy"><div><h3>QRH</h3><p>Checklist categories and flows.</p></div></article>
-          <article class="shot"><img src="assets/screenshots/cockpit-drill-runner.webp" alt="Cockpit drill screenshot" loading="lazy"><div><h3>Cockpit drill</h3><p>Procedure-driven practice.</p></div></article>
-          <article class="shot"><img src="assets/screenshots/systems-lab.webp" alt="Systems lab screenshot" loading="lazy"><div><h3>Systems lab</h3><p>Technical system review.</p></div></article>
-          <article class="shot"><img src="assets/screenshots/study-cards.webp" alt="Flashcard screenshot" loading="lazy"><div><h3>Flashcards</h3><p>Card-based recall review.</p></div></article>
+          <article class="shot"><img src="assets/screenshots/dashboard.webp" loading="lazy" alt="DHC-6 Trainer dashboard"><div><h3>Dashboard</h3><p>Direct access to the next useful study action.</p></div></article>
+          <article class="shot"><img src="assets/screenshots/qrh-checklist.webp" loading="lazy" alt="DHC-6 Trainer QRH checklist screen"><div><h3>QRH</h3><p>Memory items and full checklist progression.</p></div></article>
+          <article class="shot"><img src="assets/screenshots/cockpit-drill-runner.webp" loading="lazy" alt="DHC-6 cockpit drill runner"><div><h3>Cockpit drill</h3><p>Procedure recall tied to cockpit targets.</p></div></article>
+          <article class="shot"><img src="assets/screenshots/systems-lab.webp" loading="lazy" alt="DHC-6 Trainer systems laboratory"><div><h3>Systems lab</h3><p>Aircraft-system study pathways and models.</p></div></article>
+          <article class="shot"><img src="assets/screenshots/study-cards.webp" loading="lazy" alt="DHC-6 Trainer study cards"><div><h3>Study cards</h3><p>Quick active recall for technical facts.</p></div></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-muted">
+      <div class="wrap">
+        <div class="section-head"><div><span class="section-label">Choose your surface</span><h2>Use the right trainer for the moment.</h2><p>The core experience is available in portable, large-screen and zero-install formats.</p></div></div>
+        <div class="grid three">
+          <article class="card platform-card"><span class="tag green">Android</span><h3>Carry the trainer</h3><p>Best for between-flight revision, accommodation study and fast QRH or flashcard refresh.</p><div class="platform-meta"><span>Portable</span><span>Account sync</span><span>Google Play</span></div><div class="actions"><a class="btn primary" href="mobile.html">Explore mobile</a></div></article>
+          <article class="card platform-card"><span class="tag amber">Windows desktop</span><h3>Study on the big screen</h3><p>Best for briefing-room use, cockpit review, instructor-led sessions and deeper recurrent preparation.</p><div class="platform-meta"><span>Licensed</span><span>Large-screen</span><span>Local app</span></div><div class="actions"><a class="btn gold" href="desktop.html">View desktop plans</a></div></article>
+          <article class="card platform-card"><span class="tag">Web trainer</span><h3>Start immediately</h3><p>Seven interactive modules, local scoring and no installation—ideal for evaluating the training flow.</p><div class="platform-meta"><span>Free</span><span>Local data</span><span>Offline-capable</span></div><div class="actions"><a class="btn primary" href="live.html">Launch web trainer</a></div></article>
         </div>
       </div>
     </section>
 
     <section>
       <div class="wrap split">
-        <div class="panel">
-          <h2>Mobile-first, with desktop live for large-screen study.</h2>
-          <p>Use the Android app for portable study before flights and training sessions. The Windows desktop subscription supports briefing-room review, instructor workflows, large-screen systems study, and organization use.</p>
-          <div class="actions"><a class="btn primary" href="mobile.html">Mobile details</a><a class="btn gold" href="desktop.html">Desktop subscription</a><a class="btn ghost" href="dhc6trainer://live" data-desktop-launch data-fallback-url="live.html" data-launch-status="#home-panel-launch-status">Open desktop app</a></div>
-          <p id="home-panel-launch-status" class="preview-note" role="status" aria-live="polite"></p>
+        <div>
+          <span class="section-label">Frequently asked</span>
+          <h2>Know exactly what the trainer is—and is not.</h2>
+          <p>DHC-6 Trainer is designed to support structured study. It never replaces approved operational documentation or company procedures.</p>
         </div>
-        <div class="notice">
-          <h3>Training-use disclaimer</h3>
-          <p>DHC-6 Trainer is a study and training-support tool only. It is not an approved AFM, QRH, MEL, checklist, company manual, or operational authority. Always use approved aircraft manuals, company procedures, and applicable regulations for actual operation.</p>
+        <div class="faq-list">
+          <details class="faq-item"><summary>Is this an approved operational reference?</summary><p>No. DHC-6 Trainer is a study and training-support product. Always use the current approved AFM, QRH, MEL, company manuals, checklists and regulatory documents for aircraft operation.</p></details>
+          <details class="faq-item"><summary>Can I try it before subscribing to desktop?</summary><p>Yes. The web trainer is available immediately, and the Android app includes account-linked preview access for protected training areas where offered.</p></details>
+          <details class="faq-item"><summary>Where is browser training data stored?</summary><p>The live web trainer stores session scores and logbook data locally in your browser. Clearing site data removes that local history.</p></details>
+          <details class="faq-item"><summary>How does desktop access work?</summary><p>Subscribe through secure Paddle checkout, recover your licence on the access page, download the Windows installer and activate the app with your licence key.</p></details>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-tight">
+      <div class="wrap">
+        <div class="cta-band">
+          <span class="eyebrow"><span class="dot"></span> Start with the free trainer</span>
+          <h2>Turn the next study session into active practice.</h2>
+          <p class="lead">Launch the browser trainer now, or install DHC-6 Trainer for portable and full desktop study.</p>
+          <div class="actions"><a class="btn primary" href="live.html">Open live trainer</a><a class="btn gold" href="desktop.html">Desktop subscription</a><a class="btn ghost" href="https://play.google.com/store/apps/details?id=com.dhc6trainer" target="_blank" rel="noopener">Android on Google Play</a></div>
+          <p class="preview-note">Training support only. Always use approved manuals, company procedures and current regulatory documents for actual operation.</p>
         </div>
       </div>
     </section>
   </main>
 
   <footer class="footer">
-    <div class="wrap footer-grid">
-      <div><a class="brand" href="./"><span class="brand-mark">✈</span><span>DHC-6 Trainer<small>Twin Otter Study</small></span></a><p style="margin-top:14px">QRH drills, MCC callouts, procedures, cockpit familiarisation, systems study, flashcards, and recurrent prep.</p></div>
-      <div><h3>Product</h3><p><a href="mobile.html">Mobile</a><br><a href="desktop.html">Desktop</a><br><a href="live.html">Live preview</a><br><a href="changelog.html">Changelog</a></p></div>
-      <div><h3>Support</h3><p><a href="mailto:tj.aeronautical@outlook.com">tj.aeronautical@outlook.com</a><br><a href="privacy.html">Privacy</a><br><a href="account-deletion.html">Account/Data Deletion</a></p></div>
+    <div class="wrap">
+      <div class="footer-grid">
+        <div class="footer-brand"><a class="brand" href="./"><span class="brand-mark">DHC-6</span><span>DHC-6 Trainer<small>Twin Otter Study</small></span></a><p style="margin-top:16px">Focused DHC-6 study across mobile, desktop and web. Developed by TJ Aeronautical.</p></div>
+        <div><h3>Product</h3><div class="footer-links"><a href="mobile.html">Android app</a><a href="desktop.html">Desktop plans</a><a href="live.html">Live trainer</a><a href="changelog.html">Changelog</a></div></div>
+        <div><h3>Account</h3><div class="footer-links"><a href="access.html">Manage licence</a><a href="desktop.html#pricing">Subscribe</a><a href="account-deletion.html">Delete account/data</a></div></div>
+        <div><h3>Legal</h3><div class="footer-links"><a href="privacy.html">Privacy policy</a><a href="mailto:tj.aeronautical@outlook.com">Support</a></div></div>
+      </div>
+      <div class="footer-bottom"><p>© <span data-current-year>2026</span> TJ Aeronautical. All rights reserved.</p><p class="status-inline">Website and live trainer available</p></div>
     </div>
   </footer>
 </div>

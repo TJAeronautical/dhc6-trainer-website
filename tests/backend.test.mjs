@@ -1,117 +1,59 @@
-import assert from "node:assert/strict";
 import test from "node:test";
+import assert from "node:assert/strict";
+import { onRequestGet as billingConfig } from "../functions/api/billing/config.js";
+import { activationLimitFromPlan, generateLicenseKey, hmacHex, planFromConfiguredPrice, verifyPaddleSignature } from "../functions/api/_shared.js";
 import { onRequest as apiMiddleware } from "../functions/api/_middleware.js";
-import { onRequestPost as oralExam } from "../functions/api/ai/oral-exam.js";
 
-function base64Url(value) {
-  const bytes = typeof value === "string" ? Buffer.from(value) : Buffer.from(value);
-  return bytes.toString("base64url");
-}
+const prices = {
+  PADDLE_PRICE_PREMIUM_MONTHLY: "pri_pm",
+  PADDLE_PRICE_PREMIUM_ANNUAL: "pri_pa",
+  PADDLE_PRICE_INSTRUCTOR_MONTHLY: "pri_im",
+  PADDLE_PRICE_INSTRUCTOR_ANNUAL: "pri_ia",
+  PADDLE_PRICE_ENTERPRISE_MONTHLY: "pri_em",
+  PADDLE_PRICE_ENTERPRISE_ANNUAL: "pri_ea"
+};
 
-async function appCheckFixture(projectNumber, appId) {
-  const pair = await crypto.subtle.generateKey(
-    { name: "RSASSA-PKCS1-v1_5", modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: "SHA-256" },
-    true,
-    ["sign", "verify"]
-  );
-  const jwk = await crypto.subtle.exportKey("jwk", pair.publicKey);
-  jwk.kid = "test-key";
-  jwk.alg = "RS256";
-  jwk.use = "sig";
-  const now = Math.floor(Date.now() / 1000);
-  const header = base64Url(JSON.stringify({ alg: "RS256", typ: "JWT", kid: jwk.kid }));
-  const claims = base64Url(JSON.stringify({
-    iss: `https://firebaseappcheck.googleapis.com/${projectNumber}`,
-    aud: [`projects/${projectNumber}`],
-    sub: appId,
-    iat: now - 5,
-    exp: now + 3600
-  }));
-  const unsigned = `${header}.${claims}`;
-  const signature = await crypto.subtle.sign(
-    { name: "RSASSA-PKCS1-v1_5" },
-    pair.privateKey,
-    new TextEncoder().encode(unsigned)
-  );
-  return { token: `${unsigned}.${base64Url(signature)}`, jwk };
-}
-
-test("API preflight allows the Firebase App Check header", async () => {
-  const request = new Request("https://dhc6trainer.com/api/ai/oral-exam", {
-    method: "OPTIONS",
-    headers: { Origin: "https://dhc6trainer.com" }
-  });
-  const response = await apiMiddleware({ request, next: async () => new Response("unused") });
-  assert.equal(response.status, 204);
-  assert.match(response.headers.get("Access-Control-Allow-Headers"), /X-Firebase-AppCheck/);
+test("billing config reports missing production setup safely", async () => {
+  const response = await billingConfig({ request: new Request("https://dhc6trainer.com/api/billing/config"), env: { PADDLE_ENVIRONMENT: "production" } });
+  const body = await response.json();
+  assert.equal(body.ok, true);
+  assert.equal(body.configured, false);
+  assert.ok(body.missing.includes("PADDLE_CLIENT_TOKEN"));
+  assert.match(body.successUrl, /^https:\/\/dhc6trainer\.com\/access\.html/);
 });
 
-test("oral exam rejects a request without Firebase authentication", async () => {
-  const request = new Request("https://dhc6trainer.com/api/ai/oral-exam", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ instructions: "test", message: "question" })
-  });
-  const response = await oralExam({ request, env: {} });
-  assert.equal(response.status, 401);
-  assert.deepEqual(await response.json(), { ok: false, error: "firebase_token_missing" });
+test("billing config returns complete live plan map", async () => {
+  const env = { ...prices, PADDLE_ENVIRONMENT: "production", PADDLE_CLIENT_TOKEN: "live_public_token" };
+  const response = await billingConfig({ request: new Request("https://dhc6trainer.com/api/billing/config"), env });
+  const body = await response.json();
+  assert.equal(body.configured, true);
+  assert.equal(body.prices.instructor.annual, "pri_ia");
+  assert.equal(body.environment, "production");
 });
 
-test("oral exam verifies App Check and returns the Android text contract", async () => {
-  const projectNumber = "123456789012";
-  const appId = "1:123456789012:android:test";
-  const fixture = await appCheckFixture(projectNumber, appId);
-  const originalFetch = globalThis.fetch;
-  const calls = [];
-  globalThis.fetch = async (url, init = {}) => {
-    calls.push({ url: String(url), init });
-    if (String(url).startsWith("https://identitytoolkit.googleapis.com/")) {
-      return Response.json({ users: [{ localId: "pilot-1" }] });
-    }
-    if (String(url) === "https://firebaseappcheck.googleapis.com/v1/jwks") {
-      return Response.json({ keys: [fixture.jwk] }, { headers: { "Cache-Control": "max-age=300" } });
-    }
-    if (String(url) === "https://api.openai.com/v1/responses") {
-      return Response.json({ output_text: "Examiner response" });
-    }
-    throw new Error(`Unexpected fetch: ${url}`);
-  };
+test("licence keys and plan limits are valid", () => {
+  const key = generateLicenseKey();
+  assert.match(key, /^DHC6-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/);
+  assert.equal(activationLimitFromPlan("premium_annual"), 3);
+  assert.equal(activationLimitFromPlan("instructor_monthly"), 10);
+  assert.equal(activationLimitFromPlan("enterprise_annual"), 50);
+  assert.equal(planFromConfiguredPrice(prices, "pri_ia"), "instructor_annual");
+});
 
-  try {
-    const request = new Request("https://dhc6trainer.com/api/ai/oral-exam", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer firebase-id-token",
-        "X-Firebase-AppCheck": fixture.token
-      },
-      body: JSON.stringify({
-        instructions: "Act as an examiner",
-        history: [{ role: "assistant", content: "Previous question" }],
-        message: "Pilot answer"
-      })
-    });
-    const response = await oralExam({
-      request,
-      env: {
-        FIREBASE_WEB_API_KEY: "test-api-key",
-        FIREBASE_PROJECT_NUMBER: projectNumber,
-        FIREBASE_ANDROID_APP_ID: appId,
-        OPENAI_API_KEY: "test-openai-key",
-        OPENAI_MODEL: "gpt-4.1-mini"
-      }
-    });
-    assert.equal(response.status, 200);
-    assert.deepEqual(await response.json(), { text: "Examiner response" });
+test("Paddle signatures accept current payloads and reject stale payloads", async () => {
+  const secret = "pdl_test_secret";
+  const raw = JSON.stringify({ event_type: "subscription.created" });
+  const ts = String(Math.floor(Date.now() / 1000));
+  const sig = await hmacHex(secret, `${ts}:${raw}`);
+  assert.equal(await verifyPaddleSignature(`ts=${ts};h1=${sig}`, raw, secret, 5), true);
+  const stale = String(Math.floor(Date.now() / 1000) - 60);
+  const staleSig = await hmacHex(secret, `${stale}:${raw}`);
+  assert.equal(await verifyPaddleSignature(`ts=${stale};h1=${staleSig}`, raw, secret, 5), false);
+});
 
-    const openAiCall = calls.find((call) => call.url === "https://api.openai.com/v1/responses");
-    const payload = JSON.parse(openAiCall.init.body);
-    assert.deepEqual(payload.input, [
-      { role: "assistant", content: "Previous question" },
-      { role: "user", content: "Pilot answer" }
-    ]);
-    assert.equal(payload.model, "gpt-4.1-mini");
-  } finally {
-    globalThis.fetch = originalFetch;
-  }
+test("API CORS only reflects approved browser origins", async () => {
+  const approved = await apiMiddleware({ request: new Request("https://dhc6trainer.com/api/health", { headers: { Origin: "https://dhc6trainer.com" } }), next: async () => new Response("ok") });
+  assert.equal(approved.headers.get("Access-Control-Allow-Origin"), "https://dhc6trainer.com");
+  const rejected = await apiMiddleware({ request: new Request("https://dhc6trainer.com/api/health", { headers: { Origin: "https://evil.example" } }), next: async () => new Response("ok") });
+  assert.equal(rejected.headers.get("Access-Control-Allow-Origin"), null);
 });

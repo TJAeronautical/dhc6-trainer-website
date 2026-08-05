@@ -1,21 +1,21 @@
 {
+  "id": "/",
   "name": "DHC-6 Trainer",
   "short_name": "DHC-6 Trainer",
-  "start_url": "/",
+  "description": "Twin Otter QRH, MCC, procedure, cockpit, systems and recurrent study.",
+  "start_url": "/live.html",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "any",
   "background_color": "#06111f",
   "theme_color": "#06111f",
-  "description": "DHC-6 Trainer website and privacy resources.",
+  "categories": ["education", "productivity"],
   "icons": [
-    {
-      "src": "app-icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "app-icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
+    {"src": "app-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "app-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ],
+  "shortcuts": [
+    {"name": "Live Trainer", "short_name": "Trainer", "url": "/live.html", "icons": [{"src": "app-icon-192.png", "sizes": "192x192"}]},
+    {"name": "Desktop Access", "short_name": "Licence", "url": "/access.html", "icons": [{"src": "app-icon-192.png", "sizes": "192x192"}]}
   ]
 }

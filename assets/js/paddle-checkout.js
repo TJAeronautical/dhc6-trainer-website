@@ -1,289 +1,220 @@
-/*
-  DHC-6 Trainer - Paddle subscription checkout (Paddle Billing / Paddle.js v2)
-  -------------------------------------------------------------------------
-  Production billing is loaded from /api/billing/config so live Paddle IDs
-  can be managed as Cloudflare Worker variables. The static config below is
-  only a local sandbox fallback for file:// or localhost previews.
+(function () {
+  "use strict";
 
-  Paddle.js is loaded from https://cdn.paddle.com/paddle/v2/paddle.js in
-  desktop.html. For security/compliance Paddle.js must be loaded only from
-  that CDN URL.
-*/
-
-/* ======================= LOCAL SANDBOX FALLBACK ======================= */
-const STATIC_SANDBOX_PADDLE_CONFIG = {
-  environment: "sandbox",
-  clientToken: "test_d8128820fe75450386eccfcc326",
-  prices: {
-    premium: {
-      monthly: "pri_01kxk3xtqq51jna7weqk9z374m",
-      annual: "pri_01kxk418gk6pgmzm9pw61eyfqm"
+  const LOCAL_SANDBOX_CONFIG = {
+    environment: "sandbox",
+    clientToken: "test_d8128820fe75450386eccfcc326",
+    prices: {
+      premium: { monthly: "pri_01kxk3xtqq51jna7weqk9z374m", annual: "pri_01kxk418gk6pgmzm9pw61eyfqm" },
+      instructor: { monthly: "pri_01kxk45ny35mgkwy64xqdq849n", annual: "pri_01kxk46sfrf7t6pck4cweh4k11" },
+      enterprise: { monthly: "pri_01kxk48gyh6e7v7awr0b01svpc", annual: "pri_01kxk49k3ybfsaxhgds952ebba" }
     },
-    instructor: {
-      monthly: "pri_01kxk45ny35mgkwy64xqdq849n",
-      annual: "pri_01kxk46sfrf7t6pck4cweh4k11"
-    },
-    enterprise: {
-      monthly: "pri_01kxk48gyh6e7v7awr0b01svpc",
-      annual: "pri_01kxk49k3ybfsaxhgds952ebba"
-    }
-  },
-  successUrl: "https://dhc6trainer.com/access.html?status=purchased&download=1#download"
-};
-/* =================== END LOCAL SANDBOX FALLBACK ======================= */
-
-let PADDLE_CONFIG = null;
-let paddleReady = false;
-let paddleLoading = false;
-let lastCheckoutAttempt = null;
-
-function rememberCompletedCheckout(event) {
-  if (!event || !event.data) return;
-  const customer = event.data.customer || {};
-  const payload = {
-    email: customer.email || "",
-    customerId: customer.id || "",
-    checkoutId: event.data.id || "",
-    transactionId: event.data.transaction_id || "",
-    completedAt: new Date().toISOString()
+    successUrl: "https://dhc6trainer.com/access.html?status=purchased&download=1#download",
+    configured: true,
+    source: "local-sandbox"
   };
-  try {
-    window.sessionStorage.setItem("dhc6TrainerCheckout", JSON.stringify(payload));
-  } catch (storageError) {
-    // Non-critical: the access page still works when storage is unavailable.
+
+  let config = null;
+  let state = "loading";
+  let initializationPromise = null;
+  let activeAttempt = null;
+  let redirectScheduled = false;
+
+  const statusBox = document.getElementById("checkout-status");
+  const statusMessage = document.getElementById("checkout-message");
+  const retryButton = document.querySelector("[data-checkout-retry]");
+  const checkoutButtons = Array.from(document.querySelectorAll("[data-plan][data-cycle]"));
+
+  function setState(nextState, message) {
+    state = nextState;
+    if (statusBox) statusBox.dataset.state = nextState === "ready" ? "ready" : (nextState === "error" ? "error" : "loading");
+    if (statusMessage) statusMessage.textContent = message || "";
+    checkoutButtons.forEach(function (button) {
+      button.disabled = nextState !== "ready";
+      button.setAttribute("aria-disabled", String(nextState !== "ready"));
+    });
+    if (retryButton) retryButton.hidden = nextState !== "error";
   }
-}
 
-function setCheckoutMessage(text, ok) {
-  const el = document.getElementById("checkout-message");
-  if (!el) return;
-  el.textContent = text || "";
-  el.style.color = ok ? "#9ff0bd" : "#ffd6d6";
-  el.style.fontWeight = "800";
-}
+  function isLocalHost() {
+    const host = window.location.hostname;
+    return window.location.protocol === "file:" || !host || host === "localhost" || host === "127.0.0.1" || host === "::1" || host.endsWith(".local");
+  }
 
-function isLocalCheckoutHost() {
-  const host = window.location.hostname;
-  return (
-    !host ||
-    host === "localhost" ||
-    host === "127.0.0.1" ||
-    host === "::1" ||
-    host.endsWith(".local")
-  );
-}
+  function normalizeConfig(raw) {
+    raw = raw || {};
+    return {
+      environment: raw.environment === "sandbox" ? "sandbox" : "production",
+      clientToken: String(raw.clientToken || "").trim(),
+      prices: raw.prices || {},
+      successUrl: String(raw.successUrl || (window.location.origin + "/access.html?status=purchased&download=1#download")),
+      configured: raw.configured !== false,
+      missing: Array.isArray(raw.missing) ? raw.missing : [],
+      source: raw.source || "worker"
+    };
+  }
 
-function canUseSandboxFallback() {
-  return window.location.protocol === "file:" || isLocalCheckoutHost();
-}
+  function validateConfig(value) {
+    if (!value || !value.configured) return "Secure checkout is not fully configured on the production server.";
+    if (!value.clientToken) return "Secure checkout is missing its public client token.";
+    if (value.environment === "production" && !value.clientToken.startsWith("live_")) return "The production checkout token is not a live Paddle token.";
+    if (value.environment === "sandbox" && !value.clientToken.startsWith("test_")) return "The sandbox checkout token is not a test Paddle token.";
+    const plans = ["premium", "instructor", "enterprise"];
+    const cycles = ["monthly", "annual"];
+    for (const plan of plans) {
+      for (const cycle of cycles) {
+        const price = value.prices[plan] && value.prices[plan][cycle];
+        if (!String(price || "").startsWith("pri_")) return "One or more checkout price references are missing or invalid.";
+      }
+    }
+    if (!/^https:\/\//i.test(value.successUrl) && !isLocalHost()) return "The checkout completion URL must use HTTPS.";
+    return "";
+  }
 
-function normalizePaddleConfig(raw) {
-  raw = raw || {};
-  return {
-    environment: raw.environment === "sandbox" ? "sandbox" : "production",
-    clientToken: String(raw.clientToken || ""),
-    prices: raw.prices || {},
-    successUrl:
-      raw.successUrl ||
-      window.location.origin + "/access.html?status=purchased&download=1#download"
-  };
-}
+  async function fetchWithTimeout(url, options, timeoutMs) {
+    const controller = new AbortController();
+    const timer = window.setTimeout(function () { controller.abort(); }, timeoutMs);
+    try {
+      return await fetch(url, Object.assign({}, options, { signal: controller.signal }));
+    } finally {
+      window.clearTimeout(timer);
+    }
+  }
 
-async function loadPaddleConfig() {
-  try {
-    const response = await fetch("/api/billing/config", { cache: "no-store" });
-    if (response.ok) {
+  async function loadConfig() {
+    try {
+      const response = await fetchWithTimeout("/api/billing/config", { cache: "no-store", headers: { "Accept": "application/json" } }, 10000);
+      if (!response.ok) throw new Error("Billing configuration returned HTTP " + response.status);
       const data = await response.json();
-      if (data && data.ok) return normalizePaddleConfig(data);
-    }
-  } catch (e) {
-    // Local file/static previews cannot reach the Worker config endpoint.
-  }
-
-  if (canUseSandboxFallback()) {
-    return normalizePaddleConfig(STATIC_SANDBOX_PADDLE_CONFIG);
-  }
-
-  return normalizePaddleConfig({
-    environment: "production",
-    clientToken: "",
-    prices: {},
-    successUrl: window.location.origin + "/access.html?status=purchased&download=1#download"
-  });
-}
-
-function isPlaceholder(value) {
-  return !value || String(value).indexOf("REPLACE") > -1;
-}
-
-function priceIdFor(plan, cycle) {
-  const tier = (PADDLE_CONFIG && PADDLE_CONFIG.prices && PADDLE_CONFIG.prices[plan]) || {};
-  return tier[cycle] || "";
-}
-
-function checkoutConfigError(config) {
-  if (!config || isPlaceholder(config.clientToken)) {
-    return config && config.environment === "production"
-      ? "Production checkout is not configured yet. Add the live Paddle client token in Cloudflare."
-      : "Sandbox checkout is not configured yet. Add the Paddle sandbox client-side token.";
-  }
-
-  if (config.environment === "production" && config.clientToken.indexOf("live_") !== 0) {
-    return "Production checkout needs a live Paddle client token.";
-  }
-
-  if (config.environment === "sandbox" && config.clientToken.indexOf("test_") !== 0) {
-    return "Sandbox checkout needs a test Paddle client token.";
-  }
-
-  const plans = ["premium", "instructor", "enterprise"];
-  const cycles = ["monthly", "annual"];
-  for (let i = 0; i < plans.length; i++) {
-    for (let j = 0; j < cycles.length; j++) {
-      if (isPlaceholder((config.prices[plans[i]] || {})[cycles[j]])) {
-        return config.environment === "production"
-          ? "Production checkout is missing one or more live Paddle price IDs."
-          : "Sandbox checkout is missing one or more Paddle price IDs.";
-      }
+      if (!data || data.ok !== true) throw new Error("Billing configuration response was invalid");
+      return normalizeConfig(data);
+    } catch (error) {
+      if (isLocalHost()) return normalizeConfig(LOCAL_SANDBOX_CONFIG);
+      throw error;
     }
   }
 
-  return "";
-}
-
-async function initPaddle() {
-  if (paddleLoading || paddleReady) return;
-  paddleLoading = true;
-
-  PADDLE_CONFIG = await loadPaddleConfig();
-
-  if (typeof Paddle === "undefined") {
-    setCheckoutMessage(
-      "Checkout failed to load. Refresh the page or email tj.aeronautical@outlook.com.",
-      false
-    );
-    paddleLoading = false;
-    return;
-  }
-
-  const configError = checkoutConfigError(PADDLE_CONFIG);
-  if (configError) {
-    setCheckoutMessage(configError, false);
-    paddleLoading = false;
-    return;
-  }
-
-  if (PADDLE_CONFIG.environment === "sandbox") {
-    Paddle.Environment.set("sandbox");
-  }
-
-  try {
-    Paddle.Initialize({
-      token: PADDLE_CONFIG.clientToken,
-      checkout: {
-        settings: {
-          displayMode: "overlay",
-          theme: "dark",
-          locale: "en",
-          successUrl: PADDLE_CONFIG.successUrl
-        }
-      },
-      eventCallback: function (event) {
-        // Full event reference: developer.paddle.com/paddlejs/events
-        if (!event || !event.name) return;
-        if (event.name === "checkout.completed") {
-          rememberCompletedCheckout(event);
-          setCheckoutMessage(
-            "Payment complete. Opening your licence and download page...",
-            true
-          );
-        } else if (event.name === "checkout.error") {
-          if (window.console && window.console.warn) {
-            window.console.warn("Paddle checkout error", {
-              attempt: lastCheckoutAttempt,
-              event: event
-            });
-          }
-          const label = lastCheckoutAttempt
-            ? lastCheckoutAttempt.plan + " " + lastCheckoutAttempt.cycle
-            : "checkout";
-          setCheckoutMessage(
-            "Checkout for " + label + " could not be completed. No charge was made. Please try again.",
-            false
-          );
-        }
-      }
+  function waitForPaddle(timeoutMs) {
+    return new Promise(function (resolve, reject) {
+      const started = Date.now();
+      (function check() {
+        if (window.Paddle && window.Paddle.Initialize && window.Paddle.Checkout) return resolve(window.Paddle);
+        if (Date.now() - started >= timeoutMs) return reject(new Error("Paddle.js did not load"));
+        window.setTimeout(check, 100);
+      })();
     });
-  } catch (e) {
-    setCheckoutMessage("Checkout could not be initialized. Check the Paddle production settings.", false);
-    paddleLoading = false;
-    return;
   }
 
-  paddleReady = true;
-  paddleLoading = false;
-}
-
-function openDesktopCheckout(plan, cycle) {
-  const priceId = priceIdFor(plan, cycle);
-
-  if (!paddleReady) {
-    setCheckoutMessage("Checkout is still loading. Please try again in a moment.", false);
-    return;
+  function rememberCheckout(event) {
+    const data = (event && event.data) || {};
+    const customer = data.customer || {};
+    const payload = {
+      email: customer.email || "",
+      customerId: customer.id || data.customer_id || "",
+      checkoutId: data.id || "",
+      transactionId: data.transaction_id || data.transactionId || "",
+      plan: activeAttempt ? activeAttempt.plan : "",
+      cycle: activeAttempt ? activeAttempt.cycle : "",
+      completedAt: new Date().toISOString()
+    };
+    try { window.sessionStorage.setItem("dhc6TrainerCheckout", JSON.stringify(payload)); } catch (error) { /* optional */ }
   }
 
-  if (!priceId || priceId.indexOf("pri_REPLACE") === 0) {
-    setCheckoutMessage(
-      "Billing is not configured yet. (Set the Paddle price IDs in assets/js/paddle-checkout.js.)",
-      false
-    );
-    return;
+  function scheduleCompletionRedirect() {
+    if (redirectScheduled || !config || !config.successUrl) return;
+    redirectScheduled = true;
+    window.setTimeout(function () {
+      window.location.assign(config.successUrl);
+    }, 900);
   }
 
-  lastCheckoutAttempt = { plan: plan, cycle: cycle, priceId: priceId };
-  setCheckoutMessage("Opening " + plan + " " + cycle + " checkout...", true);
+  function onPaddleEvent(event) {
+    if (!event || !event.name) return;
+    if (event.name === "checkout.loaded") {
+      setState("ready", "Secure checkout opened. Complete payment in the Paddle window.");
+    } else if (event.name === "checkout.completed") {
+      rememberCheckout(event);
+      setState("ready", "Payment complete. Opening licence recovery and download tools…");
+      scheduleCompletionRedirect();
+    } else if (event.name === "checkout.closed") {
+      if (!redirectScheduled) setState("ready", "Checkout closed. Select a plan whenever you are ready.");
+    } else if (event.name === "checkout.error") {
+      console.warn("Paddle checkout error", { attempt: activeAttempt, event: event });
+      setState("error", "Checkout could not be opened with the selected plan. No charge was made. Retry or contact support.");
+    }
+  }
 
-  try {
-    Paddle.Checkout.open({
+  async function initializeCheckout(force) {
+    if (initializationPromise && !force) return initializationPromise;
+    initializationPromise = (async function () {
+      setState("loading", "Checking secure checkout availability…");
+      config = await loadConfig();
+      const configError = validateConfig(config);
+      if (configError) throw new Error(configError);
+
+      const paddle = await waitForPaddle(8000);
+      if (config.environment === "sandbox") paddle.Environment.set("sandbox");
+      paddle.Initialize({
+        token: config.clientToken,
+        checkout: { settings: { displayMode: "overlay", theme: "dark", locale: "en", successUrl: config.successUrl } },
+        eventCallback: onPaddleEvent
+      });
+      setState("ready", config.environment === "sandbox" ? "Sandbox checkout ready for local testing." : "Secure checkout ready. Prices and tax are confirmed inside Paddle before payment.");
+      return true;
+    })().catch(function (error) {
+      console.error("Checkout initialization failed", error);
+      setState("error", (error && error.message) || "Secure checkout is unavailable. Retry or contact support.");
+      initializationPromise = null;
+      return false;
+    });
+    return initializationPromise;
+  }
+
+  function priceIdFor(plan, cycle) {
+    return config && config.prices && config.prices[plan] ? String(config.prices[plan][cycle] || "") : "";
+  }
+
+  async function openCheckout(button) {
+    if (state !== "ready") {
+      const ready = await initializeCheckout(false);
+      if (!ready) return;
+    }
+    const plan = button.dataset.plan;
+    const cycle = button.dataset.cycle;
+    const priceId = priceIdFor(plan, cycle);
+    if (!priceId) {
+      setState("error", "The selected plan is not configured. Retry or contact support.");
+      return;
+    }
+
+    activeAttempt = { plan: plan, cycle: cycle, priceId: priceId, startedAt: new Date().toISOString() };
+    button.disabled = true;
+    setState("loading", "Opening " + plan + " " + cycle + " checkout…");
+
+    const emailInput = document.getElementById("checkoutEmail");
+    const email = emailInput ? emailInput.value.trim() : "";
+    const checkoutOptions = {
       items: [{ priceId: priceId, quantity: 1 }],
-      customData: {
-        product: "dhc6_trainer_desktop",
-        plan: plan,
-        billing_cycle: cycle
-      },
-      settings: {
-        displayMode: "overlay",
-        theme: "dark",
-        locale: "en",
-        successUrl: PADDLE_CONFIG.successUrl
-      }
-    });
-  } catch (e) {
-    if (window.console && window.console.error) {
-      window.console.error("Paddle checkout open failed", lastCheckoutAttempt, e);
+      customData: { product: "dhc6_trainer_desktop", plan: plan, billing_cycle: cycle },
+      settings: { displayMode: "overlay", theme: "dark", locale: "en", successUrl: config.successUrl }
+    };
+    if (email) checkoutOptions.customer = { email: email };
+
+    try {
+      window.Paddle.Checkout.open(checkoutOptions);
+      window.setTimeout(function () {
+        if (!redirectScheduled && state === "loading") setState("ready", "Checkout opened. Complete payment in the Paddle window.");
+      }, 1200);
+    } catch (error) {
+      console.error("Paddle.Checkout.open failed", activeAttempt, error);
+      setState("error", "Checkout could not open. No charge was made. Retry or contact support.");
     }
-    setCheckoutMessage(
-      "Checkout for " + plan + " " + cycle + " could not be opened. Please try again.",
-      false
-    );
   }
-}
 
-function bindCheckoutButtons() {
-  const buttons = document.querySelectorAll("[data-plan][data-cycle]");
-  buttons.forEach(function (btn) {
-    btn.addEventListener("click", function () {
-      openDesktopCheckout(btn.getAttribute("data-plan"), btn.getAttribute("data-cycle"));
-    });
+  checkoutButtons.forEach(function (button) {
+    button.addEventListener("click", function () { openCheckout(button); });
   });
-}
+  if (retryButton) retryButton.addEventListener("click", function () { initializeCheckout(true); });
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", function () {
-    initPaddle();
-    bindCheckoutButtons();
-  });
-} else {
-  initPaddle();
-  bindCheckoutButtons();
-}
+  initializeCheckout(false);
+})();

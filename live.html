@@ -95,6 +95,7 @@
 @media(max-width:980px){.app-sim-grid{grid-template-columns:1fr}.app-sim-screen{min-height:360px}}
 @media(max-width:760px){.kpi-grid{grid-template-columns:1fr 1fr}.trainer-tabs{gap:6px}.t-tab{padding:8px 12px;font-size:.82rem}.sim-grid{grid-template-columns:1fr}.cockpit-viewport{aspect-ratio:4/3}.app-sim-screen{min-height:320px}}
 </style>
+<script src="assets/js/site.js" defer></script>
 </head>
 <body>
 <div class="site-shell">
@@ -110,7 +111,7 @@
   <h1>Live Web Trainer</h1>
   <p class="lead">Seven interactive modules grounded in the DHC-6 Series 300 AFM/POH, operator QRH, and FCTM &mdash; plus a local logbook that records every session in this browser.</p>
   <div class="notice" style="margin-top:18px"><p>Training support only. Always fly the approved AFM, QRH, company OM-B, and current regulatory documents. Figures here are for study and planning, not for operational use.</p></div>
-  <div class="actions"><a class="btn primary" href="mobile.html">Get the Android app</a><a class="btn gold" href="dhc6trainer://live" data-desktop-launch data-fallback-url="live.html" data-launch-status="#live-launch-status">Open desktop app</a><a class="btn ghost" href="#drill">Start MCC cockpit sim</a><a class="btn ghost" href="desktop.html">Desktop subscription</a></div>
+  <div class="actions"><a class="btn primary" href="mobile.html">Get the Android app</a><a class="btn gold" href="dhc6trainer://live" data-desktop-launch data-fallback-url="live.html" data-launch-status="#live-launch-status">Open desktop app</a><a class="btn ghost" href="#drill">Start MCC cockpit sim</a><a class="btn ghost" href="desktop.html">Desktop subscription</a><button class="btn ghost" type="button" data-install-app hidden>Install web trainer</button></div>
   <p id="live-launch-status" class="muted-sm" role="status" aria-live="polite"></p>
 </div></section>
 

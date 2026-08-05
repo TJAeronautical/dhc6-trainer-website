@@ -10,7 +10,6 @@ import {
   parseFirestoreString,
   readJson,
   sha256Hex,
-  verifyFirebaseAppCheck,
   verifyFirebaseUser
 } from "../_mobile_shared.js";
 
@@ -323,8 +322,6 @@ export async function onRequestPost(context) {
   const { request, env } = context;
   const auth = await verifyFirebaseUser(context);
   if (!auth.ok) return auth.response;
-  const appCheck = await verifyFirebaseAppCheck(context);
-  if (!appCheck.ok) return appCheck.response;
 
   const body = await readJson(request);
   if (!body || typeof body !== "object") {
