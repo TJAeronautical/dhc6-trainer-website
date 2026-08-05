@@ -57,6 +57,22 @@ test("critical purchase and account controls remain wired", () => {
   assert.doesNotMatch(desktop, /pri_REPLACE|live_REPLACE|test_REPLACE/);
 });
 
+test("Paddle legal pages and primary footer links are published", () => {
+  const terms = fs.readFileSync(path.join(root, "terms.html"), "utf8");
+  const refund = fs.readFileSync(path.join(root, "refund.html"), "utf8");
+  const worker = fs.readFileSync(path.join(root, "worker.js"), "utf8");
+  const sitemap = fs.readFileSync(path.join(root, "sitemap.xml"), "utf8");
+  assert.match(terms, /Terms of Service/);
+  assert.match(terms, /Paddle/);
+  assert.match(refund, /Refund and Cancellation Policy/);
+  assert.match(refund, /mandatory consumer rights/i);
+  assert.match(worker, /footer-legal-links/);
+  assert.match(worker, /terms\.html/);
+  assert.match(worker, /refund\.html/);
+  assert.match(sitemap, /terms\.html/);
+  assert.match(sitemap, /refund\.html/);
+});
+
 test("service worker precache paths exist", () => {
   const sw = fs.readFileSync(path.join(root, "sw.js"), "utf8");
   const entries = Array.from(sw.matchAll(/^\s*"(\/[^"]+)"[,]?$/gm), (m) => m[1]);
