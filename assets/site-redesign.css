@@ -205,3 +205,12 @@ input,select,textarea{width:100%;border:1px solid var(--line);background:rgba(25
 }
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}.reveal{opacity:1;transform:none}.visual-card{transform:none}}
 @media print{.topbar,.footer,.actions,.scroll-progress,.mobile-nav-panel{display:none!important}body{background:#fff;color:#111}.card,.panel,.dark-panel,.legal-card,.prose article{box-shadow:none;border:1px solid #bbb;background:#fff;color:#111}p,li{color:#333}h1,h2,h3,h4{color:#111}section{padding:24px 0}}
+
+/* Keep anchored sections visible below the sticky navigation. */
+html {
+  scroll-padding-top: 92px;
+}
+
+main section[id] {
+  scroll-margin-top: 92px;
+}
