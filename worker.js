@@ -65,6 +65,19 @@ async function routeApi(context) {
   return json({ ok: false, error: "api_route_not_found" }, 404);
 }
 
+function shouldInjectPrimaryLegalLinks(pathname) {
+  return pathname === "/" || pathname === "/index.html" || pathname === "/desktop" || pathname === "/desktop.html";
+}
+
+class LegalFooterLinks {
+  element(element) {
+    element.prepend(
+      '<p class="footer-legal-links"><a href="terms.html">Terms of Service</a> · <a href="privacy.html">Privacy Policy</a> · <a href="refund.html">Refund Policy</a></p>',
+      { html: true }
+    );
+  }
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -80,7 +93,14 @@ export default {
       });
     }
 
-    const assetResponse = await env.ASSETS.fetch(request);
+    let assetResponse = await env.ASSETS.fetch(request);
+    const contentType = assetResponse.headers.get("Content-Type") || "";
+    if (assetResponse.ok && request.method === "GET" && contentType.includes("text/html") && shouldInjectPrimaryLegalLinks(url.pathname)) {
+      assetResponse = new HTMLRewriter()
+        .on("footer .footer-bottom", new LegalFooterLinks())
+        .transform(assetResponse);
+    }
+
     const headers = new Headers(assetResponse.headers);
     headers.set("X-Content-Type-Options", "nosniff");
     headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
