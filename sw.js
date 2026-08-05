@@ -1,4 +1,4 @@
-const CACHE_NAME = "dhc6-trainer-site-v2";
+const CACHE_NAME = "dhc6-trainer-site-v3";
 const CORE_ASSETS = [
   "/",
   "/index.html",
@@ -6,6 +6,8 @@ const CORE_ASSETS = [
   "/desktop.html",
   "/live.html",
   "/access.html",
+  "/terms.html",
+  "/refund.html",
   "/privacy.html",
   "/account-deletion.html",
   "/changelog.html",
