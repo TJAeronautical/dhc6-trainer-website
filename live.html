@@ -10,6 +10,7 @@
 <link rel="manifest" href="assets/site.webmanifest">
 <link rel="stylesheet" href="assets/site-redesign.css">
 <style>
+.subscriber-locked .site-shell{visibility:hidden}
 /* ── Trainer-specific additions ───────────────────────────────────────── */
 .trainer-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px}
 .t-tab{border-radius:999px;padding:9px 16px;font-weight:950;font-size:.88rem;cursor:pointer;background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--muted);line-height:1}
@@ -96,13 +97,14 @@
 @media(max-width:760px){.kpi-grid{grid-template-columns:1fr 1fr}.trainer-tabs{gap:6px}.t-tab{padding:8px 12px;font-size:.82rem}.sim-grid{grid-template-columns:1fr}.cockpit-viewport{aspect-ratio:4/3}.app-sim-screen{min-height:320px}}
 </style>
 <script src="assets/js/site.js" defer></script>
+<script src="assets/js/subscriber-gate.js" defer></script>
 </head>
-<body>
+<body class="subscriber-locked">
 <div class="site-shell">
 <header class="topbar"><div class="wrap"><nav>
   <a class="brand" href="./" aria-label="DHC-6 Trainer home"><span class="brand-mark">✈</span><span>DHC-6 Trainer<small>Live trainer</small></span></a>
   <div class="navlinks"><a href="./">Home</a><a href="mobile.html">Mobile</a><a href="desktop.html">Desktop</a><a href="access.html">Manage licence</a><a href="changelog.html">Changelog</a><a href="privacy.html">Privacy</a></div>
-  <a class="btn primary mobile-only" href="https://play.google.com/store/apps/details?id=com.dhc6trainer" target="_blank" rel="noopener">Google Play</a>
+  <a class="btn primary mobile-only" href="access.html">Account</a>
 </nav></div></header>
 
 <main>
@@ -111,7 +113,7 @@
   <h1>Live Web Trainer</h1>
   <p class="lead">Seven interactive modules grounded in the DHC-6 Series 300 AFM/POH, operator QRH, and FCTM &mdash; plus a local logbook that records every session in this browser.</p>
   <div class="notice" style="margin-top:18px"><p>Training support only. Always fly the approved AFM, QRH, company OM-B, and current regulatory documents. Figures here are for study and planning, not for operational use.</p></div>
-  <div class="actions"><a class="btn primary" href="mobile.html">Get the Android app</a><a class="btn gold" href="dhc6trainer://live" data-desktop-launch data-fallback-url="live.html" data-launch-status="#live-launch-status">Open desktop app</a><a class="btn ghost" href="#drill">Start MCC cockpit sim</a><a class="btn ghost" href="desktop.html">Desktop subscription</a><button class="btn ghost" type="button" data-install-app hidden>Install web trainer</button></div>
+  <div class="actions"><a class="btn primary" href="#drill">Start MCC cockpit sim</a><a class="btn gold" href="dhc6trainer://live" data-desktop-launch data-fallback-url="live.html" data-launch-status="#live-launch-status">Open desktop app</a><a class="btn ghost" href="access.html">Manage subscription</a><button class="btn ghost" type="button" data-install-app hidden>Install web app</button></div>
   <p id="live-launch-status" class="muted-sm" role="status" aria-live="polite"></p>
 </div></section>
 

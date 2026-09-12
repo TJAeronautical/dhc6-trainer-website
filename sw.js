@@ -1,10 +1,10 @@
-const CACHE_NAME = "dhc6-trainer-site-v3";
+const CACHE_NAME = "dhc6-trainer-site-v4";
 const CORE_ASSETS = [
   "/",
   "/index.html",
   "/mobile.html",
   "/desktop.html",
-  "/live.html",
+  "/web-app.html",
   "/access.html",
   "/terms.html",
   "/refund.html",
@@ -15,6 +15,7 @@ const CORE_ASSETS = [
   "/assets/site-redesign.css",
   "/assets/js/site.js",
   "/assets/js/desktop-launch.js",
+  "/assets/js/web-app-login.js",
   "/assets/app-icon-192.png",
   "/assets/app-icon-512.png",
   "/assets/latest-design-overview.webp",

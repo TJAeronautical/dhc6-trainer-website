@@ -13,6 +13,8 @@ import { onRequestPost as licenseDeactivate } from "./functions/api/license/deac
 import { onRequestPost as licenseValidate } from "./functions/api/license/validate.js";
 import { onRequestPost as paddleWebhook } from "./functions/api/paddle/webhook.js";
 import { onRequestPost as playValidatePurchase } from "./functions/api/play/validate-purchase.js";
+import { onRequestPost as webAccessSession } from "./functions/api/web-access/session.js";
+import { onRequestGet as webAccessVerify } from "./functions/api/web-access/verify.js";
 
 function json(body, status) {
   return new Response(JSON.stringify(body), {
@@ -45,6 +47,8 @@ async function routeApi(context) {
         "/api/license/validate",
         "/api/paddle/webhook",
         "/api/play/validate-purchase"
+        ,"/api/web-access/session",
+        "/api/web-access/verify"
       ]
     });
   }
@@ -61,6 +65,8 @@ async function routeApi(context) {
   if (method === "POST" && path === "/api/license/validate") return licenseValidate(context);
   if (method === "POST" && path === "/api/paddle/webhook") return paddleWebhook(context);
   if (method === "POST" && path === "/api/play/validate-purchase") return playValidatePurchase(context);
+  if (method === "POST" && path === "/api/web-access/session") return webAccessSession(context);
+  if (method === "GET" && path === "/api/web-access/verify") return webAccessVerify(context);
 
   return json({ ok: false, error: "api_route_not_found" }, 404);
 }

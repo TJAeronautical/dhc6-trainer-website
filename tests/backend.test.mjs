@@ -22,11 +22,12 @@ test("billing config reports missing production setup safely", async () => {
   assert.match(body.successUrl, /^https:\/\/dhc6trainer\.com\/access\.html/);
 });
 
-test("billing config returns complete live plan map", async () => {
+test("billing config keeps complete live plan map while sales are suspended", async () => {
   const env = { ...prices, PADDLE_ENVIRONMENT: "production", PADDLE_CLIENT_TOKEN: "live_public_token" };
   const response = await billingConfig({ request: new Request("https://dhc6trainer.com/api/billing/config"), env });
   const body = await response.json();
-  assert.equal(body.configured, true);
+  assert.equal(body.configured, false);
+  assert.equal(body.suspended, true);
   assert.equal(body.prices.instructor.annual, "pri_ia");
   assert.equal(body.environment, "production");
 });

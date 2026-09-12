@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Subscriber Web App | DHC-6 Trainer</title>
+  <meta name="description" content="Open the mobile-friendly DHC-6 Trainer web app with an active subscription.">
+  <meta name="theme-color" content="#06111f">
+  <link rel="icon" href="assets/favicon-32.png" type="image/png">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="manifest" href="assets/site.webmanifest">
+  <link rel="stylesheet" href="assets/site-redesign.css">
+  <script src="assets/js/site.js" defer></script>
+  <script src="assets/js/web-app-login.js" defer></script>
+</head>
+<body><div class="site-shell">
+<header class="topbar"><div class="wrap"><nav aria-label="Primary navigation">
+  <a class="brand" href="./"><span class="brand-mark">DHC-6</span><span>DHC-6 Trainer<small>Subscriber web app</small></span></a>
+  <div class="navlinks"><a href="./">Home</a><a href="web-app.html">Web App</a><a href="desktop.html">Desktop</a><a href="access.html">Manage licence</a><a href="changelog.html">Changelog</a></div>
+  <a class="btn ghost" href="access.html">Manage account</a>
+</nav></div></header>
+<main>
+<section class="page-hero"><div class="wrap split">
+  <div><span class="eyebrow"><span class="dot"></span> No Play Store required</span><h1>Open DHC-6 Trainer in your browser.</h1><p class="lead">Active subscribers can use the mobile-friendly training app directly from this website on a phone, tablet or computer.</p><div class="hero-chips"><span class="hero-chip">Mobile responsive</span><span class="hero-chip">Installable web app</span><span class="hero-chip">Subscription protected</span></div></div>
+  <div class="card">
+    <span class="tag green">Subscriber sign-in</span><h2>Confirm your access</h2><p>Use the purchase email and licence key shown on the Manage Licence page.</p>
+    <form id="web-access-form" novalidate>
+      <div class="gate-field"><label for="webAccessEmail">Purchase email</label><input id="webAccessEmail" type="email" autocomplete="email" required placeholder="you@example.com"></div>
+      <div class="gate-field"><label for="webAccessKey">Licence key</label><input id="webAccessKey" type="text" autocomplete="off" required spellcheck="false" placeholder="DHC6-XXXX-XXXX-XXXX"></div>
+      <button class="btn primary" type="submit">Open subscriber web app</button>
+      <p id="web-access-message" class="muted-sm" role="status" aria-live="polite"></p>
+    </form>
+    <p class="muted-sm">Need your key? <a href="access.html#account">Recover or manage your licence</a>.</p>
+  </div>
+</div></section>
+</main>
+<footer class="footer"><div class="wrap"><div class="footer-bottom"><p>© <span data-current-year>2026</span> TJ Aeronautical.</p><p>Training support only—always use approved operational documents.</p></div></div></footer>
+</div></body></html>
