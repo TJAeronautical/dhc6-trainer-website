@@ -1,6 +1,10 @@
 (function () {
   "use strict";
 
+  // Emergency sales switch: keep account/licence services online while blocking all new checkouts.
+  const SUBSCRIPTIONS_SUSPENDED = true;
+  const SUSPENSION_MESSAGE = "New subscriptions are temporarily unavailable. Existing subscribers can still manage their account and licence.";
+
   const LOCAL_SANDBOX_CONFIG = {
     environment: "sandbox",
     clientToken: "test_d8128820fe75450386eccfcc326",
@@ -145,6 +149,10 @@
   }
 
   async function initializeCheckout(force) {
+    if (SUBSCRIPTIONS_SUSPENDED) {
+      setState("suspended", SUSPENSION_MESSAGE);
+      return false;
+    }
     if (initializationPromise && !force) return initializationPromise;
     initializationPromise = (async function () {
       setState("loading", "Checking secure checkout availability…");
