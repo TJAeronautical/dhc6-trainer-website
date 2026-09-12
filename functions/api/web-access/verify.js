@@ -7,6 +7,13 @@ export async function onRequestGet(context) {
   const token = authorization.startsWith("Bearer ") ? authorization.slice(7).trim() : "";
   const payload = await verifyWebSession(env.LICENSE_SIGNING_SECRET, token);
   if (!payload) return json({ ok: false, error: "session_invalid" }, 401);
+  if (payload.role === "owner") {
+    const allowedOwner = normalizeEmail(env.OWNER_ACCESS_EMAIL);
+    if (!allowedOwner || normalizeEmail(payload.email) !== allowedOwner) {
+      return json({ ok: false, error: "owner_access_revoked" }, 403);
+    }
+    return json({ ok: true, plan: "owner", role: "owner", expiresAt: new Date(payload.exp * 1000).toISOString() });
+  }
 
   const record = await getLicense(env, payload.key);
   const active = record && record.status === "active" && !isExpired(record);

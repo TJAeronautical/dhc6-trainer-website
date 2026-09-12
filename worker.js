@@ -15,6 +15,7 @@ import { onRequestPost as paddleWebhook } from "./functions/api/paddle/webhook.j
 import { onRequestPost as playValidatePurchase } from "./functions/api/play/validate-purchase.js";
 import { onRequestPost as webAccessSession } from "./functions/api/web-access/session.js";
 import { onRequestGet as webAccessVerify } from "./functions/api/web-access/verify.js";
+import { onRequestPost as ownerWebAccessSession } from "./functions/api/web-access/owner-session.js";
 
 function json(body, status) {
   return new Response(JSON.stringify(body), {
@@ -48,7 +49,8 @@ async function routeApi(context) {
         "/api/paddle/webhook",
         "/api/play/validate-purchase"
         ,"/api/web-access/session",
-        "/api/web-access/verify"
+        "/api/web-access/verify",
+        "/api/web-access/owner-session"
       ]
     });
   }
@@ -67,6 +69,7 @@ async function routeApi(context) {
   if (method === "POST" && path === "/api/play/validate-purchase") return playValidatePurchase(context);
   if (method === "POST" && path === "/api/web-access/session") return webAccessSession(context);
   if (method === "GET" && path === "/api/web-access/verify") return webAccessVerify(context);
+  if (method === "POST" && path === "/api/web-access/owner-session") return ownerWebAccessSession(context);
 
   return json({ ok: false, error: "api_route_not_found" }, 404);
 }

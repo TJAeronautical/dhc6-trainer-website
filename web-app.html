@@ -31,6 +31,14 @@
       <p id="web-access-message" class="muted-sm" role="status" aria-live="polite"></p>
     </form>
     <p class="muted-sm">Need your key? <a href="access.html#account">Recover or manage your licence</a>.</p>
+    <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+    <span class="tag amber">Owner access</span><h2>Sign in as owner</h2><p>Use the Firebase email and password associated with the Android app owner account. No Paddle licence key is required.</p>
+    <form id="owner-access-form" novalidate>
+      <div class="gate-field"><label for="ownerAccessEmail">Owner email</label><input id="ownerAccessEmail" type="email" autocomplete="username" required placeholder="owner@example.com"></div>
+      <div class="gate-field"><label for="ownerAccessPassword">Password</label><input id="ownerAccessPassword" type="password" autocomplete="current-password" required></div>
+      <button class="btn gold" type="submit">Open with owner access</button>
+      <p id="owner-access-message" class="muted-sm" role="status" aria-live="polite"></p>
+    </form>
   </div>
 </div></section>
 </main>

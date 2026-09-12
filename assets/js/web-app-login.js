@@ -5,6 +5,8 @@
   const message = document.getElementById("web-access-message");
   const button = form && form.querySelector("button[type=submit]");
   const storageKey = "dhc6WebAccessToken";
+  const ownerForm = document.getElementById("owner-access-form");
+  const ownerMessage = document.getElementById("owner-access-message");
 
   function setMessage(text, good) {
     if (!message) return;
@@ -43,6 +45,34 @@
     } catch (error) {
       setMessage("Access could not be confirmed. Check your purchase email and licence key.", false);
       button.disabled = false;
+    }
+  });
+
+  if (ownerForm) ownerForm.addEventListener("submit", async function (event) {
+    event.preventDefault();
+    const ownerButton = ownerForm.querySelector("button[type=submit]");
+    const email = document.getElementById("ownerAccessEmail").value.trim();
+    const password = document.getElementById("ownerAccessPassword").value;
+    ownerButton.disabled = true;
+    ownerMessage.textContent = "Authenticating owner account…";
+    ownerMessage.style.color = "#7dffb7";
+    try {
+      const response = await fetch("/api/web-access/owner-session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email, password: password })
+      });
+      const data = await response.json();
+      if (!response.ok || !data.ok || !data.token) throw new Error(data.error || "access_denied");
+      window.sessionStorage.setItem(storageKey, data.token);
+      ownerMessage.textContent = "Owner access confirmed. Opening the web app…";
+      window.location.assign("live.html");
+    } catch (error) {
+      ownerMessage.textContent = error.message === "owner_access_not_configured"
+        ? "Owner access needs OWNER_ACCESS_EMAIL configured in Cloudflare."
+        : "Owner sign-in failed. Check the owner email and Firebase password.";
+      ownerMessage.style.color = "#ffb0b8";
+      ownerButton.disabled = false;
     }
   });
 

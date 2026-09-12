@@ -94,7 +94,7 @@ p{margin:0 0 16px;color:var(--muted);font-weight:650}
 
 /* Hero */
 .hero{position:relative;isolation:isolate;overflow:hidden;padding:76px 0 62px;min-height:720px;display:flex;align-items:center}
-.hero:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(3,10,18,.98) 0%,rgba(4,12,21,.88) 42%,rgba(4,12,21,.36) 100%),url('latest-design-mcc.webp') center 30%/cover no-repeat;opacity:.93;z-index:-2}
+.hero:before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,rgba(3,10,18,.99) 0%,rgba(4,20,34,.96) 55%,rgba(7,37,58,.9) 100%);opacity:.98;z-index:-2}
 .hero:after{content:"";position:absolute;inset:auto -20% -20% -20%;height:58%;background:linear-gradient(180deg,transparent,var(--navy-950) 72%);z-index:-1}
 .hero-grid{display:grid;grid-template-columns:minmax(0,.98fr) minmax(440px,1.02fr);gap:46px;align-items:center}
 .hero-copy{position:relative;z-index:2}

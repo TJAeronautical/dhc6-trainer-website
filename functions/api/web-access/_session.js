@@ -31,6 +31,20 @@ export async function createWebSession(secret, record) {
   return { token: payload + "." + signature, expiresAt: new Date((now + SESSION_SECONDS) * 1000).toISOString() };
 }
 
+export async function createOwnerWebSession(secret, email) {
+  const now = Math.floor(Date.now() / 1000);
+  const payload = encodeBase64Url(JSON.stringify({
+    v: 1,
+    role: "owner",
+    email: email,
+    plan: "owner",
+    iat: now,
+    exp: now + SESSION_SECONDS
+  }));
+  const signature = await hmacHex(secret, payload);
+  return { token: payload + "." + signature, expiresAt: new Date((now + SESSION_SECONDS) * 1000).toISOString() };
+}
+
 export async function verifyWebSession(secret, token) {
   if (!secret || !token || token.length > 4096) return null;
   const parts = token.split(".");
@@ -40,7 +54,8 @@ export async function verifyWebSession(secret, token) {
   try {
     const payload = JSON.parse(decodeBase64Url(parts[0]));
     const now = Math.floor(Date.now() / 1000);
-    if (payload.v !== 1 || !payload.key || !payload.email || !payload.exp || payload.exp <= now) return null;
+    if (payload.v !== 1 || !payload.email || !payload.exp || payload.exp <= now) return null;
+    if (payload.role !== "owner" && !payload.key) return null;
     return payload;
   } catch (error) {
     return null;
