@@ -8,6 +8,9 @@
 
 import { json } from "../_shared.js";
 
+// Emergency sales switch. Existing billing, account and licence services remain available.
+const SUBSCRIPTIONS_SUSPENDED = true;
+
 const PRICE_ENV_KEYS = {
   premium: {
     monthly: "PADDLE_PRICE_PREMIUM_MONTHLY",
@@ -60,7 +63,8 @@ export async function onRequestGet(context) {
 
   return json({
     ok: true,
-    configured: missing.length === 0,
+    configured: !SUBSCRIPTIONS_SUSPENDED && missing.length === 0,
+    suspended: SUBSCRIPTIONS_SUSPENDED,
     environment: environment,
     clientToken: clientToken,
     prices: priceConfig.prices,
