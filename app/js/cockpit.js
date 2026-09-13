@@ -629,7 +629,13 @@ export function createCockpitRenderer(container, options) {
   resize();
 
   const api = {
-    debug: function () { return { frames: frameCount, cssW: state.cssW, cssH: state.cssH, hasPlate: Boolean(state.plate), hasAtlas: Boolean(state.atlas), transform: transform(), lastError: lastError ? String(lastError && lastError.message || lastError) : null }; },
+    debug: function () {
+      const vs = state.visual || {};
+      const lit = Object.keys(vs.annunciators || {}).filter(function (k) { return vs.annunciators[k]; });
+      return { frames: frameCount, cssW: state.cssW, cssH: state.cssH, hasPlate: Boolean(state.plate), hasAtlas: Boolean(state.atlas),
+        transform: transform(), litAnnunciators: lit, annunciatorHosts: lit.map(function (id) { const hb = findAnnunciatorHost(hitboxes, id); return { id: id, host: hb ? hb.id : null, rect: hb ? hb.rect : null }; }),
+        lastError: lastError ? String(lastError && lastError.message || lastError) : null };
+    },
     canvas: canvas,
     variant: variant,
     hitboxes: hitboxes,
