@@ -97,9 +97,45 @@ export async function loadProtectedImage(mediaPath, onProgress) {
   return promise;
 }
 
+/*
+  Same fetch path, but handed back as an object URL for an <img>. Used by the
+  Systems 2D reference posters, where real DOM pins beat a canvas for keyboard
+  focus and screen readers. The URLs are tracked so a revoked session drops them
+  along with everything else.
+*/
+const objectUrlCache = new Map();
+
+export async function loadProtectedImageUrl(mediaPath) {
+  if (objectUrlCache.has(mediaPath)) return objectUrlCache.get(mediaPath);
+  const promise = (async function () {
+    const url = "/api/media/" + mediaPath.split("/").map(encodeURIComponent).join("/");
+    let response = null;
+    let cache = null;
+    try { cache = await caches.open(MEDIA_CACHE_NAME); response = await cache.match(url); } catch (error) { cache = null; }
+    if (!response) {
+      response = await fetch(url, { credentials: "same-origin" });
+      if (response.status === 401 || response.status === 403) {
+        clearCockpitImageCache();
+        const e = new Error("session_invalid"); e.status = response.status; throw e;
+      }
+      if (response.status === 404) { const e = new Error("media_not_published"); e.status = 404; throw e; }
+      if (!response.ok) throw new Error("media_unavailable_" + response.status);
+      if (cache) { try { await cache.put(url, response.clone()); } catch (error) { /* quota */ } }
+    }
+    return URL.createObjectURL(await response.blob());
+  })();
+  objectUrlCache.set(mediaPath, promise);
+  promise.catch(function () { objectUrlCache.delete(mediaPath); });
+  return promise;
+}
+
 /* Drops the decoded bitmaps AND the on-disk protected-media cache entries. */
 export function clearCockpitImageCache() {
   imageCache.clear();
+  objectUrlCache.forEach(function (promise) {
+    promise.then(function (url) { try { URL.revokeObjectURL(url); } catch (error) { /* gone */ } }, function () { /* never resolved */ });
+  });
+  objectUrlCache.clear();
   try { return caches.delete(MEDIA_CACHE_NAME); } catch (error) { return Promise.resolve(false); }
 }
 

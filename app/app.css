@@ -684,3 +684,31 @@ table.data th { color: var(--text-secondary); font-weight: 600; font-size: 12px;
 .step-head:hover { background: rgba(255, 255, 255, 0.05); }
 .step-n { flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-container); font-size: 12px; font-weight: 700; }
 .step-body { padding: 0 14px 14px; border-top: 1px solid var(--hairline); }
+
+/* --- Aircraft Systems 2D (AircraftSystemsHomeScreen / SystemDetailScreen) --- */
+.tile.system-tile { height: auto; min-height: 150px; }
+.tile.system-tile .tile-content { min-height: 150px; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: 6px; padding: 14px 16px; }
+.tile.system-tile .mt-auto { margin-top: auto; }
+
+.system-poster-host { position: relative; width: 100%; border-radius: var(--r-md); overflow: hidden; background: rgba(0, 0, 0, 0.28); min-height: 180px; display: grid; place-items: center; }
+.system-poster { display: block; width: 100%; height: auto; max-height: min(70vh, 620px); object-fit: contain; opacity: 0; transition: opacity 160ms ease; }
+.system-poster-host.ready .system-poster { opacity: 1; }
+.system-poster-status { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 16px; color: rgba(255, 255, 255, 0.82); }
+
+/* Pins sit on the contain-fitted rect of the poster, so they track any resize. */
+.diagram-stage { position: relative; width: 100%; }
+.diagram-pins { position: absolute; inset: 0; pointer-events: none; }
+.diagram-pin { position: absolute; transform: translate(-50%, -50%); pointer-events: auto; width: 30px; height: 30px; min-width: 30px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.92); background: var(--action-blue-muted); color: #fff; font-size: 12px; font-weight: 800; display: grid; place-items: center; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.55); padding: 0; }
+.diagram-pin.visited { background: rgba(20, 60, 96, 0.92); }
+.diagram-pin.active { background: var(--accent-sky); color: var(--on-accent); border-color: #fff; transform: translate(-50%, -50%) scale(1.18); z-index: 2; }
+.diagram-pin:focus-visible { outline: 3px solid var(--accent-sky); outline-offset: 3px; }
+@media (pointer: coarse) { .diagram-pin { width: 34px; height: 34px; min-width: 34px; } }
+
+.pin-row { border: 1px solid var(--hairline); border-radius: var(--r-sm); background: rgba(255, 255, 255, 0.04); overflow: hidden; }
+.pin-row.open { border-color: rgba(53, 183, 255, 0.55); }
+.pin-row-head { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; background: none; border: 0; color: #fff; padding: 12px 14px; }
+.pin-row-head:hover { background: rgba(255, 255, 255, 0.05); }
+.pin-row-body { padding: 0 14px 14px; border-top: 1px solid var(--hairline); }
+.badge.reg-afm_approved { background: rgba(52, 199, 123, 0.18); border-color: rgba(52, 199, 123, 0.55); }
+.badge.reg-operator_guidance { background: rgba(255, 213, 79, 0.16); border-color: rgba(255, 213, 79, 0.5); }
+.badge.reg-manufacturer_recommended { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.32); }

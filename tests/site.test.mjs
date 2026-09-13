@@ -189,6 +189,40 @@ test("the Procedures library row opens the QRH detail, and its arrow opens the d
   assert.match(drill, /ctx\.query\.get\("from"\) === "procs" \? "#\/systems"/, "Back returns to the launching tab");
 });
 
+test("the Systems 2D routes are registered and posters never reach the public repo", () => {
+  const appJs = fs.readFileSync(path.join(root, "app", "app.js"), "utf8");
+  const registered = new Map(Array.from(appJs.matchAll(/route\("([^"]+)",\s*([A-Za-z0-9_]+)\)/g), (m) => [m[1], m[2]]));
+  assert.equal(registered.get("/systems/home"), "systemsHome", "Knowledge -> Systems must open the real screen, not a COMING LATER stub");
+  assert.equal(registered.get("/systems/detail/:key"), "systemDetail");
+  assert.doesNotMatch(appJs, /laterScreen\("systems"/, "the Systems placeholder is gone");
+
+  const core = fs.readFileSync(path.join(root, "app", "js", "core.js"), "utf8");
+  assert.match(core, /id: "systems"[^}]*status: "available"/);
+
+  // Reference posters are protected media: they live in R2 and are fetched
+  // through the session-gated API, never committed or linked publicly.
+  const screen = fs.readFileSync(path.join(root, "app", "js", "screens", "systems2d.js"), "utf8");
+  assert.match(screen, /loadProtectedImageUrl/, "posters must come through the protected media loader");
+  assert.doesNotMatch(screen, /src:\s*"\/(app\/)?assets\/systems/, "no poster may be served from the public assets directory");
+  const publicPosters = path.join(root, "assets", "systems");
+  assert.equal(fs.existsSync(publicPosters), false, "system posters must never be committed to the public repo");
+  assert.equal(fs.existsSync(path.join(root, "app", "assets", "systems")), false);
+
+  // A revoked session must drop the decoded posters and the on-disk media cache.
+  const cockpit = fs.readFileSync(path.join(root, "app", "js", "cockpit.js"), "utf8");
+  assert.match(cockpit, /objectUrlCache\.forEach[\s\S]{0,220}revokeObjectURL/, "clearCockpitImageCache must revoke the poster object URLs");
+  assert.match(cockpit, /objectUrlCache\.clear\(\)/);
+
+  const logic = fs.readFileSync(path.join(root, "app", "js", "logic", "systems2d.js"), "utf8");
+  assert.match(logic, /"\/api\/media\/"/, "posters are addressed through /api/media");
+});
+
+test("the Systems screens keep the training-support-only disclaimer", () => {
+  const screen = fs.readFileSync(path.join(root, "app", "js", "screens", "systems2d.js"), "utf8");
+  assert.match(screen, /Training support only/);
+  assert.match(screen, /AFM, QRH, MEL/);
+});
+
 test("every cockpit screen keeps the training-support-only disclaimer", () => {
   const common = fs.readFileSync(path.join(root, "app", "js", "screens", "cockpitcommon.js"), "utf8");
   assert.match(common, /Training support only/);

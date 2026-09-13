@@ -15,6 +15,7 @@ import { studyHome, definitions, srsStudy, deckBrowser, limitations, melReferenc
 import { quizHome, quizRun, performanceCalc, fuelPlan, weightBalance, logbook, laterTraining } from "./js/screens/training.js";
 import { libraryHub, laterScreen, settings } from "./js/screens/misc.js";
 import { systemsLabHome, systemsLabDetail } from "./js/screens/systemslab.js";
+import { systemsHome, systemDetail } from "./js/screens/systems2d.js";
 import { cockpitHome, scenarioProcedures, scenarioSelector, scenarioState, frozenSnapshot } from "./js/screens/aircraftstate.js";
 import { freePlayCockpit, scenarioRun, drillRun } from "./js/screens/cockpitscreens.js";
 
@@ -58,7 +59,8 @@ route("/library/home", libraryHub);
 route("/library/sources", laterScreen("library", "Source documents (manuals, imported PDFs) need document storage. Decision pending: create an R2 bucket for web content or reuse DESKTOP_RELEASES under a web-content/ prefix."));
 route("/library/import", laterScreen("import", "Import runs the on-device extraction pipeline and writes to the app's Room database; it is an authoring tool for the owner/instructor accounts and is not planned for the browser edition."));
 route("/library/published", laterScreen("library", "Published library content will be served from R2 behind the subscriber session once the document decision is made."));
-route("/systems/home", laterScreen("systems", "System descriptions are authored under core-res/assets/systems (50 files, 26 MB of PNG diagrams). The JSON schema is ready; the imagery needs an R2 bucket before this screen can be enabled."));
+route("/systems/home", systemsHome);
+route("/systems/detail/:key", systemDetail);
 route("/systems/lab", systemsLabHome);
 route("/systems/lab/:system", systemsLabDetail);
 route("/quizzes", quizHome);

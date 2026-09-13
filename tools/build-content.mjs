@@ -26,6 +26,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { buildSystemsLabPack } from "./lib/systems-lab.mjs";
+import { buildSystems2dPack } from "./lib/systems-2d.mjs";
 import { stripComments, findCalls, argMap, valDeclaration } from "./lib/kotlin-lite.mjs";
 
 const TOOLS_DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -80,6 +81,22 @@ const KOTLIN_SOURCES = {
   aircraftSystem: [
     "domain/src/main/java/com/dhc6trainer/domain/knowledge/model/AircraftSystem.kt",
     "domain/domain/knowledge/model/AircraftSystem.kt"
+  ],
+  systemsHome: [
+    "feature-knowledge/src/main/java/com/dhc6trainer/feature/knowledge/ui/screens/AircraftSystemsHomeScreen.kt",
+    "feature-knowledge/feature/knowledge/ui/screens/AircraftSystemsHomeScreen.kt"
+  ],
+  systemDetail: [
+    "feature-knowledge/src/main/java/com/dhc6trainer/feature/knowledge/ui/screens/SystemDetailScreen.kt",
+    "feature-knowledge/feature/knowledge/ui/screens/SystemDetailScreen.kt"
+  ],
+  diagram2d: [
+    "feature-knowledge/src/main/java/com/dhc6trainer/feature/knowledge/ui/screens/Interactive2dDiagramViewer.kt",
+    "feature-knowledge/feature/knowledge/ui/screens/Interactive2dDiagramViewer.kt"
+  ],
+  systemContentRepository: [
+    "data/src/main/java/com/dhc6trainer/data/content/systems/SystemContentRepository.kt",
+    "data/data/content/systems/SystemContentRepository.kt"
   ]
 };
 
@@ -637,6 +654,52 @@ function buildSystemsLab() {
   });
 }
 
+/* --------------------------------------------------------------- systems 2D */
+/*
+  Knowledge -> Systems: the tile list, hints and overviews come out of the Kotlin
+  screens; the AFM/FCTM detail comes out of core-res/assets/systems/*.json; the
+  reference imagery is resolved against whatever tools/build-posters.mjs actually
+  produced, so a reference Android declares but cannot load is reported rather
+  than shown as a broken image.
+*/
+function buildSystems2d() {
+  const home = findKotlin("systemsHome");
+  const detail = findKotlin("systemDetail");
+  const diagram = findKotlin("diagram2d");
+  const repository = findKotlin("systemContentRepository");
+  const aircraftSystem = findKotlin("aircraftSystem");
+  if (!home || !detail || !diagram || !repository || !aircraftSystem) {
+    console.warn("  (systems-2d skipped: AircraftSystemsHomeScreen.kt / SystemDetailScreen.kt / Interactive2dDiagramViewer.kt / SystemContentRepository.kt / AircraftSystem.kt not found — pass --kotlin <dir> or use the full repo)");
+    return null;
+  }
+
+  const descriptions = {};
+  const SKIP = new Set(["hd_systems_manifest", "system_rules", "systems_lab_cross_reference"]);
+  listJson("systems").forEach((entry) => {
+    if (SKIP.has(entry.slug)) return;
+    if (!entry.data || !entry.data.systemId) return;
+    descriptions[entry.slug] = entry.data;
+  });
+
+  const postersFile = path.resolve(arg("posters", "build/systems/posters.json"));
+  let posters = [];
+  if (fs.existsSync(postersFile)) {
+    posters = (JSON.parse(fs.readFileSync(postersFile, "utf8")).posters || []).map((p) => p.mediaPath);
+  } else {
+    console.warn("  (systems-2d: " + postersFile + " not found — run `node tools/build-posters.mjs --android <repo>` so reference images resolve)");
+  }
+
+  return buildSystems2dPack({
+    aircraftSystemSource: fs.readFileSync(aircraftSystem, "utf8"),
+    homeSource: fs.readFileSync(home, "utf8"),
+    detailSource: fs.readFileSync(detail, "utf8"),
+    diagramSource: fs.readFileSync(diagram, "utf8"),
+    repositorySource: fs.readFileSync(repository, "utf8"),
+    descriptions: descriptions,
+    posters: posters
+  });
+}
+
 /* -------------------------------------------------------------- cockpit pack */
 // The cockpit plate geometry (hitboxes, sprite scales, atlas frames) is produced by
 // tools/build-cockpit.mjs, which also writes the imagery that build-media.mjs
@@ -677,6 +740,8 @@ function main() {
   if (cockpit) packs["cockpit-plates"] = cockpit;
   const qrhEditor = buildQrhEditorCatalog();
   if (qrhEditor) packs["qrh-editor"] = qrhEditor;
+  const systems2d = buildSystems2d();
+  if (systems2d) packs["systems-2d"] = systems2d;
 
   fs.mkdirSync(path.join(outDir, "packs"), { recursive: true });
   const manifestPacks = [];
