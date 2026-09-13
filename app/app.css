@@ -712,3 +712,68 @@ table.data th { color: var(--text-secondary); font-weight: 600; font-size: 12px;
 .badge.reg-afm_approved { background: rgba(52, 199, 123, 0.18); border-color: rgba(52, 199, 123, 0.55); }
 .badge.reg-operator_guidance { background: rgba(255, 213, 79, 0.16); border-color: rgba(255, 213, 79, 0.5); }
 .badge.reg-manufacturer_recommended { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.32); }
+
+/* ---------------------------------------------- Check Ride Readiness
+   CompetencyDashboardScreen.kt. Colours are the Kotlin's own:
+   readinessColor() -> StatusNormalGreen >= 80, CautionAmber >= 60, else
+   EmergencyRedStrong; the card panel is AviationColors.LogbookPanel and the
+   "Tap to drill" line is LogbookOutline at 60%. */
+.stack-2 { display: flex; flex-direction: column; gap: 2px; }
+.row.gap-4 { gap: 4px; } .row.gap-16 { gap: 16px; }
+.col-end { display: flex; flex-direction: column; align-items: flex-end; min-width: 0; }
+
+.band-ready { color: var(--sem-normal); }
+.band-caution { color: var(--sem-caution); }
+.band-overdue { color: var(--sem-emergency); }
+.band-muted { color: rgba(255, 255, 255, 0.667); } /* AviationColors.CockpitText67 */
+.tap-to-drill { color: rgba(120, 209, 255, 0.6); } /* LogbookOutline @ 60% */
+
+.readiness-head { align-items: center; }
+.readiness-ring {
+  flex: 0 0 auto; width: 88px; height: 88px; border-radius: 50%;
+  background: var(--logbook-panel); border: 3px solid currentColor;
+  display: flex; align-items: center; justify-content: center;
+}
+.readiness-ring-value { font-size: 22px; font-weight: 800; line-height: 1; color: currentColor; }
+.mini-score { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+
+.competency-card {
+  display: flex; flex-direction: column; gap: 0;
+  background: var(--logbook-panel); border-radius: 14px; padding: 14px;
+  border: 1px solid currentColor; text-decoration: none;
+}
+/* The Kotlin draws the border at 40% of the status colour and the dot at full
+   strength, so the border is faded here and the dot is not. */
+.competency-card.band-ready { border-color: rgba(52, 199, 123, 0.4); }
+.competency-card.band-caution { border-color: rgba(245, 183, 64, 0.4); }
+.competency-card.band-overdue { border-color: rgba(255, 90, 82, 0.4); }
+.competency-card.band-muted { border-color: rgba(255, 255, 255, 0.28); }
+.competency-card:hover { background: #0A3049; }
+.competency-card:focus-visible { outline: 2px solid var(--accent-sky); outline-offset: 2px; }
+.competency-card .status-dot { flex: 0 0 auto; width: 10px; height: 10px; border-radius: 50%; background: currentColor; }
+.competency-card .col-end > span:first-child { line-height: 1.2; }
+.stat-pill { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.trend-row { row-gap: 4px; }
+
+.score-chip {
+  flex: 0 0 auto; width: 22px; height: 22px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700; line-height: 1;
+  background: rgba(255, 255, 255, 0.06); border: 1px solid currentColor;
+}
+.score-chip.band-ready { background: rgba(52, 199, 123, 0.18); border-color: rgba(52, 199, 123, 0.5); }
+.score-chip.band-caution { background: rgba(245, 183, 64, 0.18); border-color: rgba(245, 183, 64, 0.5); }
+.score-chip.band-overdue { background: rgba(255, 90, 82, 0.18); border-color: rgba(255, 90, 82, 0.5); }
+
+.overdue-row { padding: 3px 0; }
+.overdue-dot { flex: 0 0 auto; width: 6px; height: 6px; border-radius: 50%; background: rgba(255, 255, 255, 0.4); }
+.overdue-dot.cat-emergency { background: var(--emergency-red-strong); }
+.overdue-dot.cat-abnormal { background: var(--caution-amber); }
+.overdue-dot.cat-normal { background: var(--status-normal-green); }
+
+/* Phones: the three stat pills wrap rather than squeezing the values. */
+@media (max-width: 420px) {
+  .readiness-ring { width: 72px; height: 72px; }
+  .readiness-ring-value { font-size: 18px; }
+  .stat-pill { flex: 1 1 30%; }
+}

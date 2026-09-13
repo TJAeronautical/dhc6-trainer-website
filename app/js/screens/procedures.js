@@ -17,6 +17,16 @@ const libraryState = { query: "", categoryFilter: "ALL", bucket: "ALL", priority
 
 export async function procedureLibrary(ctx) {
   ctx.setTopbar({ title: "Procedures", subtitle: "PROCS · Procedure Library" });
+  /* Check Ride Readiness links here with ?category=EMERGENCY|ABNORMAL|NORMAL so
+     a category card opens the library already filtered. Android's
+     onDrillCategory drops the category and opens the library unfiltered
+     (DashboardNavGraph.kt:130); this is a deliberate, documented improvement.
+     Anything else in the query is ignored and the filter is left as it was. */
+  const wanted = String((ctx.query && ctx.query.get("category")) || "").toUpperCase();
+  if (P.CATEGORY_FILTERS.includes(wanted) && wanted !== libraryState.categoryFilter) {
+    libraryState.categoryFilter = wanted;
+    libraryState.bucket = "ALL";
+  }
   let procedures;
   try { procedures = await allProcedures(); } catch (error) { if (error && (error.status === 401 || error.status === 403)) throw error; return screen({ variant: "procs" }, [contentUnavailable("procedures-*", error)]); }
 
