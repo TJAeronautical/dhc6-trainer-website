@@ -43,6 +43,43 @@ export function snapshotOverrides() {
   try { return JSON.parse(window.localStorage.getItem(OVERRIDE_KEY) || "{}") || {}; } catch (error) { return {}; }
 }
 
+function writeOverrides(all) {
+  try { window.localStorage.setItem(OVERRIDE_KEY, JSON.stringify(all)); return true; } catch (error) { return false; }
+}
+
+/* ScenarioSnapshotRegistry.savePhaseSnapshotOverride — one phase of one procedure. */
+export function savePhaseOverride(procKey, phase, payload, meta) {
+  const all = snapshotOverrides();
+  const entry = all[procKey] || { phases: {} };
+  entry.phases = entry.phases || {};
+  const existing = entry.phases[phase] || {};
+  entry.phases[phase] = {
+    annunciators: payload.annunciators !== undefined ? payload.annunciators : existing.annunciators,
+    instruments: payload.instruments !== undefined ? payload.instruments : existing.instruments,
+    controls: payload.controls !== undefined ? payload.controls : existing.controls,
+    notes: payload.notes !== undefined ? payload.notes : existing.notes
+  };
+  if (meta && meta.title) entry.title = meta.title;
+  if (meta && meta.variant) entry.variant = meta.variant;
+  entry.updatedAt = new Date().toISOString();
+  all[procKey] = entry;
+  const ok = writeOverrides(all);
+  cache.registry = null;   // the registry merges overrides at construction time
+  return ok;
+}
+
+export function hasOverride(procKey) { return Boolean(snapshotOverrides()[procKey]); }
+
+/* Revert one procedure to the published Android snapshot. */
+export function clearPhaseOverride(procKey) {
+  const all = snapshotOverrides();
+  if (!all[procKey]) return false;
+  delete all[procKey];
+  const ok = writeOverrides(all);
+  cache.registry = null;
+  return ok;
+}
+
 export function variantPackFor(pack, variant) {
   const key = displayVariant(variant);
   return pack.variants[key] || pack.variants.LEGACY;

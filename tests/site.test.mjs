@@ -178,9 +178,9 @@ test("every cockpit screen keeps the training-support-only disclaimer", () => {
   const common = fs.readFileSync(path.join(root, "app", "js", "screens", "cockpitcommon.js"), "utf8");
   assert.match(common, /Training support only/);
   assert.match(common, /AFM, QRH, MEL/);
-  for (const file of ["aircraftstate.js", "cockpitscreens.js"]) {
+  for (const file of ["aircraftstate.js", "cockpitscreens.js", "scenarioedit.js"]) {
     const source = fs.readFileSync(path.join(root, "app", "js", "screens", file), "utf8");
-    assert.match(source, /disclaimer\(\)/, file + " must render the disclaimer");
+    assert.match(source, /disclaimer\(\)|do not replace the approved AFM/, file + " must render the disclaimer");
   }
 });
 

@@ -16,11 +16,12 @@ import { REFERENCE_SIZES, displayVariant, snapshotVariantKey, clampNormRect, par
 import { FLIGHT_IDLE_GATE_01, familySpecFor, familyDirs, pickDefaultState, calibrationFor, spriteScale, liveScaleOverride, sortForDraw, isLeverHitbox, isSwitchHitbox, remapPowerLeverLogical, leverTopLeft, visualStateKeysForSwitchState, instrumentDirs, annunciatorDirs } from "../app/js/logic/cockpit/sprites.js";
 import { warmUp, createEngineModel, createSimRunner, C } from "../app/js/logic/cockpit/engine.js";
 import { normalizeCas, casSpecFor, annunciatorCatalog, createCasSystem, createCasController, evaluateFailures, resolveG950Cas, resolveLegacyAnnunciators, LEGACY_STARTUP_PANEL_ANNUNCIATORS, G950_STARTUP_CAS_MESSAGES } from "../app/js/logic/cockpit/cas.js";
-import { PHASES, ProcedureKeyNormalizer, parseSnapshot, createSnapshotRegistry, toPhaseState, annunciatorOverrideEnabled, visibleControls, parseSnapshotPowerLever, parseSnapshotPropLever, parseSnapshotFuelLever, parseSnapshotFlap, snapshotLeverPositions, parseSnapshotSwitchState, snapshotSwitchStates, instrumentNormalized, instrumentOverlayKeys, parseInstrumentOverride, inferWow, snapshotVisualState, summaryLines, deriveTextFocusTargets, mapHitboxIdToFocusTarget } from "../app/js/logic/cockpit/snapshot.js";
+import { SCENARIO_ANNUNCIATOR_OVERRIDE_KEY, PHASES, ProcedureKeyNormalizer, parseSnapshot, createSnapshotRegistry, toPhaseState, annunciatorOverrideEnabled, visibleControls, parseSnapshotPowerLever, parseSnapshotPropLever, parseSnapshotFuelLever, parseSnapshotFlap, snapshotLeverPositions, parseSnapshotSwitchState, snapshotSwitchStates, instrumentNormalized, instrumentOverlayKeys, parseInstrumentOverride, inferWow, snapshotVisualState, summaryLines, deriveTextFocusTargets, mapHitboxIdToFocusTarget } from "../app/js/logic/cockpit/snapshot.js";
 import { defaultOffStateForSwitch, seedSwitchStates, seedLeverPositions, switchModeFor, nextSwitchState, createInteractionController } from "../app/js/logic/cockpit/interaction.js";
 import { CONTEXTS, contextByRouteKey, cleanScenarioProcedureTitle, inferNormalBucket, inferScenarioPhase, inferProcedureGroup, scenarioMetaFor, matchesContext, matchesSearch, allowedContextsFor, scenarioTileArt, scenarioItems } from "../app/js/logic/cockpit/scenarios.js";
 import { normalizeControlId, switchStateSatisfiesAction, flapLeverPositionSatisfiesAction, powerLeverPositionSatisfiesAction, requiredPositionLabelForAction, drillTargetLabel, isChecklistDisplayCue, isMandatoryCockpitActionCue, isQuestionOrChallengeAction, GRADING, formatDuration, inferredPhaseForProgress, createDrillRun } from "../app/js/logic/cockpit/drillrun.js";
 import { createHitboxIndex, createBindingsIndex } from "../app/js/logic/cockpit/bindings.js";
+import { SECTIONS, STYLE, canonicalKey, stripAnnunciatorStateSuffix, canonicalAnnunciatorKey, humanLabel, isAnnunciatorOverrideControl, extractNumber, formatNumber, buildAnnunciatorOptions, buildInstrumentOptions, buildControlOptions, buildToggleOptions, initialEnabledKeys, initialValues, coerceValue, stepOrdered, stepNumeric, withToggleSelection, phaseOverridePayload } from "../app/js/logic/cockpit/stateeditor.js";
 
 /* ------------------------------------------------------------- fixtures */
 function hb(id, extra) {
@@ -709,4 +710,143 @@ test("procedure bindings load in the Android file order and fall back through st
   assert.deepEqual(index.lookup("", "anything"), []);
   assert.deepEqual(index.lookup("Before Start", "SOMETHING ENTIRELY DIFFERENT"), []);
   assert.deepEqual(createBindingsIndex({ files: [] }, "G950", hitboxes).lookup("Before Start", "BATTERY MASTER — ON"), []);
+});
+
+/* ===================================================== stateeditor.js */
+test("Edit State canonical keys and the annunciator alias table match the Android editor", () => {
+  assert.equal(canonicalKey(" l dc gen "), "L_DC_GEN");
+  assert.equal(canonicalKey("Ng L"), "NG_L");
+  assert.equal(canonicalKey("---"), "");
+  assert.equal(stripAnnunciatorStateSuffix("L Gen Fail (caution)"), "L Gen Fail");
+  assert.equal(stripAnnunciatorStateSuffix("Doors Unlocked"), "Doors Unlocked");
+  assert.equal(canonicalAnnunciatorKey("L Gen Fail (caution)"), "L_GEN_FAIL");
+  assert.equal(canonicalAnnunciatorKey("L_GENERATOR"), "L_GEN_FAIL", "legacy lamp ids fold onto the CAS id");
+  assert.equal(canonicalAnnunciatorKey("400_CYCLE_LIGHT"), "AC_400_CYCLE");
+  assert.equal(canonicalAnnunciatorKey("Boost Pump 1 Fwd Press"), "FWD_BOOST1_PR");
+  assert.equal(humanLabel("L_GEN_FAIL"), "L Gen Fail");
+  assert.equal(isAnnunciatorOverrideControl("Snapshot Annunciators Override"), true);
+  assert.equal(isAnnunciatorOverrideControl("Power Lever L"), false);
+});
+
+test("Edit State option tables reproduce the Android gauge ranges and lever choices", () => {
+  const empty = { annunciators: [], instruments: {}, controls: {} };
+  const instruments = buildInstrumentOptions(empty);
+  const ng = instruments.find((o) => o.key === "NG_L");
+  assert.deepEqual([ng.defaultValue, ng.step, ng.minimum, ng.maximum, ng.style], ["52", 1, 0, 105, STYLE.NUMERIC_STEPPER]);
+  const np = instruments.find((o) => o.key === "NP_R");
+  assert.deepEqual([np.step, np.maximum], [0.5, 101.5]);
+  assert.equal(instruments.find((o) => o.key === "WOW").style, STYLE.VALUE_ON_OFF);
+  assert.equal(instruments.find((o) => o.key === "HYDRAULIC_PRESS_GAUGE").maximum, 2500);
+
+  const controls = buildControlOptions(empty);
+  const power = controls.find((o) => o.key === "POWER_LEVER_L");
+  assert.deepEqual(power.choices, ["REVERSE", "IDLE", "DESCENT", "CRUISE", "CLIMB", "MAX"]);
+  assert.equal(power.defaultValue, "IDLE");
+  assert.deepEqual(controls.find((o) => o.key === "PROP_LEVER_L").choices, ["FEATHER", "COARSE", "FINE"]);
+  assert.deepEqual(controls.find((o) => o.key === "FLAPS").choices, ["0", "10", "20", "30", "37.5"]);
+  assert.deepEqual(controls.find((o) => o.key === "CROSSFEED").choices, ["FWRD", "NEUTRAL", "AFT"]);
+  assert.equal(controls.find((o) => o.key === "L_DC_GEN").style, STYLE.VALUE_ON_OFF);
+
+  const annunciators = buildAnnunciatorOptions({ annunciators: ["L Gen Fail (caution)"], instruments: {}, controls: {} });
+  assert.ok(annunciators.length >= 54);
+  assert.equal(annunciators[0].category, "Warnings", "sorted by CAS priority rank");
+  assert.ok(annunciators.some((o) => o.key === "L_GEN_FAIL"));
+
+  // an unknown current value becomes a "Current custom …" row rather than being lost
+  const withCustom = buildControlOptions({ annunciators: [], instruments: {}, controls: { "Nose Wheel Steering": "ON" } });
+  const custom = withCustom.find((o) => o.key === "NOSE_WHEEL_STEERING");
+  assert.equal(custom.category, "Current custom controls");
+  assert.equal(custom.label, "Nose Wheel Steering");
+  const customAnn = buildAnnunciatorOptions({ annunciators: ["SOME_OPERATOR_LAMP"], instruments: {}, controls: {} });
+  assert.ok(customAnn.some((o) => o.key === "SOME_OPERATOR_LAMP" && o.category === "Current custom items"));
+});
+
+test("Edit State loads the existing phase values and coerces junk back to the default", () => {
+  const phaseState = { annunciators: ["L Gen Fail (caution)"], instruments: { "Ng L": "61", "Torque L": "12 PSI" }, controls: { "Power Lever L": "CRUISE", "Flaps": "10" } };
+  const instruments = buildInstrumentOptions(phaseState);
+  const values = initialValues("INSTRUMENTS", phaseState, instruments);
+  assert.equal(values.NG_L, "61", "an existing value wins over the default");
+  assert.equal(values.TORQUE_L, "12", "the number is extracted from a unit string");
+  assert.equal(values.NG_R, "52", "untouched gauges keep the Android default");
+
+  const controls = buildControlOptions(phaseState);
+  const controlValues = initialValues("CONTROLS", phaseState, controls);
+  assert.equal(controlValues.POWER_LEVER_L, "CRUISE");
+  assert.equal(controlValues.FLAPS, "10");
+  assert.equal(controlValues.PROP_LEVER_L, "FEATHER");
+
+  assert.deepEqual([...initialEnabledKeys("ANNUNCIATORS", phaseState, buildAnnunciatorOptions(phaseState))], ["L_GEN_FAIL"]);
+  assert.equal(initialEnabledKeys("CONTROLS", phaseState, controls).size, controls.length, "instrument/control rows are all live; only annunciators toggle");
+
+  const numeric = { key: "NG_L", defaultValue: "52", style: STYLE.NUMERIC_STEPPER, step: 1, minimum: 0, maximum: 105, choices: [] };
+  assert.equal(coerceValue(numeric, "nonsense"), "52");
+  assert.equal(coerceValue(numeric, "88.5"), "88.5");
+  const choice = { key: "FLAPS", defaultValue: "0", style: STYLE.ORDERED_STEPPER, choices: ["0", "10", "20"], step: 1 };
+  assert.equal(coerceValue(choice, "10"), "10");
+  assert.equal(coerceValue(choice, "45"), "0", "a value outside the choice list falls back");
+  const onOff = { key: "PITOT_HEAT", defaultValue: "OFF", style: STYLE.VALUE_ON_OFF, choices: [] };
+  assert.equal(coerceValue(onOff, "on"), "ON");
+  assert.equal(coerceValue(onOff, "maybe"), "OFF");
+});
+
+test("Edit State steppers clamp at the Android bounds", () => {
+  const ng = { key: "NG_L", defaultValue: "52", style: STYLE.NUMERIC_STEPPER, step: 1, minimum: 0, maximum: 105, choices: [] };
+  assert.equal(stepNumeric(ng, "52", 1), "53");
+  assert.equal(stepNumeric(ng, "105", 1), "105", "clamped at the maximum");
+  assert.equal(stepNumeric(ng, "0", -1), "0", "clamped at the minimum");
+  const np = { key: "NP_L", defaultValue: "82", style: STYLE.NUMERIC_STEPPER, step: 0.5, minimum: 0, maximum: 101.5, choices: [] };
+  assert.equal(stepNumeric(np, "82", 1), "82.5");
+  assert.equal(stepNumeric(np, "101.5", 1), "101.5");
+  const flaps = { key: "FLAPS", defaultValue: "0", style: STYLE.ORDERED_STEPPER, choices: ["0", "10", "20", "30", "37.5"], step: 1 };
+  assert.equal(stepOrdered(flaps, "0", -1), "0");
+  assert.equal(stepOrdered(flaps, "20", 1), "30");
+  assert.equal(stepOrdered(flaps, "37.5", 1), "37.5");
+  assert.equal(stepOrdered(flaps, "not a flap setting", 1), "10", "an unknown value steps from the first choice");
+  assert.equal(formatNumber(53), "53");
+  assert.equal(formatNumber(82.5), "82.5");
+  assert.equal(extractNumber("1600 PSI"), 1600);
+  assert.equal(extractNumber("none"), null);
+});
+
+test("saving a section rewrites only that section and sets the annunciator override flag", () => {
+  const phaseState = { annunciators: ["L Gen Fail (caution)"], instruments: { "Ng L": "61" }, controls: { "Power Lever L": "CRUISE" }, notes: "keep me" };
+
+  const annOptions = buildAnnunciatorOptions(phaseState);
+  const ann = withToggleSelection(phaseState, "ANNUNCIATORS", annOptions, new Set(["L_GEN_FAIL", "R_GEN_FAIL"]), {});
+  assert.deepEqual(ann.annunciators, ["L_GEN_FAIL", "R_GEN_FAIL"]);
+  assert.equal(ann.controls[SCENARIO_ANNUNCIATOR_OVERRIDE_KEY], "ON", "an explicit annunciator edit wins over the baseline");
+  assert.equal(ann.instruments["Ng L"], "61", "the other sections are untouched");
+  assert.equal(ann.notes, "keep me");
+
+  const ctlOptions = buildControlOptions(phaseState);
+  const ctlValues = initialValues("CONTROLS", phaseState, ctlOptions);
+  ctlValues.POWER_LEVER_L = "MAX";
+  const ctl = withToggleSelection(ann, "CONTROLS", ctlOptions, new Set(), ctlValues);
+  assert.equal(ctl.controls.POWER_LEVER_L, "MAX");
+  assert.equal(ctl.controls[SCENARIO_ANNUNCIATOR_OVERRIDE_KEY], "ON", "the override flag survives a control edit");
+  assert.equal(ctl.controls["Power Lever L"], undefined, "the humanized duplicate is replaced by the canonical key");
+  assert.deepEqual(ctl.annunciators, ["L_GEN_FAIL", "R_GEN_FAIL"]);
+});
+
+test("the saved override payload is in the shape the snapshot registry reads back", () => {
+  const phaseState = { annunciators: ["L_GEN_FAIL", "L Gen Fail (caution)"], instruments: { NG_L: "61", EMPTY: "  " }, controls: { POWER_LEVER_L: "MAX" }, notes: " brief the crew " };
+  const payload = phaseOverridePayload(phaseState);
+  assert.deepEqual(payload.annunciators, [{ id: "L_GEN_FAIL", level: "ON" }], "duplicates collapse and bare strings never reach the registry (QUIRK-4)");
+  assert.deepEqual(payload.instruments, { NG_L: "61" }, "blank values are dropped");
+  assert.deepEqual(payload.controls, { POWER_LEVER_L: "MAX" });
+  assert.equal(payload.notes, " brief the crew ");
+
+  // round-trip: the registry must resolve the override back into a usable phase
+  const registry = createSnapshotRegistry(
+    { data: { baselines: { g950: { controls: {}, instruments: {}, annunciators: [] } }, procedures: { "NORMAL/Before Start": { variant: "BOTH", phases: { before: { controls: {} } } } } } },
+    { "NORMAL/Before Start": { phases: { BEFORE: payload } } }
+  );
+  const resolved = registry.resolve("NORMAL/Before Start", "BOTH", "BEFORE");
+  assert.deepEqual(resolved.annunciators.map((a) => a.id), ["L_GEN_FAIL"]);
+  assert.equal(resolved.controls.POWER_LEVER_L, "MAX");
+  assert.equal(resolved.instruments.NG_L, "61");
+  // and the cockpit reads the canonical control keys the editor writes
+  assert.equal(snapshotLeverPositions(resolved.controls).POWER_LEVER_L, 0);
+  assert.equal(snapshotSwitchStates({ L_DC_GEN: "OFF" }).L_DC_GEN, "RIGHT", "canonical switch ids resolve as well as spaced labels");
+  assert.equal(snapshotSwitchStates({ "Generator L": "OFF" }).L_DC_GEN, "RIGHT");
 });

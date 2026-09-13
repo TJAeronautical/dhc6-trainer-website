@@ -279,7 +279,10 @@ export function snapshotLeverPositions(controls) {
 
 /* scenarioSnapshotSwitchStates */
 function snapshotSwitchIdFor(label) {
-  const u = label.toUpperCase();
+  /* Android matches spaced labels ("Generator L"). Edit State writes canonical keys
+     ("L_DC_GEN"), so separators are normalised first — a strict superset: every label
+     that matched before still matches. */
+  const u = String(label || "").toUpperCase().replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim();
   if (u.indexOf("AUTOFEATHER") > -1) return "AUTOFEATHER_SELECT";
   if (u.indexOf("IGNITION ARM") > -1) return "IGNITION_ARM";
   if (u.indexOf("STARTER") > -1) return "STARTER_SWITCH";

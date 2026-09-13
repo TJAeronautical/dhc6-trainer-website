@@ -162,6 +162,55 @@ export function contentUnavailable(packId, error) {
 
 export function go(path) { navigate(path); }
 
+/*
+  Modal sheet (ModalBottomSheet / AlertDialog on Android): bottom sheet on phones,
+  centred dialog from 900 px. Returns { root, close }; Escape and a backdrop tap close it.
+*/
+let activeSheet = null;
+
+export function sheet(opts) {
+  const o = opts || {};
+  if (activeSheet) activeSheet.close();   // Android dismisses the edit sheet before opening a dialog
+  const root = document.getElementById("app-sheet");
+  if (!root) return { root: null, panel: null, close: function () {} };
+  const panel = root.querySelector(".sheet-panel");
+  const body = root.querySelector("#sheet-body");
+  const titleNode = root.querySelector("#sheet-title");
+
+  panel.className = "sheet-panel" + (o.wide ? " wide" : "");
+  titleNode.textContent = o.title || "";
+  titleNode.hidden = !o.title;
+  body.replaceChildren.apply(body, [].concat(
+    o.subtitle ? [h("p", { class: "t-body-s c-sec mb-10", text: o.subtitle })] : [],
+    o.children || []
+  ));
+  root.hidden = false;
+  panel.scrollTop = 0;
+
+  let closed = false;
+  function close() {
+    if (closed) return;
+    closed = true;
+    if (activeSheet && activeSheet.close === close) activeSheet = null;
+    document.removeEventListener("keydown", onKey);
+    document.removeEventListener("dhc6:view-unmount", close);
+    root.removeEventListener("click", onBackdrop);
+    root.hidden = true;
+    body.replaceChildren();
+    if (o.onClose) o.onClose();
+  }
+  function onKey(e) { if (e.key === "Escape") { e.stopPropagation(); close(); } }
+  function onBackdrop(e) { if (e.target.hasAttribute("data-sheet-close")) close(); }
+  root.addEventListener("click", onBackdrop);
+  document.addEventListener("keydown", onKey);
+  document.addEventListener("dhc6:view-unmount", close, { once: true });
+  const focusable = panel.querySelector("button, a[href], input, select, textarea");
+  if (focusable) focusable.focus({ preventScroll: true });
+  const api = { root: root, panel: panel, close: close };
+  activeSheet = api;
+  return api;
+}
+
 /* Material icons (path data from androidx.compose.material.icons) */
 export const ICONS = {
   home: '<svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>',
