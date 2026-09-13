@@ -13,6 +13,7 @@ import { procedureLibrary, procedureDetail, qrhHub, qrhList } from "./js/screens
 import { qrhManualEdit } from "./js/screens/qrhmanualedit.js";
 import { studyHome, definitions, srsStudy, deckBrowser, limitations, melReference, aerodromes, casLibrary, knowledgeSearch } from "./js/screens/study.js";
 import { quizHome, quizRun, performanceCalc, fuelPlan, weightBalance, logbook, competencyDashboard, laterTraining } from "./js/screens/training.js";
+import { crmDrill } from "./js/screens/crmdrill.js";
 import { libraryHub, laterScreen, settings } from "./js/screens/misc.js";
 import { systemsLabHome, systemsLabDetail } from "./js/screens/systemslab.js";
 import { systemsHome, systemDetail } from "./js/screens/systems2d.js";
@@ -78,7 +79,7 @@ route("/training/weight-balance", weightBalance);
 route("/training/logbook", logbook);
 route("/training/competency-dashboard", competencyDashboard);
 route("/training/oral-exam", laterTraining("oral-exam"));
-route("/training/crm-drill", laterTraining("crm"));
+route("/training/crm-drill", crmDrill);
 
 /* Phase-1 routes → Android routes (keeps bookmarks working) */
 const LEGACY_ROUTES = {

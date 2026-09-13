@@ -777,3 +777,57 @@ table.data th { color: var(--text-secondary); font-weight: 600; font-size: 12px;
   .readiness-ring-value { font-size: 18px; }
   .stat-pill { flex: 1 1 30%; }
 }
+
+/* ------------------------------------------------ CRM / MCC Callout Drill
+   CrmDrillScreen.kt. Card panel is AviationColors.LogbookPanel, the trainee
+   accent is CockpitActiveBlue, and the category border is the category colour
+   at 40%, as in the Kotlin. */
+.wide-btn { width: 100%; min-height: 52px; }
+.block { display: block; }
+
+.crm-drill-row {
+  display: flex; align-items: center; gap: 10px; width: 100%; text-align: left;
+  background: var(--logbook-panel); border-radius: 12px; padding: 12px;
+  border: 1px solid currentColor; cursor: pointer;
+}
+.crm-drill-row.band-ready { border-color: rgba(52, 199, 123, 0.4); }
+.crm-drill-row.band-caution { border-color: rgba(245, 183, 64, 0.4); }
+.crm-drill-row.band-overdue { border-color: rgba(255, 90, 82, 0.4); }
+.crm-drill-row:hover { background: #0A3049; }
+.crm-drill-row:focus-visible { outline: 2px solid var(--accent-sky); outline-offset: 2px; }
+.crm-cat {
+  flex: 0 0 auto; border-radius: 6px; padding: 3px 8px;
+  font-size: 11px; font-weight: 700; letter-spacing: .04em;
+  background: color-mix(in srgb, currentColor 20%, transparent);
+}
+
+.crm-progress { height: 4px; border-radius: 2px; background: var(--logbook-panel); overflow: hidden; margin: 6px 0 8px; }
+.crm-progress > span { display: block; height: 100%; background: var(--cockpit-active-blue); transition: width .25s ease; }
+
+/* CrmRunningContent is a fillMaxSize Column: the LazyColumn takes weight(1f)
+   and scrolls, while the progress row above and the Confirm button below stay
+   put. Without this the page itself scrolls and a 27-callout drill puts the
+   button 27 rows below the fold. */
+.crm-running { display: flex; flex-direction: column; gap: 6px; }
+.crm-steps {
+  list-style: none; margin: 0; padding: 0 2px 0 0;
+  display: flex; flex-direction: column; gap: 6px;
+  flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain;
+  max-height: min(52vh, 460px);
+  scrollbar-width: thin;
+}
+@media (max-width: 640px) { .crm-steps { max-height: 46vh; } }
+.crm-step { border-radius: 10px; padding: 10px; border: 1px solid transparent; background: transparent; }
+.crm-step.tone-done { background: rgba(52, 199, 123, 0.12); }
+.crm-step.tone-current { background: var(--logbook-panel); border-color: rgba(120, 209, 255, 0.4); }
+.crm-step.tone-current-you { background: rgba(30, 95, 134, 0.18); border-color: var(--cockpit-active-blue); }
+.crm-step .crm-callout { margin-top: 4px; color: rgba(255, 255, 255, 0.35); }
+.crm-step.tone-done .crm-callout { color: rgba(255, 255, 255, 0.667); }
+.crm-step.tone-current .crm-callout,
+.crm-step.tone-current-you .crm-callout { color: #fff; font-weight: 600; }
+.crm-crew {
+  flex: 0 0 auto; border-radius: 4px; padding: 2px 6px; background: var(--logbook-panel);
+  font-size: 11px; font-weight: 700; color: #fff;
+}
+.crm-crew.you { background: rgba(30, 95, 134, 0.3); }
+.crm-you-say { color: var(--cockpit-active-blue); }
