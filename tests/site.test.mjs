@@ -419,3 +419,46 @@ test("hero imagery is not tilted and not stretched by its height attribute", () 
   const shot = css.match(/\.shot img\{[^}]*\}/)[0];
   assert.match(shot, /height:auto/, ".shot img needs height:auto");
 });
+
+test("heading levels never skip, so heading navigation works", () => {
+  /* A screen reader user jumps between headings by level. index/mobile/desktop
+     used to go h1 -> h3, because the hero's caption card was an h3 before any
+     h2 existed. The card is the hero's sub-heading, so it is an h2 sized like
+     an h3 rather than a level out of order. */
+  for (const file of htmlFiles) {
+    const html = fs.readFileSync(path.join(root, file), "utf8");
+    const levels = Array.from(html.matchAll(/<h([1-6])[\s>]/gi), (m) => Number(m[1]));
+    for (let i = 1; i < levels.length; i += 1) {
+      assert.ok(levels[i] - levels[i - 1] <= 1,
+        `${file}: heading level jumps h${levels[i - 1]} -> h${levels[i]}`);
+    }
+    const h1s = (html.match(/<h1[\s>]/gi) || []).length;
+    if (file !== "404.html" && file !== "app/index.html") {
+      assert.equal(h1s, 1, `${file}: expected exactly one h1, found ${h1s}`);
+    }
+  }
+});
+
+test("a focus ring is never animated in", () => {
+  /*
+    `transition: <time>` with no property list animates EVERY animatable
+    property, outline-width included. On .navlinks a that made the keyboard
+    focus ring grow from 0 to 3px over 180ms — the one cue a keyboard user is
+    waiting for, arriving late. Any rule that can hold focus must name the
+    properties it animates.
+  */
+  const css = fs.readFileSync(path.join(root, "assets", "site-redesign.css"), "utf8");
+  assert.match(css, /:focus-visible\{outline:\s*\dpx solid/, "the site needs a visible focus ring");
+
+  const bare = [];
+  for (const match of css.matchAll(/([^{}]+)\{([^}]*)\}/g)) {
+    const selector = match[1].trim();
+    const body = match[2];
+    const t = body.match(/transition:\s*([^;}]+)/);
+    if (!t) continue;
+    /* A property list starts with a property name, not a duration. */
+    if (/^[.0-9]+m?s/.test(t[1].trim())) bare.push(selector + " { transition: " + t[1].trim() + " }");
+  }
+  assert.deepEqual(bare, [],
+    "these rules animate every property, which delays the focus ring:\n  " + bare.join("\n  "));
+});
