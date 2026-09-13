@@ -55,3 +55,37 @@ test("no protected content pack is committed to the public repository", () => {
   assert.match(fs.readFileSync(path.join(root, ".gitignore"), "utf8"), /^build\/$/m);
   assert.match(fs.readFileSync(path.join(root, ".assetsignore"), "utf8"), /build\/\*\*/);
 });
+
+test("build-content ports Kotlin-authored ordering, glossary and knowledge pool", () => {
+  const out = fs.mkdtempSync(path.join(os.tmpdir(), "dhc6-content-kt-"));
+  const kotlin = path.join(root, "tests", "fixtures", "android-kotlin");
+  execFileSync(process.execPath, [path.join(root, "tools", "build-content.mjs"), "--android", fixture, "--kotlin", kotlin, "--out", out], { stdio: "pipe" });
+
+  const glossary = JSON.parse(fs.readFileSync(path.join(out, "packs", "glossary.json"), "utf8"));
+  assert.equal(glossary.count, 3);
+  assert.deepEqual(glossary.entries.map((e) => e.acronym), ["AFM", "QRH", "SRS"]);
+  assert.match(glossary.entries[0].note, /"authoritative"/, "escaped quotes inside Kotlin literals survive");
+  assert.equal(glossary.entries[1].definition, "Quick Reference Handbook");
+
+  const index = JSON.parse(fs.readFileSync(path.join(out, "packs", "procedures-index.json"), "utf8"));
+  const normal = index.items.find((i) => i.category === "NORMAL");
+  assert.equal(normal.procedureName, "Test Normal [Test]", "procedureName = drillName.ifBlank { rawName }");
+  assert.equal(normal.displayTitle, "Test Normal [test]", "formatProcedureDisplayTitle only strips known [phase] suffixes and title-cases the rest");
+  assert.equal(normal.compiledId, "NORMAL/Test Normal [Test]");
+  assert.equal(normal.normalBucket, "WEATHER_SPECIAL_CONDITIONS", "bucket parsed from the Kotlin when-branches");
+  assert.equal(normal.qrhRank, 201);
+  const abnormal = index.items.find((i) => i.category === "ABNORMAL");
+  assert.equal(abnormal.qrhRank, 1, "rank from ProcedureSortOrder list position (0-based)");
+  const emergency = index.items.find((i) => i.category === "EMERGENCY");
+  assert.equal(emergency.qrhRank, 0);
+
+  const pool = JSON.parse(fs.readFileSync(path.join(out, "packs", "knowledge-pool.json"), "utf8"));
+  assert.ok(pool.count >= 1);
+  const bank = pool.units.find((u) => u.sourceId === "quiz_bank");
+  assert.ok(bank, "quiz_bank questions are part of the STATUS:CANDIDATE pool");
+  assert.ok(bank.tags.includes("STATUS:CANDIDATE"));
+  // The fixture deck uses systemId "test", which is not in BundledFlashcardSeeder.SYSTEM_ID_MAP → not seeded (parity).
+  assert.equal(pool.units.some((u) => u.id.startsWith("bundled_test_deck_")), false);
+
+  fs.rmSync(out, { recursive: true, force: true });
+});

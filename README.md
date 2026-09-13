@@ -18,7 +18,7 @@ See `WEBSITE_UPGRADE_REPORT.md` for the detailed implementation record.
 
 ## Subscriber web app (`/app/`)
 
-The browser edition of the Android app lives under `app/` and is served only to signed-in subscribers or the owner (server-side gate in `worker.js`). Training content is transformed from the private Android repository's `core-res/src/main/assets` into KV packs by `tools/build-content.mjs` and is never committed here. Access model, Cloudflare/Firebase configuration and the publishing procedure are documented in `WEB_APP_SECURITY.md`; the Android→web feature status is tracked in `WEB_APP_FEATURE_MANIFEST.md`.
+The browser edition of the Android app lives under `app/` and is served only to signed-in subscribers or the owner (server-side gate in `worker.js`). Its navigation (HOME · PROCS · AIRCRAFT · QRH · SETTINGS), theme tokens, screens and domain logic (`app/js/logic/*`) are ported from the Android Kotlin sources; training content is transformed from the private Android repository's `core-res/src/main/assets` (plus the Kotlin files that hold authored ordering and definitions) into KV packs by `tools/build-content.mjs` and is never committed here. Access model, Cloudflare/Firebase configuration and the publishing procedure are documented in `WEB_APP_SECURITY.md`; the Android→web feature status is tracked in `WEB_APP_FEATURE_MANIFEST.md`.
 
 ## Run locally
 
@@ -27,7 +27,7 @@ node tools/build-content.mjs --android "C:\Android Studio\DHC-6-Trainer" --out b
 node tools/dev-server.mjs --port 8788 --kv build/content/kv-bulk.json
 ```
 
-Open `http://127.0.0.1:8788/web-app.html` (dev licence `pilot@example.com` / `DHC6-TEST-TEST-TEST`). The plain static site can still be previewed with `python -m http.server 8080`, but API routes and the gated app need the dev server or `wrangler dev`.
+Open `http://127.0.0.1:8788/web-app.html` (dev licence `pilot@example.com` / `DHC6-TEST-TEST-TEST`). `node tools/playwright-walkthrough.mjs` (needs `npm i -D playwright`) drives every app screen at phone/tablet/desktop sizes against the dev server. The plain static site can still be previewed with `python -m http.server 8080`, but API routes and the gated app need the dev server or `wrangler dev`.
 
 ## Test
 

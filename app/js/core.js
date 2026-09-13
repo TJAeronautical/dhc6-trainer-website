@@ -3,7 +3,7 @@
   DOM helpers, persistent local state, protected-content client, router.
 */
 
-export const APP_VERSION = "web-0.3.0";
+export const APP_VERSION = "web-0.4.0";
 const STATE_KEY = "dhc6.app.v1";
 const DB_NAME = "dhc6-protected-content";
 const DB_STORE = "packs";
@@ -61,14 +61,19 @@ export function relativeTime(ts) {
 
 /* ---------------------------------------------------------------- state */
 const defaults = {
-  variant: "LEGACY",
-  theme: "night",
+  variant: "BOTH",          // AppSettings.selectedAircraftVariant (LEGACY / G950 / BOTH)
+  theme: "night",           // AppSettings.nightMode
+  soundEnabled: true,
   favorites: [],
+  pinnedProcedures: [],     // ProcedureLibraryViewModel priority ids (compiled ids)
   recent: [],
   attempts: [],
+  logbook: [],              // LogbookEntry list (LogbookStore)
+  srsRecords: {},           // FlashcardMemoryRecord by knowledge-unit id (SrsRepository)
   checklistProgress: {},
   flashcardStats: {},
-  lastRoute: "#/home"
+  cockpitResume: null,
+  lastRoute: "#/dashboard"
 };
 
 let state = null;
@@ -114,8 +119,32 @@ export const Store = {
     return on;
   },
   isFavorite: function (id) { return (Store.get("favorites") || []).indexOf(id) > -1; },
+  togglePinned: function (compiledId) {
+    let on = false;
+    Store.update("pinnedProcedures", function (list) {
+      const next = (list || []).slice();
+      const idx = next.indexOf(compiledId);
+      if (idx > -1) next.splice(idx, 1); else { next.push(compiledId); on = true; }
+      return next;
+    });
+    return on;
+  },
+  pinned: function () { return Store.get("pinnedProcedures") || []; },
+  addLogbookEntry: function (entry) {
+    Store.update("logbook", function (list) {
+      const next = (list || []).filter(function (e) { return !entry.attemptId || e.attemptId !== entry.attemptId; });
+      next.unshift(entry);
+      return next.slice(0, 300);
+    });
+  },
+  logbook: function () { return Store.get("logbook") || []; },
+  srsRecords: function () { return Store.get("srsRecords") || {}; },
+  saveSrsRecord: function (record) {
+    Store.update("srsRecords", function (map) { const next = Object.assign({}, map || {}); next[record.flashcardId] = record; return next; });
+  },
   clearProgress: function () {
-    Store.set("recent", []); Store.set("attempts", []); Store.set("checklistProgress", {}); Store.set("flashcardStats", {});
+    Store.set("recent", []); Store.set("attempts", []); Store.set("logbook", []); Store.set("srsRecords", {});
+    Store.set("checklistProgress", {}); Store.set("flashcardStats", {}); Store.set("pinnedProcedures", []); Store.set("cockpitResume", null);
   }
 };
 
@@ -279,55 +308,65 @@ export function match(path) {
   return null;
 }
 
-/* ------------------------------------------------------------- feature map */
-export const FEATURES = [
-  { id: "home", title: "Home", icon: "⌂", route: "#/home", status: "available", nav: "primary", desc: "Dashboard, quick launch and recent activity." },
-  { id: "qrh", title: "QRH", icon: "▦", route: "#/qrh", status: "available", nav: "primary", desc: "Quick Reference Handbook — abnormal and emergency procedures.", pack: "procedures-index" },
-  { id: "drill", title: "Drill", icon: "◎", route: "#/drill", status: "partial", nav: "primary", desc: "Practice questions and memory-item drills. Multiple-choice format is being ported from the Android drill engine.", pack: "quiz-bank" },
-  { id: "checklists", title: "Checklists", icon: "☑", route: "#/checklists", status: "available", nav: "primary", desc: "Normal, abnormal and emergency checklists with PF/PM flows.", pack: "procedures-index" },
-  { id: "performance", title: "Performance", icon: "⟋", route: "#/performance", status: "partial", nav: "rail", desc: "VREF, seaplane take-off/landing tables and reference speeds from the bundled QRH data. Full calculator port pending.", pack: "performance" },
-  { id: "documents", title: "Documents", icon: "▤", route: "#/documents", status: "later", nav: "rail", desc: "Manuals, published library content and imported documents." },
-  { id: "flashcards", title: "Flashcards", icon: "❐", route: "#/flashcards", status: "available", nav: "rail", desc: "Study decks per aircraft system with spaced review.", pack: "flashcards" },
-  { id: "limitations", title: "Limitations", icon: "⚠", route: "#/limitations", status: "available", nav: "more", desc: "Airspeed, weight, powerplant and system limitations.", pack: "limitations" },
-  { id: "mel", title: "MEL", icon: "≣", route: "#/mel", status: "available", nav: "more", desc: "MMEL-derived training reference with placards and crew procedures.", pack: "mel" },
-  { id: "cas", title: "CAS Library", icon: "◉", route: "#/cas", status: "available", nav: "more", desc: "Legacy and G950 caution / warning message library.", pack: "cas-library" },
-  { id: "strips", title: "Maldives Strips", icon: "⌖", route: "#/strips", status: "available", nav: "more", desc: "Water aerodrome and strip training reference.", pack: "maldives-strips" },
-  { id: "fuel", title: "Fuel Planning", icon: "⛽", route: "#/fuel", status: "partial", nav: "more", desc: "Tank capacities, burn rates and reserve rules from the bundled calculator data. Planner UI pending.", pack: "performance" },
-  { id: "wb", title: "Weight & Balance", icon: "⚖", route: "#/wb", status: "partial", nav: "more", desc: "Datum, CG limits, standard weights and arms. Interactive loading sheet pending.", pack: "performance" },
-  { id: "logbook", title: "Debrief Logbook", icon: "✎", route: "#/logbook", status: "partial", nav: "more", desc: "Attempts and scores stored in this browser. Cloud sync pending." },
-  { id: "aircraft-state", title: "Aircraft State", icon: "⊞", route: "#/aircraft-state", status: "later", nav: "more", desc: "Scenario snapshots, frozen cockpit states, Legacy and G950 cockpit views." },
-  { id: "knowledge", title: "Knowledge & Systems", icon: "◈", route: "#/knowledge", status: "later", nav: "more", desc: "Systems descriptions, 2D diagrams and PNG references." },
-  { id: "technical-lab", title: "Technical Lab", icon: "⚙", route: "#/technical-lab", status: "later", nav: "more", desc: "3D models and component animations." },
-  { id: "oral-exam", title: "AI Oral Exam", icon: "✦", route: "#/oral-exam", status: "later", nav: "more", desc: "Premium examiner-style oral practice." },
-  { id: "crm", title: "CRM / PF-PM Flows", icon: "⇄", route: "#/crm", status: "partial", nav: "more", desc: "Challenge–response callout flows are available inside each procedure; standalone CRM drills pending.", pack: "procedures-index" },
-  { id: "readiness", title: "Check Ride Readiness", icon: "◔", route: "#/readiness", status: "later", nav: "more", desc: "Competency tracking across procedures, drills and knowledge." },
-  { id: "settings", title: "Settings", icon: "⚙", route: "#/settings", status: "available", nav: "rail", desc: "Aircraft variant, theme, session and data." }
-];
 
+/* ------------------------------------------------------------- variant */
+export const VARIANTS = ["LEGACY", "G950", "BOTH"];
+export function currentVariant() {
+  const v = Store.get("variant");
+  return VARIANTS.includes(v) ? v : "BOTH";
+}
+/* DashboardScreen: AircraftVariant.dashboardLabel / nextDashboardVariant (LEGACY → G950 → BOTH → LEGACY) */
+export function variantLabel(v) { return v === "LEGACY" ? "Legacy" : v === "G950" ? "G950" : "Both"; }
+export function nextVariant(v) { return v === "LEGACY" ? "G950" : v === "G950" ? "BOTH" : "LEGACY"; }
+/* SettingsScreen.variantSubtitle */
+export function variantSubtitle(v) { return v === "LEGACY" ? "Analog / classic cockpit" : v === "G950" ? "Garmin glass cockpit" : "Shared procedures and content"; }
+
+/* ----------------------------------------------------------- features */
+/* Android feature inventory with the browser port status. Status legend:
+   available = fully usable from Android data/logic · partial = usable, port in progress ·
+   later = present in Android, not yet in the browser · blocked = needs a decision/source. */
+export const STATUS_LABEL = { available: "Available", partial: "Partial", later: "Coming later", blocked: "Blocked" };
+export const FEATURES = [
+  { id: "dashboard", title: "Home", route: "#/dashboard", status: "available", desc: "Dashboard, Quick Launch, Training Signals and colour guide (DashboardScreen)." },
+  { id: "procedures", title: "Procedures", route: "#/systems", status: "available", desc: "Procedure Library with search, category and normal-subsection filters, pins and drill launch (ProcedureLibraryScreen)." },
+  { id: "procedure-detail", title: "Procedure detail + drill", route: "#/systems", status: "available", desc: "QRH detail (memory items / complete checklist) with the interactive MEMORY → FLOW → SUMMARY drill (QrhDetailScreen + ProcedureDrillPane)." },
+  { id: "qrh", title: "QRH Checklist", route: "#/qrh", status: "available", desc: "QRH hub, category lists and checklist detail ordered exactly as the Android ProcedureSortOrder." },
+  { id: "aircraft-state", title: "Aircraft State", route: "#/live", status: "later", desc: "Free-play cockpit, scenario-linked MCC drills, resume state (CockpitHomeScreen). Needs cockpit imagery in R2 (phase 5)." },
+  { id: "study", title: "Study / Knowledge", route: "#/knowledge/home", status: "partial", desc: "Study home with Search, Library, Knowledge tiles (StudyHomeScreen)." },
+  { id: "search", title: "Search", route: "#/knowledge/search", status: "partial", desc: "Searches bundled knowledge units, procedures and definitions. Published-library search comes with the Library phase." },
+  { id: "flashcards", title: "Flashcard Study (SRS)", route: "#/study/srs", status: "available", desc: "SM-2 spaced repetition over the bundled knowledge pool (SrsStudyScreen)." },
+  { id: "study-cards", title: "Study Card Review", route: "#/study/flashcards", status: "partial", desc: "Read-only browse of the bundled flashcard decks. Review/approve/edit lanes are authoring tools (Android FlashcardsScreen) and stay app-only." },
+  { id: "quizzes", title: "Quizzes", route: "#/quizzes", status: "available", desc: "Multiple-choice quiz with the Android distractor generator (QuizHome/QuizRun)." },
+  { id: "definitions", title: "Definitions", route: "#/knowledge/definitions", status: "available", desc: "Acronyms and plain-language meanings (GlossaryScreen)." },
+  { id: "limitations", title: "Limitations", route: "#/study/limitations", status: "available", desc: "DHC-6 Series 300 limitations (LimitationsScreen)." },
+  { id: "mel", title: "MEL / CDL", route: "#/study/mel-reference", status: "available", desc: "MEL/CDL training reference (MelReferenceScreen)." },
+  { id: "aerodromes", title: "Aerodromes & Waterways", route: "#/study/maldives-strips", status: "available", desc: "Aerodrome / water aerodrome training reference (MaldivesStripsScreen)." },
+  { id: "cas", title: "CAS Library", route: "#/study/cas", status: "available", desc: "Legacy and G950 annunciator / CAS message library." },
+  { id: "performance", title: "Performance", route: "#/training/performance", status: "available", desc: "Seaplane take-off / landing distance interpolation, VREF and reference speeds (PerformanceCalculator)." },
+  { id: "fuel", title: "Fuel Planning", route: "#/training/fuel-plan", status: "available", desc: "45-min reserve, trip, alternate, contingency and tank split (FuelPlanCalculator)." },
+  { id: "wb", title: "Weight and Balance", route: "#/training/weight-balance", status: "available", desc: "Load sheet, seat map, CG arm / %MAC and envelope chart (WeightBalanceCalculator)." },
+  { id: "logbook", title: "Debrief Logbook", route: "#/training/logbook", status: "partial", desc: "Local drill and quiz attempts in this browser. Cloud sync with the Android logbook comes later." },
+  { id: "readiness", title: "Check Ride Readiness", route: "#/training/competency-dashboard", status: "later", desc: "Drill currency, score trends and overdue procedures (CompetencyDashboardScreen)." },
+  { id: "oral-exam", title: "Oral Exam - Premium", route: "#/training/oral-exam", status: "later", desc: "AI examiner (needs a web-session-gated proxy for /api/ai/oral-exam)." },
+  { id: "crm", title: "CRM Drill", route: "#/training/crm-drill", status: "later", desc: "PM/PF coordination and challenge-response drill (CrmDrillScreen)." },
+  { id: "systems", title: "Systems", route: "#/systems/home", status: "later", desc: "2D system diagrams, PNG references and notes. Needs the systems imagery in R2." },
+  { id: "technical-lab", title: "Technical Lab", route: "#/systems/lab", status: "later", desc: "3D model lab (PT6, propeller, hydraulic pack, variants)." },
+  { id: "library", title: "Library", route: "#/library/home", status: "partial", desc: "Read-only Library hub. Sources, Import and Published content need document storage (R2)." },
+  { id: "import", title: "Import", route: "#/library/import", status: "later", desc: "Protected document import for authoring accounts (app-only)." },
+  { id: "settings", title: "Settings", route: "#/settings", status: "available", desc: "Account, plan, display, audio, cockpit variant (SettingsScreen)." }
+];
 export function feature(id) { return FEATURES.find(function (f) { return f.id === id; }); }
 
-export const STATUS_LABEL = { available: "Available", partial: "Partial", later: "Coming later", blocked: "Blocked" };
+/* Tile artwork shipped from core-res/drawable-nodpi (converted to webp). */
+export function tileUrl(name) { return "/app/assets/tiles/" + name + ".webp"; }
 
-/* --------------------------------------------------------------- variant */
-export function currentVariant() { return Store.get("variant") === "G950" ? "G950" : "LEGACY"; }
-
-export function variantBody(procedure, variant) {
-  const wanted = variant || currentVariant();
-  const variants = procedure.variants || {};
-  return variants[wanted] || variants.BOTH || variants.LEGACY || variants.G950 || { memory: [], flow: [] };
-}
-
-/* Icons/tones for procedure groups (QRH category tiles). */
-export function groupTone(group) {
-  const g = String(group || "").toLowerCase();
-  if (/fire|smoke/.test(g)) return { tone: "red", icon: "🔥" };
-  if (/engine|start|restart/.test(g)) return { tone: "orange", icon: "⚙" };
-  if (/fuel/.test(g)) return { tone: "yellow", icon: "⛽" };
-  if (/electric|instrument/.test(g)) return { tone: "green", icon: "⚡" };
-  if (/flight control|airframe|stall/.test(g)) return { tone: "blue", icon: "✈" };
-  if (/prop/.test(g)) return { tone: "indigo", icon: "✣" };
-  if (/ice|icing/.test(g)) return { tone: "cyan", icon: "❄" };
-  if (/landing|approach|go-around|descent/.test(g)) return { tone: "teal", icon: "⤓" };
-  if (/hydraulic|bleed|pneumatic/.test(g)) return { tone: "purple", icon: "◍" };
-  return { tone: "grey", icon: "▦" };
+/* PrimaryNavigation.owningPrimaryTab */
+export function owningTab(path) {
+  if (path === "/dashboard" || path === "/home") return "dashboard";
+  if (path === "/systems" || path.startsWith("/procedures/") || path.startsWith("/systems/") || path === "/library/home" || path.startsWith("/library/") || path === "/quizzes" || path.startsWith("/quizzes/")) return "systems";
+  if (path === "/training/logbook" || path.startsWith("/training/")) return "dashboard";
+  if (path === "/live" || path.startsWith("/live/") || path.startsWith("/scenario/") || path === "/cockpit" || path.startsWith("/cockpit/")) return "live";
+  if (path === "/qrh" || path.startsWith("/qrh/")) return "qrh";
+  if (path === "/settings" || path.startsWith("/settings")) return "settings";
+  return "dashboard";
 }
