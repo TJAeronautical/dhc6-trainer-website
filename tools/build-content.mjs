@@ -33,6 +33,9 @@ function arg(name, fallback) {
 
 const androidRoot = arg("android", process.env.DHC6_ANDROID_REPO || "");
 const outDir = path.resolve(arg("out", "build/content"));
+// Optional: a flattened Kotlin export (robocopy of the *.kt sources) when the
+// full module tree is not available, e.g. --kotlin "C:\Android Studio\DHC-6-Trainer\_web_export"
+const kotlinRoot = arg("kotlin", process.env.DHC6_ANDROID_KOTLIN || "");
 if (!androidRoot) {
   console.error("Missing --android <path to DHC-6-Trainer repo> (or DHC6_ANDROID_REPO env var)");
   process.exit(1);
@@ -41,6 +44,83 @@ if (!androidRoot) {
 const assetsRoot = fs.existsSync(path.join(androidRoot, "core-res", "src", "main", "assets"))
   ? path.join(androidRoot, "core-res", "src", "main", "assets")
   : androidRoot;
+
+/* Kotlin sources that carry authored content (not just UI). Each entry lists the
+   real module path first and the flattened `_web_export` path second. */
+const KOTLIN_SOURCES = {
+  glossary: [
+    "feature-knowledge/src/main/java/com/dhc6trainer/feature/knowledge/ui/screens/GlossaryScreen.kt",
+    "feature-knowledge/feature/knowledge/ui/screens/GlossaryScreen.kt"
+  ],
+  sortOrder: [
+    "domain/src/main/java/com/dhc6trainer/domain/procedures/ProcedureSortOrder.kt",
+    "domain/domain/procedures/ProcedureSortOrder.kt"
+  ],
+  procedureLibrary: [
+    "feature-procedures/src/main/java/com/dhc6trainer/feature/procedures/ui/screens/ProcedureLibraryScreen.kt",
+    "feature-procedures/feature/procedures/ui/screens/ProcedureLibraryScreen.kt"
+  ]
+};
+
+function findKotlin(key) {
+  const roots = [kotlinRoot, androidRoot, path.join(androidRoot, "_web_export")].filter(Boolean);
+  for (const root of roots) {
+    for (const relative of KOTLIN_SOURCES[key]) {
+      const full = path.join(root, relative);
+      if (fs.existsSync(full)) return full;
+    }
+  }
+  return null;
+}
+
+/* Extracts the string arguments of every `Name(...)` call in a Kotlin file.
+   Handles plain "…" literals with \" \\ \n \t escapes and skips comments. */
+function kotlinCallStrings(source, callName) {
+  const results = [];
+  let pos = 0;
+  while (true) {
+    const start = source.indexOf(callName + "(", pos);
+    if (start === -1) break;
+    let i = start + callName.length + 1;
+    let depth = 1;
+    const strings = [];
+    let current = null;
+    while (i < source.length && depth > 0) {
+      const ch = source[i];
+      if (current !== null) {
+        if (ch === "\\") {
+          const next = source[i + 1];
+          current += next === "n" ? "\n" : next === "t" ? "\t" : next;
+          i += 2;
+          continue;
+        }
+        if (ch === '"') {
+          strings.push(current);
+          current = null;
+        } else {
+          current += ch;
+        }
+        i += 1;
+        continue;
+      }
+      if (ch === '"') {
+        current = "";
+      } else if (ch === "/" && source[i + 1] === "/") {
+        i = source.indexOf("\n", i);
+        if (i === -1) i = source.length;
+        continue;
+      } else if (ch === "(") {
+        depth += 1;
+      } else if (ch === ")") {
+        depth -= 1;
+      }
+      i += 1;
+    }
+    results.push(strings);
+    pos = i;
+  }
+  return results;
+}
 
 function readJson(relative) {
   const full = path.join(assetsRoot, relative);
@@ -83,8 +163,117 @@ function variantView(body) {
   };
 }
 
+/* ------------------------------------------------ procedure ordering (Kotlin) */
+// ProcedureTitleFormatter.formatProcedureDisplayTitle — ported 1:1.
+const TITLE_ACRONYMS = new Set(["AC", "AFM", "APU", "CAS", "CB", "DC", "DHC", "ELT", "GPU", "IFR", "ITT",
+  "MEL", "NG", "NP", "OEI", "PF", "PM", "POH", "PT6", "QRH", "RPM", "STOL", "T5", "TCAS", "TAWS", "VFR", "VMC", "VMO", "VREF"]);
+function formatProcedureDisplayTitle(rawTitle) {
+  const cleaned = String(rawTitle || "")
+    .replace(/_/g, " ")
+    .replace(/-/g, " ")
+    .replace(/\s*\[(ground|airborne|ground\/airborne|ground airborne|taxi|take off|takeoff|climb|cruise|descent|approach|landing|enroute|arrival|departure|normal|abnormal|emergency)[^\]]*\]\s*$/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!cleaned) return "Procedure";
+  return cleaned.toLowerCase().split(" ").filter(Boolean).map(function (word) {
+    const upper = word.toUpperCase();
+    if (TITLE_ACRONYMS.has(upper) || /^[A-Z]+[0-9]+$/.test(upper)) return upper;
+    return word.charAt(0).toUpperCase() + word.slice(1);
+  }).join(" ");
+}
+
+// ProcedureSortOrder.normalizeTitle — ported 1:1.
+function normalizeSortTitle(value) {
+  return String(value || "").toUpperCase()
+    .replace(/\[[^\]]*\]/g, " ")
+    .replace(/&/g, " AND ")
+    .replace(/\//g, " ").replace(/-/g, " ").replace(/—/g, " ").replace(/–/g, " ")
+    .replace(/[^A-Z0-9 ]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+// ProcedureLibraryScreen.normalizeProcedureKey — ported 1:1.
+function normalizeProcedureKey(raw) {
+  return String(raw || "")
+    .replace(/\[[^\]]*\]/g, " ")
+    .replace(/ - /g, "-")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+/* Parses `excelSequenceByCategory` from ProcedureSortOrder.kt into
+   { NORMAL: Map<normalizedTitle, index>, ABNORMAL: …, EMERGENCY: … }. */
+function loadSortOrder() {
+  const file = findKotlin("sortOrder");
+  const result = { NORMAL: new Map(), ABNORMAL: new Map(), EMERGENCY: new Map() };
+  if (!file) {
+    console.warn("  (ProcedureSortOrder.kt not found — QRH ranks fall back to source order)");
+    return result;
+  }
+  const source = fs.readFileSync(file, "utf8");
+  for (const category of Object.keys(result)) {
+    const marker = "ProcedureCategory." + category + " to listOf(";
+    const start = source.indexOf(marker);
+    if (start === -1) continue;
+    const lists = kotlinCallStrings(source.slice(start + marker.length - "listOf(".length), "listOf");
+    (lists[0] || []).forEach(function (title, index) { result[category].set(normalizeSortTitle(title), index); });
+  }
+  return result;
+}
+
+/* Parses the `when (normalizeProcedureKey(…)) { "a", "b" -> VALUE … }` bodies
+   of normalProcedureBucketFor / normalProcedureSortIndex in ProcedureLibraryScreen.kt. */
+function kotlinWhenMap(source, functionName) {
+  const map = new Map();
+  const start = source.indexOf("fun " + functionName + "(");
+  if (start === -1) return map;
+  const whenStart = source.indexOf("when (", start);
+  const bodyStart = source.indexOf("{", whenStart);
+  let depth = 0;
+  let end = bodyStart;
+  for (let i = bodyStart; i < source.length; i += 1) {
+    if (source[i] === "{") depth += 1;
+    else if (source[i] === "}") { depth -= 1; if (depth === 0) { end = i; break; } }
+  }
+  const body = source.slice(bodyStart + 1, end);
+  let pendingKeys = [];
+  for (const rawLine of body.split("\n")) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith("//")) continue;
+    const keys = [];
+    for (const m of line.matchAll(/"((?:[^"\\]|\\.)*)"/g)) keys.push(m[1]);
+    pendingKeys = pendingKeys.concat(keys);
+    const arrow = line.indexOf("->");
+    if (arrow === -1) continue;
+    const valueText = line.slice(arrow + 2).trim();
+    if (line.startsWith("else")) { pendingKeys = []; continue; }
+    const numeric = Number(valueText);
+    const value = Number.isFinite(numeric) ? numeric : valueText.replace(/^NormalProcedureBucket\./, "");
+    for (const key of pendingKeys) map.set(key, value);
+    pendingKeys = [];
+  }
+  return map;
+}
+
+function loadNormalLibraryMaps() {
+  const file = findKotlin("procedureLibrary");
+  if (!file) {
+    console.warn("  (ProcedureLibraryScreen.kt not found — normal buckets fall back to EVERYDAY_ACTIONS)");
+    return { buckets: new Map(), sortIndex: new Map() };
+  }
+  const source = fs.readFileSync(file, "utf8");
+  return {
+    buckets: kotlinWhenMap(source, "normalProcedureBucketFor"),
+    sortIndex: kotlinWhenMap(source, "normalProcedureSortIndex")
+  };
+}
+
 /* ---------------------------------------------------------------- procedures */
 function buildProcedures() {
+  const sortOrder = loadSortOrder();
+  const normalMaps = loadNormalLibraryMaps();
   const categories = ["normal", "abnormal", "emergency"];
   const normalBindings = readJson("procedures/procedure_bindings_normal.json");
   const bindingByAsset = new Map();
@@ -105,11 +294,26 @@ function buildProcedures() {
       } else {
         variants[raw.variant || "BOTH"] = variantView(raw);
       }
+      const categoryKey = String(raw.category || category.toUpperCase()).toUpperCase();
+      // Android: Procedure.procedureName = drillName.ifBlank { rawName }
+      const procedureName = String(raw.drillName || "").trim() || String(raw.rawName || "").trim();
+      const displayTitle = formatProcedureDisplayTitle(procedureName);
+      const qrhRank = categoryKey === "NORMAL"
+        ? (normalMaps.sortIndex.get(normalizeProcedureKey(procedureName)) ?? 999)
+        : (sortOrder[categoryKey] && sortOrder[categoryKey].get(normalizeSortTitle(displayTitle))) ?? 9999;
+      const normalBucket = categoryKey === "NORMAL"
+        ? (normalMaps.buckets.get(normalizeProcedureKey(procedureName)) || "EVERYDAY_ACTIONS")
+        : null;
       const procedure = {
         id: category + "/" + entry.slug,
         slug: entry.slug,
-        category: String(raw.category || category.toUpperCase()).toUpperCase(),
+        category: categoryKey,
         title: raw.displayLabel || (binding && binding.title) || raw.drillName || raw.rawName,
+        procedureName: procedureName,
+        displayTitle: displayTitle,
+        compiledId: categoryKey + "/" + procedureName.replace(/\s+/g, " ").trim(),
+        qrhRank: qrhRank,
+        normalBucket: normalBucket,
         rawName: raw.rawName,
         drillName: raw.drillName || null,
         context: raw.context || (binding && binding.phase) || null,
@@ -146,6 +350,11 @@ function buildProcedures() {
         pack: "procedures-" + category,
         category: procedure.category,
         title: procedure.title,
+        procedureName: procedure.procedureName,
+        displayTitle: procedure.displayTitle,
+        compiledId: procedure.compiledId,
+        qrhRank: procedure.qrhRank,
+        normalBucket: procedure.normalBucket,
         context: procedure.context,
         phaseTag: procedure.phaseTag,
         procedureGroup: procedure.procedureGroup,
@@ -179,20 +388,51 @@ function buildProcedures() {
 }
 
 /* ----------------------------------------------------------------- flashcards */
+// BundledFlashcardSeeder.SYSTEM_ID_MAP — deck systemId → AircraftSystem enum.
+const SYSTEM_ID_MAP = {
+  electrical: "ELECTRICAL",
+  fuel: "FUEL",
+  hydraulics: "HYDRAULICS",
+  powerplant: "POWERPLANT",
+  propeller: "PROPELLER",
+  fire_protection: "FIRE_PROTECTION",
+  flight_controls: "FLIGHT_CONTROLS",
+  ice_rain_protection: "ICE_RAIN_PROTECTION",
+  performance: "PERFORMANCE"
+};
+
+// The Android FlashcardDeck Moshi model requires these fields; decks that
+// miss any of them fail to parse on the device and never reach the UI.
+const DECK_REQUIRED = ["schemaId", "schemaVersion", "deckId", "deckName", "description", "systemId", "variant", "difficulty"];
+function validDecks() {
+  const all = listJson("flashcards");
+  const valid = [];
+  const skipped = [];
+  for (const entry of all) {
+    const missing = DECK_REQUIRED.filter((key) => typeof entry.data[key] !== "string");
+    if (missing.length) skipped.push({ file: entry.file, missing: missing });
+    else valid.push(entry.data);
+  }
+  return { valid: valid, skipped: skipped };
+}
+
 function buildFlashcards() {
-  const decks = listJson("flashcards").map((entry) => entry.data);
+  const decks = validDecks();
   return {
     id: "flashcards",
     source: "DHC-6-Trainer core-res/src/main/assets/flashcards",
-    deckCount: decks.length,
-    cardCount: decks.reduce((sum, deck) => sum + (deck.cards || []).length, 0),
-    decks: decks.map((deck) => ({
+    deckCount: decks.valid.length,
+    cardCount: decks.valid.reduce((sum, deck) => sum + (deck.cards || []).length, 0),
+    skippedDecks: decks.skipped,
+    decks: decks.valid.map((deck) => ({
       deckId: deck.deckId,
       deckName: deck.deckName,
       description: deck.description || "",
       systemId: deck.systemId,
+      system: SYSTEM_ID_MAP[deck.systemId] || null,
       variant: deck.variant || "BOTH",
       difficulty: deck.difficulty || null,
+      schemaVersion: deck.schemaVersion || null,
       cards: (deck.cards || []).map((card) => ({
         id: card.id,
         front: card.front,
@@ -201,6 +441,64 @@ function buildFlashcards() {
         references: card.references || []
       }))
     }))
+  };
+}
+
+/* --------------------------------------------------------- knowledge pool */
+// Mirrors the Room `knowledge_units` rows the Android app seeds on first run:
+// BundledFlashcardSeeder (every card of every mapped deck, tagged
+// STATUS:CANDIDATE,BUNDLED,<SYSTEM>) plus the offline quiz_bank.json questions.
+// QuizRun / SrsStudy pick from exactly this pool (STATUS:CANDIDATE).
+function buildKnowledgePool() {
+  const decks = validDecks().valid;
+  const units = [];
+  for (const systemId of Object.keys(SYSTEM_ID_MAP)) {
+    const system = SYSTEM_ID_MAP[systemId];
+    for (const deck of decks.filter((d) => d.systemId === systemId)) {
+      const variant = ["LEGACY", "G950"].includes(String(deck.variant || "").toUpperCase()) ? deck.variant.toUpperCase() : "BOTH";
+      for (const card of deck.cards || []) {
+        const locator = (card.references && card.references[0] && card.references[0].locator) || "";
+        units.push({
+          id: "bundled_" + deck.deckId + "_" + card.id,
+          system: system,
+          title: card.front,
+          content: card.back,
+          importance: "CORE",
+          examRelevant: true,
+          aircraftVariant: variant,
+          sourceId: "bundled_deck_" + deck.deckId,
+          sourceType: "AFM_POH",
+          sourceTitle: deck.deckName,
+          sourceRevision: deck.schemaVersion || null,
+          sectionRef: locator || null,
+          tags: ["STATUS:CANDIDATE", "BUNDLED", systemId.toUpperCase()]
+        });
+      }
+    }
+  }
+  const bank = readJson("quizzes/quiz_bank.json");
+  for (const q of bank.questions || []) {
+    units.push({
+      id: q.id,
+      system: q.system || "GENERAL",
+      title: q.title,
+      content: q.content,
+      importance: q.importanceLevel || "CORE",
+      examRelevant: true,
+      aircraftVariant: ["LEGACY", "G950"].includes(String(q.aircraftVariant || "").toUpperCase()) ? q.aircraftVariant.toUpperCase() : "BOTH",
+      sourceId: "quiz_bank",
+      sourceType: "AFM_POH",
+      sourceTitle: bank.source || "Quiz bank",
+      sourceRevision: bank.schemaVersion || null,
+      sectionRef: null,
+      tags: Array.isArray(q.tags) && q.tags.length ? q.tags : ["STATUS:CANDIDATE", "SOURCE:QUIZ_BANK"]
+    });
+  }
+  return {
+    id: "knowledge-pool",
+    source: "DHC-6-Trainer flashcards/* (BundledFlashcardSeeder) + quizzes/quiz_bank.json",
+    count: units.length,
+    units: units
   };
 }
 
@@ -229,11 +527,35 @@ function buildBindings() {
   };
 }
 
+/* ------------------------------------------------------------------ glossary */
+// The Definitions screen keeps its entries as Kotlin literals
+// (private val glossaryEntries = listOf(GlossaryEntry("AFM", "Aircraft Flight Manual", "…"))).
+function buildGlossary() {
+  const file = findKotlin("glossary");
+  if (!file) {
+    console.warn("  (glossary skipped: GlossaryScreen.kt not found — pass --kotlin <dir> or use the full repo)");
+    return null;
+  }
+  const source = fs.readFileSync(file, "utf8");
+  const listStart = source.indexOf("glossaryEntries = listOf(");
+  const body = listStart === -1 ? source : source.slice(listStart);
+  const entries = kotlinCallStrings(body, "GlossaryEntry")
+    .filter((strings) => strings.length === 3)
+    .map((strings) => ({ acronym: strings[0], definition: strings[1], note: strings[2] }));
+  return {
+    id: "glossary",
+    source: "DHC-6-Trainer feature-knowledge …/ui/screens/GlossaryScreen.kt",
+    count: entries.length,
+    entries: entries
+  };
+}
+
 /* ----------------------------------------------------------------------- main */
 function main() {
   const packs = Object.assign({}, buildProcedures());
   packs.flashcards = buildFlashcards();
   packs["quiz-bank"] = passthrough("quiz-bank", "quizzes/quiz_bank.json");
+  packs["knowledge-pool"] = buildKnowledgePool();
   packs.limitations = passthrough("limitations", "limitations/dhc6_limitations.json");
   packs.mel = passthrough("mel", "mel/dhc6_mel_reference.json");
   packs.performance = {
@@ -247,6 +569,8 @@ function main() {
   packs["maldives-strips"] = passthrough("maldives-strips", "strips/maldives_strips.json");
   packs["scenario-snapshots"] = passthrough("scenario-snapshots", "scenario_snapshots.json");
   packs["canonical-items"] = passthrough("canonical-items", "procedures/canonical/canonical_items.json");
+  const glossary = buildGlossary();
+  if (glossary) packs.glossary = glossary;
 
   fs.mkdirSync(path.join(outDir, "packs"), { recursive: true });
   const manifestPacks = [];

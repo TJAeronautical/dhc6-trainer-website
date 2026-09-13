@@ -1,6 +1,6 @@
 # DHC-6 Trainer web app — access model, security hardening and operations
 
-_Branch `feature/web-app-secure-shell` · September 2026_
+_Branches `feature/web-app-secure-shell` (phase 1, merged) and `feature/web-app-phase2-android-parity` · September 2026_
 
 ## 1. What changed and why
 
@@ -70,7 +70,14 @@ node tools/build-content.mjs --android "C:\Android Studio\DHC-6-Trainer" --out b
 npx wrangler kv bulk put build\content\kv-bulk.json --binding LICENSES --remote
 ```
 
-The build prints every pack and a manifest version (`YYYYMMDD-<hash>`). Re-run both commands whenever `core-res/src/main/assets` changes. To use the dedicated namespace instead: `--binding WEB_CONTENT`.
+The build prints every pack and a manifest version (`YYYYMMDD-<hash>`). Re-run both commands whenever
+`core-res/src/main/assets` **or** the Kotlin sources it reads (`ProcedureSortOrder.kt`, `ProcedureLibraryScreen.kt`,
+`GlossaryScreen.kt`) change. The Kotlin files are located automatically inside the module tree; pass
+`--kotlin "C:\Android Studio\DHC-6-Trainer\_web_export"` if you only have the flattened export. To use the dedicated
+namespace instead: `--binding WEB_CONTENT`.
+
+**Phase 2 requires a republish** — the app reads the new `glossary` and `knowledge-pool` packs and the new
+`procedureName` / `displayTitle` / `compiledId` / `qrhRank` / `normalBucket` fields on every procedure.
 
 Packs produced (all derived 1:1 from `core-res/src/main/assets`):
 
@@ -78,8 +85,10 @@ Packs produced (all derived 1:1 from `core-res/src/main/assets`):
 | --- | --- | --- |
 | `procedures-index` | `procedures/**` + `procedure_bindings_normal.json` + `canonical_phases.json` | QRH categories, checklist lists, drills |
 | `procedures-normal` / `-abnormal` / `-emergency` | `procedures/<category>/*.json` (memory + PF/PM flow, LEGACY/G950) | Procedure screens |
-| `flashcards` | `flashcards/*.json` (15 decks, 177 cards) | Flashcards |
-| `quiz-bank` | `quizzes/quiz_bank.json` (69 questions) | Drill |
+| `flashcards` | `flashcards/*.json` (13 decks that satisfy the Android `FlashcardDeck` model, 157 cards) | Study Card Review |
+| `knowledge-pool` | flashcards mapped like `BundledFlashcardSeeder` + `quizzes/quiz_bank.json` (226 STATUS:CANDIDATE units) | Quizzes, SRS study, search |
+| `glossary` | `GlossaryScreen.kt` literals (32 entries) | Definitions |
+| `quiz-bank` | `quizzes/quiz_bank.json` (69 questions) | reference copy |
 | `limitations` | `limitations/dhc6_limitations.json` | Limitations |
 | `mel` | `mel/dhc6_mel_reference.json` | MEL |
 | `performance` | `performance/dhc6_performance_tables.json` + `calculators/dhc6_calc_data.json` | Performance, Fuel, W&B |
@@ -98,6 +107,10 @@ Open `http://127.0.0.1:8788/web-app.html` and sign in with `pilot@example.com` /
 
 ## 6. Verification checklist
 
-- `npm test` — 41 tests: sessions (valid / expired / malformed / tampered / revoked / legacy v1), owner flow (non-owner email never reaches Firebase, unverified email rejected), email-link flow (enumeration-safe), protected content (anonymous, lapsed, dedicated namespace), Worker gate (redirects, no-store, deep links, public assets), billing status masking, portal credentials, service-worker bypass + cache clearing, content build from a synthetic fixture, HTML links/ids/imagery labelling.
-- Browser walkthrough (Playwright, phone 390×844 / tablet 820×1180 / desktop 1440×900): sign-in → home → QRH → category → procedure → checklists → drill → flashcards → limitations → MEL → performance → fuel → settings → sign-out → `/app/` redirects back to sign-in. No page errors.
+- `npm test` — 57 tests (phase 2 adds `tests/app-logic.test.mjs` for the ported Kotlin logic — title formatting, variant
+  materialisation, QRH ordering, drill scoring, quiz distractors, bilinear performance interpolation, fuel / W&B arithmetic,
+  SM-2 scheduling, dashboard insights — and a Kotlin-fixture build test). Phase 1 coverage: sessions (valid / expired / malformed / tampered / revoked / legacy v1), owner flow (non-owner email never reaches Firebase, unverified email rejected), email-link flow (enumeration-safe), protected content (anonymous, lapsed, dedicated namespace), Worker gate (redirects, no-store, deep links, public assets), billing status masking, portal credentials, service-worker bypass + cache clearing, content build from a synthetic fixture, HTML links/ids/imagery labelling.
+- Browser walkthrough (`tools/playwright-walkthrough.mjs`, phone 390×844 / tablet 820×1180 / desktop 1440×900): every route,
+  an emergency drill (MEMORY 8/8 → FLOW 20/20 → SUMMARY), a 5-question quiz saved to the logbook, PROCS filters + search focus,
+  sign-out → `/app/` redirects to sign-in. No page errors.
 - Production: **not deployed by this branch.** After merge, confirm `https://dhc6trainer.com/app/` returns `302 → /web-app.html?status=signin-required` when signed out, and `200` with `Cache-Control: private, no-store` when signed in.
