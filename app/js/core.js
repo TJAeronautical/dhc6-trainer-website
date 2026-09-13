@@ -3,7 +3,7 @@
   DOM helpers, persistent local state, protected-content client, router.
 */
 
-export const APP_VERSION = "web-0.4.0";
+export const APP_VERSION = "web-0.5.0";
 const STATE_KEY = "dhc6.app.v1";
 const DB_NAME = "dhc6-protected-content";
 const DB_STORE = "packs";
@@ -209,6 +209,7 @@ class ContentClient {
     this.pending = new Map();
     this.offline = false;
     this.listeners = [];
+    this.mediaIndex = null;
   }
   onChange(fn) { this.listeners.push(fn); }
   emit() { const self = this; this.listeners.forEach(function (fn) { fn(self); }); }
@@ -232,6 +233,31 @@ class ContentClient {
     }
     this.emit();
     return this.manifest;
+  }
+
+  /* /api/media/index — which protected media objects (3D models, posters) are published. */
+  async loadMediaIndex() {
+    try {
+      const response = await fetch("/api/media/index", { credentials: "same-origin", cache: "no-store" });
+      if (response.status === 401 || response.status === 403) {
+        const error = new Error("session_invalid"); error.status = response.status; throw error;
+      }
+      if (!response.ok) throw new Error("media_index_unavailable");
+      const index = await response.json();
+      this.mediaIndex = index;
+      await dbPut({ id: "media-index", version: index.version || "none", data: index, storedAt: Date.now() });
+    } catch (error) {
+      if (error && (error.status === 401 || error.status === 403)) throw error;
+      const cached = await dbGet("media-index");
+      this.mediaIndex = cached && cached.data ? cached.data : null;
+    }
+    this.emit();
+    return this.mediaIndex;
+  }
+
+  hasMedia(mediaPath) {
+    if (!this.mediaIndex || !this.mediaIndex.published) return null;
+    return (this.mediaIndex.items || []).some(function (i) { return i.path === mediaPath; });
   }
 
   hasPack(id) {
@@ -350,7 +376,7 @@ export const FEATURES = [
   { id: "oral-exam", title: "Oral Exam - Premium", route: "#/training/oral-exam", status: "later", desc: "AI examiner (needs a web-session-gated proxy for /api/ai/oral-exam)." },
   { id: "crm", title: "CRM Drill", route: "#/training/crm-drill", status: "later", desc: "PM/PF coordination and challenge-response drill (CrmDrillScreen)." },
   { id: "systems", title: "Systems", route: "#/systems/home", status: "later", desc: "2D system diagrams, PNG references and notes. Needs the systems imagery in R2." },
-  { id: "technical-lab", title: "Technical Lab", route: "#/systems/lab", status: "later", desc: "3D model lab (PT6, propeller, hydraulic pack, variants)." },
+  { id: "technical-lab", title: "Technical Lab", route: "#/systems/lab", status: "available", desc: "Systems Lab: aircraft explorer, 21 reference-library / Android 3D models (PT6A-27, governor, fuel, hydraulics, flap, gear, …) with pins, live readout, faults and notes (SystemsLabHomeScreen / SystemsLabSection). Models stream from the protected media store." },
   { id: "library", title: "Library", route: "#/library/home", status: "partial", desc: "Read-only Library hub. Sources, Import and Published content need document storage (R2)." },
   { id: "import", title: "Import", route: "#/library/import", status: "later", desc: "Protected document import for authoring accounts (app-only)." },
   { id: "settings", title: "Settings", route: "#/settings", status: "available", desc: "Account, plan, display, audio, cockpit variant (SettingsScreen)." }

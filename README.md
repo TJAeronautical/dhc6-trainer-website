@@ -24,10 +24,11 @@ The browser edition of the Android app lives under `app/` and is served only to 
 
 ```bash
 node tools/build-content.mjs --android "C:\Android Studio\DHC-6-Trainer" --out build/content
-node tools/dev-server.mjs --port 8788 --kv build/content/kv-bulk.json
+node tools/build-media.mjs --reference "C:\Android Studio\DHC6_REFERENCE_LIBRARY\System-Lab" --android "C:\Android Studio\DHC-6-Trainer" --out build/media
+node tools/dev-server.mjs --port 8788 --kv build/content/kv-bulk.json --media-kv build/media/kv-media-index.json --media-dir "C:\Android Studio\DHC6_REFERENCE_LIBRARY\System-Lab;C:\Android Studio\DHC-6-Trainer\core-res\src\main\assets\models\systems_lab\models"
 ```
 
-Open `http://127.0.0.1:8788/web-app.html` (dev licence `pilot@example.com` / `DHC6-TEST-TEST-TEST`). `node tools/playwright-walkthrough.mjs` (needs `npm i -D playwright`) drives every app screen at phone/tablet/desktop sizes against the dev server. The plain static site can still be previewed with `python -m http.server 8080`, but API routes and the gated app need the dev server or `wrangler dev`.
+Open `http://127.0.0.1:8788/web-app.html` (dev licence `pilot@example.com` / `DHC6-TEST-TEST-TEST`). `node tools/playwright-walkthrough.mjs` (needs `npm i -D playwright`) drives every app screen at phone/tablet/desktop sizes against the dev server; `node tools/playwright-lab.mjs` does the same for the Technical Lab 3D models. The plain static site can still be previewed with `python -m http.server 8080`, but API routes and the gated app need the dev server or `wrangler dev`.
 
 ## Test
 

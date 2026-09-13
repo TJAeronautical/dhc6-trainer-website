@@ -3,9 +3,10 @@
   Minimal local dev server that runs worker.js with in-memory bindings —
   no Cloudflare account or network needed.
 
-    node tools/dev-server.mjs --port 8788 --kv build/content/kv-bulk.json
+    node tools/dev-server.mjs --port 8788 --kv build/content/kv-bulk.json ^
+        --media-kv build/media/kv-media-index.json --media-dir "C:\Android Studio\DHC6_REFERENCE_LIBRARY\System-Lab"
 
-  Seeds LICENSES with the given wrangler bulk file plus a development licence:
+  Seeds LICENSES with the given wrangler bulk file(s) plus a development licence:
     email pilot@example.com · key DHC6-TEST-TEST-TEST
   Secrets come from .dev.vars when present (LICENSE_SIGNING_SECRET etc.).
   The Secure cookie flag is stripped so http://127.0.0.1 works in a browser.
@@ -29,12 +30,49 @@ if (fs.existsSync(path.join(root, ".dev.vars"))) {
 }
 
 const kv = new Map();
-const seed = arg("kv", "");
-if (seed && fs.existsSync(seed)) for (const entry of JSON.parse(fs.readFileSync(seed, "utf8"))) kv.set(entry.key, entry.value);
+for (const seed of [arg("kv", ""), arg("media-kv", "")]) {
+  if (seed && fs.existsSync(seed)) for (const entry of JSON.parse(fs.readFileSync(seed, "utf8"))) kv.set(entry.key, entry.value);
+}
+/* In-memory R2 double for WEB_MEDIA: objects are read lazily from --media-dir
+   (one or more directories, ";"-separated) by file name under webmedia/models/systems-lab/. */
+const mediaDirs = String(arg("media-dir", "")).split(";").map((d) => d.trim()).filter(Boolean);
+function mediaFile(key) {
+  const name = key.split("/").pop();
+  for (const dir of mediaDirs) { const f = path.join(dir, name); if (fs.existsSync(f)) return f; }
+  return null;
+}
+if (mediaDirs.length) {
+  env.WEB_MEDIA = {
+    async head(key) { const f = mediaFile(key); if (!f) return null; const st = fs.statSync(f); return { key, size: st.size, etag: "dev-" + st.size, httpEtag: '"dev-' + st.size + '"', httpMetadata: { contentType: "model/gltf-binary" } }; },
+    async get(key, options) {
+      const f = mediaFile(key); if (!f) return null;
+      const st = fs.statSync(f);
+      let start = 0; let end = st.size - 1;
+      if (options && options.range) { start = options.range.offset || 0; end = options.range.length ? start + options.range.length - 1 : end; }
+      const body = fs.createReadStream(f, { start, end });
+      const stream = new ReadableStream({ start(controller) { body.on("data", (c) => controller.enqueue(new Uint8Array(c))); body.on("end", () => controller.close()); body.on("error", (e) => controller.error(e)); } });
+      return { key, size: st.size, etag: "dev-" + st.size, httpEtag: '"dev-' + st.size + '"', httpMetadata: { contentType: "model/gltf-binary" }, body: stream, range: options && options.range ? { offset: start, length: end - start + 1 } : undefined };
+    }
+  };
+}
 const devLicense = { key: "DHC6-TEST-TEST-TEST", email: "pilot@example.com", status: "active", plan: "premium_annual", subscriptionId: "sub_dev", customerId: "ctm_dev", createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-01-01T00:00:00Z", expiresAt: "2099-01-01T00:00:00Z", activationLimit: 3, activations: [] };
 kv.set("license:" + devLicense.key, JSON.stringify(devLicense));
 kv.set("email:" + devLicense.email, devLicense.key);
-env.LICENSES = { async get(k) { return kv.has(k) ? kv.get(k) : null; }, async put(k, v) { kv.set(k, String(v)); }, async delete(k) { kv.delete(k); } };
+const expiry = new Map(); // honour expirationTtl so rate-limit counters expire like real KV
+env.LICENSES = {
+  async get(k, type) {
+    if (expiry.has(k) && expiry.get(k) < Date.now()) { kv.delete(k); expiry.delete(k); }
+    if (!kv.has(k)) return null;
+    const v = kv.get(k);
+    if (type === "arrayBuffer") return v instanceof Uint8Array ? v.buffer.slice(v.byteOffset, v.byteOffset + v.byteLength) : new TextEncoder().encode(String(v)).buffer;
+    return v instanceof Uint8Array ? new TextDecoder().decode(v) : v;
+  },
+  async put(k, v, options) {
+    kv.set(k, v instanceof ArrayBuffer ? new Uint8Array(v) : v instanceof Uint8Array ? v : String(v));
+    if (options && options.expirationTtl) expiry.set(k, Date.now() + options.expirationTtl * 1000); else expiry.delete(k);
+  },
+  async delete(k) { kv.delete(k); expiry.delete(k); }
+};
 
 const types = { ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".mjs": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8", ".json": "application/json", ".webmanifest": "application/manifest+json", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".webp": "image/webp", ".svg": "image/svg+xml", ".ico": "image/x-icon", ".txt": "text/plain", ".xml": "application/xml" };
 env.ASSETS = {

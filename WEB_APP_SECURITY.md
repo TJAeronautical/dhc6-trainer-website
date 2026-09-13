@@ -96,21 +96,69 @@ Packs produced (all derived 1:1 from `core-res/src/main/assets`):
 | `maldives-strips` | `strips/maldives_strips.json` | Maldives Strips |
 | `cockpit-bindings`, `scenario-snapshots`, `canonical-items` | `bindings/*`, `scenario_snapshots.json`, `canonical_items.json` | Reserved for the Aircraft State / cockpit phase |
 
+**Phase 3 requires a republish** — the app reads the new `systems-lab` pack (Technical Lab definitions + GLB registry).
+`build-content.mjs` now also needs `SystemsLabSection.kt`, `SystemsLabHomeScreen.kt` and `AircraftSystem.kt`
+(found automatically in the module tree or via `--kotlin`).
+
+### 4b. Publishing protected media (3D models) — owner only
+
+Binary training media (the Technical Lab GLB models today; posters and cockpit plates next) is served only through
+`GET /api/media/<path>` (`functions/api/media/`), which runs the same `authorizeWebRequest` session check as
+`/api/content`, answers `Cache-Control: private, no-store` + `Vary: Cookie, Authorization, Range`, supports `HEAD`,
+`Range` (206) and `If-None-Match` (304), validates the path against an extension allow-list and rejects traversal.
+Models are never committed to this repository and never placed under the public assets directory (`npm test` fails
+if a `.glb` appears anywhere in the tree).
+
+Storage: the Worker reads R2 first (binding `WEB_MEDIA`, object key `webmedia/<path>`) and falls back to KV
+(`webmedia:blob:<path>`, raw bytes) so small images can be published with `kv bulk put` without a new binding.
+The two largest models (75 MB engine, 28 MB undercarriage) exceed the 25 MiB KV value limit, so the model set
+lives in R2:
+
+```powershell
+cd "C:\Android Studio\dhc6-trainer-website"
+npx wrangler r2 bucket create dhc6-web-media          # once — must exist BEFORE the phase-3 Worker deploys
+node tools/build-media.mjs --reference "C:\Android Studio\DHC6_REFERENCE_LIBRARY\System-Lab" --android "C:\Android Studio\DHC-6-Trainer" --out build\media
+powershell -ExecutionPolicy Bypass -File build\media\upload-media.ps1   # 21 × wrangler r2 object put … --remote (~180 MB)
+npx wrangler kv bulk put build\media\kv-media-index.json --binding LICENSES --remote   # publishes webmedia:index
+```
+
+`build-media.mjs` verifies every file's SHA-256 against `tools/data/systems-lab-models.json` (the registry that maps
+GLB node names onto the Android `LabPart` ids) and warns when a file was re-exported. The app shows a model as
+"not published" until `webmedia:index` lists it.
+
+Client-side: `app/js/lab3d.js` downloads a model once (progress bar; files above 12 MB need an explicit tap) and keeps
+it in the Cache API store `dhc6-media-v1` tagged with the registry hash. `subscriber-gate.js` already deletes every
+`/api/` entry from every cache on sign-out or entitlement lapse, so models leave the device with the session; the
+service worker never sees `/api/media`. The renderer (`app/vendor/three-lab.js`, three.js r170) is a public library
+file and carries no content.
+
 ## 5. Local development without Cloudflare
 
 ```powershell
 node tools/build-content.mjs --android "C:\Android Studio\DHC-6-Trainer" --out build\content
-node tools/dev-server.mjs --port 8788 --kv build\content\kv-bulk.json
+node tools/build-media.mjs --reference "C:\Android Studio\DHC6_REFERENCE_LIBRARY\System-Lab" --android "C:\Android Studio\DHC-6-Trainer" --out build\media
+node tools/dev-server.mjs --port 8788 --kv build\content\kv-bulk.json --media-kv build\media\kv-media-index.json --media-dir "C:\Android Studio\DHC6_REFERENCE_LIBRARY\System-Lab;C:\Android Studio\DHC-6-Trainer\core-res\src\main\assets\models\systems_lab\models"
 ```
+
+The dev server serves the models from those folders through an in-memory `WEB_MEDIA` double, so the Technical Lab
+works offline; `node tools/playwright-lab.mjs` drives every lab system (including the 75 MB engine) in headless Chromium.
 
 Open `http://127.0.0.1:8788/web-app.html` and sign in with `pilot@example.com` / `DHC6-TEST-TEST-TEST`. Owner sign-in and email links need real Firebase credentials in `.dev.vars` (git-ignored).
 
 ## 6. Verification checklist
 
-- `npm test` — 57 tests (phase 2 adds `tests/app-logic.test.mjs` for the ported Kotlin logic — title formatting, variant
+- `npm test` — 73 tests (phase 3 adds `tests/protected-media.test.mjs` — anonymous / malformed / expired / revoked /
+  lapsed sessions, R2 streaming with `private, no-store`, ETag, HEAD, 206 ranges, 416, traversal and type rejection,
+  KV fallback and R2 precedence, Worker routing — `tests/systems-lab.test.mjs` — node-selector semantics, registry
+  integrity, the Kotlin reader, the `systems-lab` pack build from fixtures, the `labSimulation` port, lever labels,
+  QRH routing, pins and clip groups — plus service-worker bypass of `/api/media` and a repo scan that fails when a
+  `.glb` is committed. Phase 2 added `tests/app-logic.test.mjs` for the ported Kotlin logic — title formatting, variant
   materialisation, QRH ordering, drill scoring, quiz distractors, bilinear performance interpolation, fuel / W&B arithmetic,
   SM-2 scheduling, dashboard insights — and a Kotlin-fixture build test). Phase 1 coverage: sessions (valid / expired / malformed / tampered / revoked / legacy v1), owner flow (non-owner email never reaches Firebase, unverified email rejected), email-link flow (enumeration-safe), protected content (anonymous, lapsed, dedicated namespace), Worker gate (redirects, no-store, deep links, public assets), billing status masking, portal credentials, service-worker bypass + cache clearing, content build from a synthetic fixture, HTML links/ids/imagery labelling.
 - Browser walkthrough (`tools/playwright-walkthrough.mjs`, phone 390×844 / tablet 820×1180 / desktop 1440×900): every route,
   an emergency drill (MEMORY 8/8 → FLOW 20/20 → SUMMARY), a 5-question quiz saved to the logbook, PROCS filters + search focus,
   sign-out → `/app/` redirects to sign-in. No page errors.
+- Technical Lab walkthrough (`tools/playwright-lab.mjs`, software WebGL): explorer with 7 hotspots, all 16 lab systems
+  loaded (21 models incl. the 75 MB engine), pins, animation groups, fault mode + readouts, a saved note, 15 models
+  in the Cache API before sign-out and 0 `/api/media` entries after it. No page errors.
 - Production: **not deployed by this branch.** After merge, confirm `https://dhc6trainer.com/app/` returns `302 → /web-app.html?status=signin-required` when signed out, and `200` with `Cache-Control: private, no-store` when signed in.

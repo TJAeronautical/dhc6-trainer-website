@@ -13,6 +13,7 @@ import { procedureLibrary, procedureDetail, qrhHub, qrhList } from "./js/screens
 import { studyHome, definitions, srsStudy, deckBrowser, limitations, melReference, aerodromes, casLibrary, knowledgeSearch } from "./js/screens/study.js";
 import { quizHome, quizRun, performanceCalc, fuelPlan, weightBalance, logbook, laterTraining } from "./js/screens/training.js";
 import { aircraftState, libraryHub, laterScreen, settings } from "./js/screens/misc.js";
+import { systemsLabHome, systemsLabDetail } from "./js/screens/systemslab.js";
 
 const view = document.getElementById("view");
 const topbarTitle = document.getElementById("topbar-title");
@@ -47,7 +48,8 @@ route("/library/sources", laterScreen("library", "Source documents (manuals, imp
 route("/library/import", laterScreen("import", "Import runs the on-device extraction pipeline and writes to the app's Room database; it is an authoring tool for the owner/instructor accounts and is not planned for the browser edition."));
 route("/library/published", laterScreen("library", "Published library content will be served from R2 behind the subscriber session once the document decision is made."));
 route("/systems/home", laterScreen("systems", "System descriptions are authored under core-res/assets/systems (50 files, 26 MB of PNG diagrams). The JSON schema is ready; the imagery needs an R2 bucket before this screen can be enabled."));
-route("/systems/lab", laterScreen("technical-lab", "The Technical Lab needs the GLB models (204 MB) served from R2 plus a WebGL viewer. Scheduled for phase 7."));
+route("/systems/lab", systemsLabHome);
+route("/systems/lab/:system", systemsLabDetail);
 route("/quizzes", quizHome);
 route("/quizzes/run/:variant/:length", quizRun);
 route("/study/srs", srsStudy);
@@ -185,6 +187,9 @@ async function render() {
   if (!found) { navigate("/dashboard", true); return; }
   view.setAttribute("aria-busy", "true");
   const ctx = Object.assign({}, ctxBase, { params: found.params, query: parsed.query, path: parsed.path });
+  // Screens holding live resources (WebGL viewers, timers) release them before
+  // the next screen is built.
+  document.dispatchEvent(new CustomEvent("dhc6:view-unmount"));
   try {
     const node = await found.entry.handler(ctx);
     if (token !== renderToken) return;
@@ -221,6 +226,7 @@ Content.loadManifest().catch(function (error) {
 }).then(function () {
   if (!window.location.hash) navigate(Store.get("lastRoute") || "/dashboard", true);
   render();
+  Content.loadMediaIndex().catch(function () {});
 });
 
 window.addEventListener("hashchange", render);
