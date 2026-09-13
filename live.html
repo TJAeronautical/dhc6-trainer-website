@@ -292,12 +292,12 @@
   <!-- AIRCRAFT SIM PREVIEW -->
   <div class="trainer-mod" id="mod-engine3d">
     <div class="panel">
-      <span class="tag">Desktop app simulator &middot; DHC-6 free flight</span>
-      <h2>DHC-6 aircraft simulator preview</h2>
-      <p class="muted-sm">This mirrors the installed desktop app surface: DHC-6 aircraft focus, camera modes, cockpit drill context, and live training state. The full flyable 3D scene runs in the desktop app after purchase.</p>
+      <span class="tag">DHC-6 Trainer &middot; live training surfaces</span>
+      <h2>Inside the DHC-6 Trainer</h2>
+      <p class="muted-sm">Captures from the trainer as it runs today: the cockpit flow drill, the 3D model workspace and the pinned system diagrams. The full flyable 3D scene remains a desktop-app feature.</p>
       <div class="app-sim-grid">
         <div class="app-sim-screen">
-          <img class="app-sim-shot" id="aircraft-sim-shot" src="assets/screenshots/aircraft-focus-snapshot.webp" alt="Concept illustration of the aircraft simulator preview (design mock-up, not an app screenshot)">
+          <img class="app-sim-shot" id="aircraft-sim-shot" src="assets/screenshots/web-drill-runner.webp" alt="DHC-6 Trainer flow drill running on the cockpit, with the QRH card and the fire handles highlighted">
           <div class="app-sim-overlay"></div>
           <div class="flight-badges" id="aircraft-sim-badges"></div>
           <div class="instrument-strip" id="aircraft-sim-instruments"></div>
@@ -306,11 +306,11 @@
           <div class="dark-panel">
             <span class="tag" style="margin-bottom:8px">App-aligned views</span>
             <h3 id="aircraft-sim-title">Cockpit focus</h3>
-            <p id="aircraft-sim-copy" style="font-size:.9rem">The web trainer now uses the same DHC-6 training surfaces as the desktop app, instead of the old placeholder engine cylinders.</p>
+            <p id="aircraft-sim-copy" style="font-size:.9rem">The flow drill runs against the real cockpit. Memory items and crew-flow steps highlight the control each step expects, and the drill will not advance until it is set.</p>
             <div class="camera-buttons" aria-label="Simulator preview views">
-              <button class="btn ghost" data-sim-view="cockpit" aria-pressed="true">Cockpit focus</button>
-              <button class="btn ghost" data-sim-view="aircraft" aria-pressed="false">3D viewer</button>
-              <button class="btn ghost" data-sim-view="state" aria-pressed="false">State trainer</button>
+              <button class="btn ghost" data-sim-view="cockpit" aria-pressed="true">Cockpit drill</button>
+              <button class="btn ghost" data-sim-view="aircraft" aria-pressed="false">3D models</button>
+              <button class="btn ghost" data-sim-view="state" aria-pressed="false">System diagrams</button>
             </div>
           </div>
           <div class="dark-panel">
@@ -747,25 +747,28 @@ $("lb-clear").addEventListener("click",function(){Store.clear();renderLogbook();
 var aircraftSimView="cockpit";
 var AIRCRAFT_SIM_VIEWS={
   cockpit:{
-    title:"Cockpit focus",
-    image:"assets/screenshots/aircraft-focus-snapshot.webp",
-    copy:"Matches the desktop app training surface: DHC-6 cockpit focus with procedure state, callouts, and the same training context as the installed simulator.",
-    badges:["COCKPIT FOCUS","FREE FLIGHT","ENG FIRE DRILL"],
-    instruments:["IAS 82 kt","ALT 1,500 ft","TRQ 50 PSI","FLAP 10"]
+    title:"Cockpit flow drill",
+    image:"assets/screenshots/web-drill-runner.webp",
+    alt:"DHC-6 Trainer flow drill running on the cockpit, with the QRH card and the fire handles highlighted",
+    copy:"The flow drill runs against the real cockpit. Memory items and crew-flow steps highlight the control each step expects, and the drill will not advance until it is set.",
+    badges:["FLOW DRILL","ENGINE FIRE IN FLIGHT","CANONICAL COCKPIT"],
+    instruments:["Memory items","PF / PM callouts","Scored debrief"]
   },
   aircraft:{
-    title:"3D viewer",
-    image:"assets/screenshots/3d-viewer.webp",
-    copy:"Shows the desktop app's DHC-6 and engine viewer preview. The old website-only cylinder model has been removed so the web page no longer misrepresents the aircraft assets.",
-    badges:["APP 3D VIEWER","DHC-6 ASSETS","PINNED GROUPS"],
-    instruments:["Orbit camera","Zoom controls","Asset-linked notes"]
+    title:"3D model workspace",
+    image:"assets/screenshots/web-3d-model.webp",
+    alt:"DHC-6 Trainer 3D model workspace showing the 28 VDC electrical system with numbered component pins",
+    copy:"The Technical Lab loads the DHC-6 training models. Rotate, isolate a part or switch to wireframe, and use the numbered pins for the component note, the cockpit consequence and a study prompt.",
+    badges:["3D MODELS","NUMBERED PINS","ISOLATE / WIREFRAME"],
+    instruments:["Orbit camera","Part isolation","Pin-linked notes"]
   },
   state:{
-    title:"State trainer",
-    image:"assets/screenshots/aircraft-state.webp",
-    copy:"Uses the app-style before, during, and after training state flow so the website supports the same cockpit learning path as the desktop app.",
-    badges:["STATE SNAPSHOT","BEFORE / DURING / AFTER","8 TARGETS"],
-    instruments:["Power levers max","Prop levers fine","Engine checks"]
+    title:"Interactive system diagrams",
+    image:"assets/screenshots/web-systems-diagram.webp",
+    alt:"DHC-6 Trainer interactive 2D diagram of the PT6A powerplant cutaway with eight numbered component pins",
+    copy:"Systems study pins the authored component notes onto the reference drawings. Each pin carries the key fact, why it matters in the cockpit and an oral-exam prompt, referenced to the FCTM.",
+    badges:["PT6A CUTAWAY","8 COMPONENT PINS","FCTM REFERENCED"],
+    instruments:["Key fact","Cockpit consequence","Oral-exam prompt"]
   }
 };
 function renderAircraftSim(view){
@@ -774,7 +777,7 @@ function renderAircraftSim(view){
   var shot=$("aircraft-sim-shot");
   if(!shot)return;
   shot.src=cfg.image;
-  shot.alt="DHC-6 desktop app "+cfg.title+" simulator preview";
+  shot.alt=cfg.alt||("DHC-6 Trainer \u2014 "+cfg.title);
   $("aircraft-sim-title").textContent=cfg.title;
   $("aircraft-sim-copy").textContent=cfg.copy;
   $("aircraft-sim-badges").innerHTML=cfg.badges.map(function(b){return"<span>"+esc(b)+"</span>";}).join("");
