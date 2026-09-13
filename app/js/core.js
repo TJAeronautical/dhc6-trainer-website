@@ -3,7 +3,7 @@
   DOM helpers, persistent local state, protected-content client, router.
 */
 
-export const APP_VERSION = "web-0.5.0";
+export const APP_VERSION = "web-0.6.0";
 const STATE_KEY = "dhc6.app.v1";
 const DB_NAME = "dhc6-protected-content";
 const DB_STORE = "packs";
@@ -357,7 +357,7 @@ export const FEATURES = [
   { id: "procedures", title: "Procedures", route: "#/systems", status: "available", desc: "Procedure Library with search, category and normal-subsection filters, pins and drill launch (ProcedureLibraryScreen)." },
   { id: "procedure-detail", title: "Procedure detail + drill", route: "#/systems", status: "available", desc: "QRH detail (memory items / complete checklist) with the interactive MEMORY → FLOW → SUMMARY drill (QrhDetailScreen + ProcedureDrillPane)." },
   { id: "qrh", title: "QRH Checklist", route: "#/qrh", status: "available", desc: "QRH hub, category lists and checklist detail ordered exactly as the Android ProcedureSortOrder." },
-  { id: "aircraft-state", title: "Aircraft State", route: "#/live", status: "later", desc: "Free-play cockpit, scenario-linked MCC drills, resume state (CockpitHomeScreen). Needs cockpit imagery in R2 (phase 5)." },
+  { id: "aircraft-state", title: "Aircraft State", route: "#/live", status: "available", desc: "Aircraft State home, Day-to-Day Operations, scenario state preview, focus snapshot, free-play cockpit and the scenario/MCC drill runner (CockpitHomeScreen / ScenarioProceduresScreen / ScenarioStateScreen / FrozenSnapshotScreen / CockpitScreen / ScenarioDrillRunScreen). The canonical plate, sprites, gauges and CAS render from the protected media store." },
   { id: "study", title: "Study / Knowledge", route: "#/knowledge/home", status: "partial", desc: "Study home with Search, Library, Knowledge tiles (StudyHomeScreen)." },
   { id: "search", title: "Search", route: "#/knowledge/search", status: "partial", desc: "Searches bundled knowledge units, procedures and definitions. Published-library search comes with the Library phase." },
   { id: "flashcards", title: "Flashcard Study (SRS)", route: "#/study/srs", status: "available", desc: "SM-2 spaced repetition over the bundled knowledge pool (SrsStudyScreen)." },
@@ -374,7 +374,7 @@ export const FEATURES = [
   { id: "logbook", title: "Debrief Logbook", route: "#/training/logbook", status: "partial", desc: "Local drill and quiz attempts in this browser. Cloud sync with the Android logbook comes later." },
   { id: "readiness", title: "Check Ride Readiness", route: "#/training/competency-dashboard", status: "later", desc: "Drill currency, score trends and overdue procedures (CompetencyDashboardScreen)." },
   { id: "oral-exam", title: "Oral Exam - Premium", route: "#/training/oral-exam", status: "later", desc: "AI examiner (needs a web-session-gated proxy for /api/ai/oral-exam)." },
-  { id: "crm", title: "CRM Drill", route: "#/training/crm-drill", status: "later", desc: "PM/PF coordination and challenge-response drill (CrmDrillScreen)." },
+  { id: "crm", title: "CRM Drill", route: "#/training/crm-drill", status: "later", desc: "PM/PF coordination and challenge-response drill (CrmDrillScreen). The scenario MCC flow drill under AIRCRAFT already runs PF/PM crew-flow steps." },
   { id: "systems", title: "Systems", route: "#/systems/home", status: "later", desc: "2D system diagrams, PNG references and notes. Needs the systems imagery in R2." },
   { id: "technical-lab", title: "Technical Lab", route: "#/systems/lab", status: "available", desc: "Systems Lab: aircraft explorer, 21 reference-library / Android 3D models (PT6A-27, governor, fuel, hydraulics, flap, gear, …) with pins, live readout, faults and notes (SystemsLabHomeScreen / SystemsLabSection). Models stream from the protected media store." },
   { id: "library", title: "Library", route: "#/library/home", status: "partial", desc: "Read-only Library hub. Sources, Import and Published content need document storage (R2)." },
@@ -391,7 +391,7 @@ export function owningTab(path) {
   if (path === "/dashboard" || path === "/home") return "dashboard";
   if (path === "/systems" || path.startsWith("/procedures/") || path.startsWith("/systems/") || path === "/library/home" || path.startsWith("/library/") || path === "/quizzes" || path.startsWith("/quizzes/")) return "systems";
   if (path === "/training/logbook" || path.startsWith("/training/")) return "dashboard";
-  if (path === "/live" || path.startsWith("/live/") || path.startsWith("/scenario/") || path === "/cockpit" || path.startsWith("/cockpit/")) return "live";
+  if (path === "/live" || path.startsWith("/live/") || path.startsWith("/scenario/") || path.startsWith("/drill/") || path === "/cockpit" || path.startsWith("/cockpit/")) return "live";
   if (path === "/qrh" || path.startsWith("/qrh/")) return "qrh";
   if (path === "/settings" || path.startsWith("/settings")) return "settings";
   return "dashboard";

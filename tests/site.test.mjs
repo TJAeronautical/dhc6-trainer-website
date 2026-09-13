@@ -10,6 +10,8 @@ const htmlFiles = fs.readdirSync(root).filter((name) => name.endsWith(".html")).
 
 function localTarget(value, sourceFile) {
   if (!value || value.startsWith("#") || /^(?:https?:|mailto:|tel:|data:|javascript:|dhc6trainer:)/i.test(value)) return null;
+  // Worker/Pages Functions routes are served at runtime, not from the repo tree.
+  if (value.startsWith("/api/")) return null;
   const clean = value.split("#")[0].split("?")[0];
   if (!clean) return null;
   const base = clean.startsWith("/") ? root : path.dirname(path.join(root, sourceFile));
@@ -87,6 +89,99 @@ test("Technical Lab models are never shipped in the public repo and the viewer i
   for (const model of registry.models) assert.ok(fs.existsSync(path.join(root, "app", "vendor", "three-lab.js")), "viewer runtime present for " + model.id);
   const shellCss = fs.readFileSync(path.join(root, "app", "app.css"), "utf8");
   assert.match(shellCss, /scroll-padding-bottom/, "focused controls must not hide under the bottom navigation");
+});
+
+test("cockpit imagery is never committed to the public repo and only loads through the protected media API", () => {
+  function walk(dir, out) {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      if ([".git", "node_modules", "build", "_delivery", ".wrangler"].includes(entry.name)) continue;
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) walk(full, out); else out.push(full);
+    }
+    return out;
+  }
+  const files = walk(root, []);
+  const cockpitArt = files
+    .map((f) => path.relative(root, f).split(path.sep).join("/"))
+    .filter((rel) => /\.(png|webp|jpe?g)$/i.test(rel))
+    .filter((rel) => rel.split("/").includes("cockpit") || /(_base_clean|cockpit-atlas|cockpit_atlas|source_exact)/i.test(rel));
+  assert.deepEqual(cockpitArt, [], "cockpit plates, sprite atlases and source_exact art belong in R2, not in the public repo");
+  const tiles = files.map((f) => path.relative(root, f).split(path.sep).join("/")).filter((rel) => rel.startsWith("app/assets/tiles/"));
+  assert.ok(tiles.length > 0, "the small Android tile art stays bundled — it is not protected cockpit imagery");
+
+  const cockpit = fs.readFileSync(path.join(root, "app", "js", "cockpit.js"), "utf8");
+  assert.match(cockpit, /"\/api\/media\/"/, "the plate and atlas are fetched through the session-gated media API");
+  assert.doesNotMatch(cockpit, /r2\.cloudflarestorage|\.r2\.dev/, "no direct bucket URLs in the client");
+  assert.match(cockpit, /credentials: "same-origin"/);
+  assert.match(cockpit, /status === 401 \|\| response\.status === 403|401 \|\| response\.status === 403/, "a lost session is handled explicitly");
+  assert.match(cockpit, /caches\.delete\(MEDIA_CACHE_NAME\)/, "clearing the image cache also drops the on-disk protected copies");
+
+  const gate = fs.readFileSync(path.join(root, "assets", "js", "subscriber-gate.js"), "utf8");
+  assert.match(gate, /url\.pathname\.startsWith\("\/api\/"\)/, "sign-out clears every cached /api/media entry, cockpit imagery included");
+  const sw = fs.readFileSync(path.join(root, "sw.js"), "utf8");
+  assert.doesNotMatch(sw, /cockpit\//, "the service worker never precaches cockpit imagery");
+  assert.match(sw, /isProtectedRequest/);
+});
+
+test("the Aircraft State routes are registered and every cockpit screen it imports exists", () => {
+  const appJs = fs.readFileSync(path.join(root, "app", "app.js"), "utf8");
+  const routes = Array.from(appJs.matchAll(/route\("([^"]+)",\s*([A-Za-z0-9_]+)\)/g), (m) => [m[1], m[2]]);
+  const registered = new Map(routes);
+  for (const expected of ["/live", "/live/cockpit", "/live/procedures", "/scenario/select/:id", "/scenario/state/:id/:phase", "/scenario/focus/:id/:phase", "/scenario/run/:id/:phase", "/drill/run/:id"]) {
+    assert.ok(registered.has(expected), "missing Aircraft State route " + expected);
+  }
+  // every screen bound to a route must be imported from a file that exists and exports it
+  const imports = Array.from(appJs.matchAll(/import\s*\{([^}]+)\}\s*from\s*"([^"]+)"/g));
+  const provided = new Map();
+  for (const [, names, from] of imports) {
+    if (!from.startsWith("./")) continue;
+    const file = path.join(root, "app", from.replace(/^\.\//, ""));
+    assert.ok(fs.existsSync(file), "app.js imports a missing module: " + from);
+    const source = fs.readFileSync(file, "utf8");
+    for (const name of names.split(",").map((n) => n.trim().split(/\s+as\s+/).pop()).filter(Boolean)) {
+      if (new RegExp("export\\s+(?:async\\s+)?function\\s+" + name + "\\b").test(source) || new RegExp("export\\s+(?:const|let)\\s+" + name + "\\b").test(source)) provided.set(name, from);
+    }
+  }
+  for (const [route, handler] of routes) assert.ok(provided.has(handler), "route " + route + " points at an unexported handler: " + handler);
+
+  const core = fs.readFileSync(path.join(root, "app", "js", "core.js"), "utf8");
+  assert.match(core, /id: "aircraft-state"[^}]*status: "available"/, "the Aircraft State tile is no longer a COMING LATER stub");
+  for (const status of ["available", "partial", "later"]) assert.ok(core.includes('status: "' + status + '"'), "the tile status vocabulary stays intact: " + status);
+  const misc = fs.readFileSync(path.join(root, "app", "js", "screens", "misc.js"), "utf8");
+  assert.doesNotMatch(misc, /Aircraft State[\s\S]{0,200}Coming later/i, "the old Aircraft State placeholder is gone");
+});
+
+test("no tile art carries a stock-library watermark and every referenced tile exists", () => {
+  const tileDir = path.join(root, "app", "assets", "tiles");
+  const have = new Set(fs.readdirSync(tileDir).filter((f) => f.endsWith(".webp")).map((f) => f.replace(/\.webp$/, "")));
+  // procedure_tile_takeoff.webp was an unlicensed Getty Images comp with a visible
+  // watermark (and an A340, not a DHC-6). It must never come back.
+  assert.equal(have.has("procedure_tile_takeoff"), false, "procedure_tile_takeoff.webp is a watermarked stock comp and must stay deleted");
+
+  const referenced = new Set();
+  function walk(dir) {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (entry.name.endsWith(".js")) {
+        const source = fs.readFileSync(full, "utf8");
+        for (const m of source.matchAll(/"((?:procedure|dhc6)_[a-z0-9_]*tile[a-z0-9_]*|[a-z0-9_]*tile_[a-z0-9_]+)"/g)) referenced.add(m[1]);
+      }
+    }
+  }
+  walk(path.join(root, "app", "js"));
+  const missing = [...referenced].filter((name) => !have.has(name));
+  assert.deepEqual(missing, [], "tile art referenced by the app but not committed");
+});
+
+test("every cockpit screen keeps the training-support-only disclaimer", () => {
+  const common = fs.readFileSync(path.join(root, "app", "js", "screens", "cockpitcommon.js"), "utf8");
+  assert.match(common, /Training support only/);
+  assert.match(common, /AFM, QRH, MEL/);
+  for (const file of ["aircraftstate.js", "cockpitscreens.js"]) {
+    const source = fs.readFileSync(path.join(root, "app", "js", "screens", file), "utf8");
+    assert.match(source, /disclaimer\(\)/, file + " must render the disclaimer");
+  }
 });
 
 test("internal href and src references resolve", () => {

@@ -175,6 +175,41 @@ test("owners can read media and the index reports unpublished when nothing is st
   assert.deepEqual(await index.json(), { ok: true, published: false, items: [], version: null });
 });
 
+/* ------------------------------------------------------- cockpit imagery */
+test("cockpit plates, atlases and sprite sheets are session-gated like every other protected asset", async () => {
+  const env = envWithLicense();
+  const plate = bytes(4096, 11);
+  const atlas = bytes(2048, 5);
+  env.WEB_MEDIA = memoryR2({
+    [MEDIA_R2_PREFIX + "cockpit/legacy/plate.webp"]: { bytes: plate, contentType: "image/webp" },
+    [MEDIA_R2_PREFIX + "cockpit/legacy/atlas.webp"]: { bytes: atlas, contentType: "image/webp" }
+  });
+
+  assert.equal(normalizeMediaPath("cockpit/legacy/plate.webp"), "cockpit/legacy/plate.webp");
+  assert.equal(normalizeMediaPath("cockpit/g950/atlas.webp"), "cockpit/g950/atlas.webp");
+  assert.equal(normalizeMediaPath("cockpit/../worker.js"), null);
+
+  const anon = await media({ request: get("/api/media/cockpit/legacy/plate.webp"), env });
+  assert.equal(anon.status, 401, "the cockpit plate is never public");
+  assert.equal(anon.headers.get("Cache-Control"), "no-store");
+
+  const anonAtlas = await worker.fetch(new Request(ORIGIN + "/api/media/cockpit/legacy/atlas.webp"), Object.assign({ ASSETS: { fetch: async () => new Response("asset") } }, env), {});
+  assert.equal(anonAtlas.status, 401);
+
+  const cookie = await subscriberCookie();
+  const ok = await media({ request: get("/api/media/cockpit/legacy/plate.webp", { Cookie: cookie }), env });
+  assert.equal(ok.status, 200);
+  assert.equal(ok.headers.get("Content-Type"), "image/webp");
+  assert.equal(ok.headers.get("Cache-Control"), "private, no-store", "cockpit imagery must never reach a shared cache");
+  assert.match(ok.headers.get("Vary"), /Cookie/);
+  assert.equal(new Uint8Array(await ok.arrayBuffer()).byteLength, 4096);
+
+  const lapsedEnv = envWithLicense(activeLicense({ status: "canceled" }));
+  lapsedEnv.WEB_MEDIA = env.WEB_MEDIA;
+  const lapsed = await media({ request: get("/api/media/cockpit/legacy/plate.webp", { Cookie: await subscriberCookie() }), env: lapsedEnv });
+  assert.equal(lapsed.status, 403, "a lapsed entitlement loses the cockpit imagery too");
+});
+
 /* ---------------------------------------------------------------- worker */
 test("the Worker routes /api/media through the API middleware with the session gate", async () => {
   const env = envWithLicense();

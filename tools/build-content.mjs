@@ -587,6 +587,19 @@ function buildSystemsLab() {
   });
 }
 
+/* -------------------------------------------------------------- cockpit pack */
+// The cockpit plate geometry (hitboxes, sprite scales, atlas frames) is produced by
+// tools/build-cockpit.mjs, which also writes the imagery that build-media.mjs
+// uploads. It is a separate step because it needs the `sharp` image library.
+function readCockpitPack() {
+  const file = path.resolve(arg("cockpit-pack", "build/cockpit/cockpit-pack.json"));
+  if (!fs.existsSync(file)) {
+    console.warn("  (cockpit-plates skipped: " + file + " not found — run `node tools/build-cockpit.mjs --android <repo>` first)");
+    return null;
+  }
+  return JSON.parse(fs.readFileSync(file, "utf8"));
+}
+
 /* ----------------------------------------------------------------------- main */
 function main() {
   const packs = Object.assign({}, buildProcedures());
@@ -610,6 +623,8 @@ function main() {
   if (glossary) packs.glossary = glossary;
   const systemsLab = buildSystemsLab();
   if (systemsLab) packs["systems-lab"] = systemsLab;
+  const cockpit = readCockpitPack();
+  if (cockpit) packs["cockpit-plates"] = cockpit;
 
   fs.mkdirSync(path.join(outDir, "packs"), { recursive: true });
   const manifestPacks = [];

@@ -1,48 +1,9 @@
 /*
-  AIRCRAFT tab (CockpitHomeScreen — later), Library hub (LibraryHubScreen — read-only),
-  Systems / Technical Lab / Import placeholders, and SETTINGS (SettingsScreen).
+  Library hub (LibraryHubScreen — read-only), Systems / Import placeholders and
+  SETTINGS (SettingsScreen). The AIRCRAFT tab lives in screens/aircraftstate.js.
 */
 import { h, Store, Content, APP_VERSION, currentVariant, variantLabel, variantSubtitle, VARIANTS, feature, clearContentCache } from "../core.js";
-import { screen, blueCard, tile, libraryDivider, backBubble, bubble, statusPill, settingsSection, navCard, toggleCard, notice, ICONS, outlinedButton } from "../ui.js";
-
-/* ---------------------------------------------------------- Aircraft State */
-export async function aircraftState(ctx) {
-  ctx.setTopbar({ title: "Aircraft State", subtitle: "AIRCRAFT · scenario states and cockpit" });
-  const resume = Store.get("cockpitResume");
-  const f = feature("aircraft-state");
-  function entryCard(title, subtitle, art, status) {
-    return tile({ class: "hero card-row h-124", art: art, status: status }, [
-      h("div", { class: "grow stack-4" }, [h("div", { class: "t-title-m w-bold c-white", text: title }), h("div", { class: "t-body-s clamp-2", style: "color:rgba(255,255,255,.86)", text: subtitle })]),
-      h("span", { class: "btn small", style: "opacity:.6", text: "Open" })
-    ]);
-  }
-  return screen({ ariaLabel: "Aircraft State" }, [
-    blueCard([
-      h("div", { class: "row between" }, [h("div", { class: "t-title-l w-bold c-white", text: "Aircraft State" }), statusPill(f.status)]),
-      h("div", { class: "t-body-m mt-6", style: "color:rgba(255,255,255,.86)", text: "State-first workflows for free play, resumed preview, cockpit entry, and associated procedure state." }),
-      h("div", { class: "t-body-s c-sec mt-8", text: "Last state: " + (resume ? resume.label : "none saved") }),
-      h("div", { class: "equal-row gap-10 mt-10" }, [h("button", { class: "btn mat", type: "button", disabled: true, text: "Open Free Play" }), h("button", { class: "btn outlined small", type: "button", disabled: true, text: resume ? "Resume Last State" : "No Saved State" })])
-    ]),
-    blueCard([
-      h("div", { class: "t-title-m w-bold c-white", text: "State Entry" }),
-      h("div", { class: "t-body-s c-sec mt-4", text: "Choose a scenario-linked MCC drill path. Use PROCS on the bottom bar for procedure drills." }),
-      h("div", { class: "mt-10" }, entryCard("Scenario-linked Drills", "Pick a scenario phase, then continue into the MCC drill.", "procedure_tile_scenarios", "later"))
-    ]),
-    blueCard([
-      h("div", { class: "t-title-m w-bold c-white", text: "Related Paths" }),
-      h("div", { class: "t-body-s c-sec mt-4", text: "Use Debrief only for review and repeat actions after a run." }),
-      h("div", { class: "mt-10" }, tile({ class: "hero card-row h-124", art: "dhc6_tile_cockpit_panel", href: "#/training/logbook", status: feature("logbook").status }, [
-        h("div", { class: "grow stack-4" }, [h("div", { class: "t-title-m w-bold c-white", text: "Debrief Logbook" }), h("div", { class: "t-body-s clamp-2", style: "color:rgba(255,255,255,.86)", text: "Review completed attempts, recent outcomes, and repeat paths." })]),
-        h("span", { class: "btn small", text: "Open" })
-      ]))
-    ]),
-    blueCard([
-      h("div", { class: "t-title-m w-bold c-white", text: "Linked drill flow" }),
-      h("div", { class: "t-body-s c-sec mt-4", text: "Use this tab for free play, resume, and scenario-linked MCC drill entry. Procedure drills stay in PROCS on the bottom bar." })
-    ]),
-    notice("Why this is not live yet: the cockpit views need the 200 Legacy/G950 cockpit images (22 MB) and hit-box bindings served from R2 behind the subscriber session. The scenario-snapshot, cockpit-binding and canonical-item packs are already published; the imagery upload and the cockpit renderer are phase 5.", "warn")
-  ]);
-}
+import { screen, blueCard, libraryDivider, backBubble, bubble, statusPill, settingsSection, navCard, toggleCard, ICONS, outlinedButton } from "../ui.js";
 
 /* -------------------------------------------------------------- Library hub */
 export async function libraryHub(ctx) {

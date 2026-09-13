@@ -41,6 +41,8 @@ const androidRoot = arg("android", process.env.DHC6_ANDROID_REPO || "");
 const outDir = path.resolve(arg("out", "build/media"));
 const bucket = arg("bucket", "dhc6-web-media");
 const R2_PREFIX = "webmedia/";
+// Generated media (the cockpit plate + sprite atlas written by tools/build-cockpit.mjs).
+const extraMediaDir = path.resolve(arg("extra-media", "build/cockpit/media"));
 
 const registry = JSON.parse(fs.readFileSync(path.join(TOOLS_DIR, "data", "systems-lab-models.json"), "utf8"));
 
@@ -89,6 +91,32 @@ for (const model of registry.models) {
   sh.push("npx wrangler r2 object put '" + key + "' --file '" + file.replace(/'/g, "'\\''") + "' --content-type model/gltf-binary --remote");
 }
 
+/* Generated media: every file under --extra-media, published at its own relative path. */
+function walk(dir, base) {
+  if (!fs.existsSync(dir)) return [];
+  const out = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const abs = path.join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...walk(abs, base));
+    else out.push({ file: abs, mediaPath: path.relative(base, abs).split(path.sep).join("/") });
+  }
+  return out;
+}
+const CONTENT_TYPES = { ".webp": "image/webp", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".svg": "image/svg+xml", ".json": "application/json", ".pdf": "application/pdf", ".glb": "model/gltf-binary" };
+const extraFiles = walk(extraMediaDir, extraMediaDir);
+if (extraFiles.length) report.push("");
+for (const entry of extraFiles) {
+  const bytes = fs.statSync(entry.file).size;
+  const sha = sha256File(entry.file);
+  const contentType = CONTENT_TYPES[path.extname(entry.file).toLowerCase()] || "application/octet-stream";
+  totalBytes += bytes;
+  report.push("ok".padEnd(12) + entry.mediaPath.padEnd(48) + String(bytes).padStart(10) + "  " + entry.file);
+  items.push({ path: entry.mediaPath, bytes: bytes, sha256: sha, contentType: contentType, store: "r2", generated: true });
+  const key = bucket + "/" + R2_PREFIX + entry.mediaPath;
+  ps.push('npx wrangler r2 object put "' + key + '" --file "' + entry.file + '" --content-type ' + contentType + ' --remote');
+  sh.push("npx wrangler r2 object put '" + key + "' --file '" + entry.file.replace(/'/g, "'\\''") + "' --content-type " + contentType + " --remote");
+}
+
 const index = {
   version: new Date().toISOString().slice(0, 10).replace(/-/g, "") + "-" + crypto.createHash("sha256").update(items.map((i) => i.sha256).join("")).digest("hex").slice(0, 8),
   publishedAt: new Date().toISOString(),
@@ -102,9 +130,10 @@ ps.push("# Then publish the index: npx wrangler kv bulk put " + path.join(outDir
 sh.push("# Then publish the index: npx wrangler kv bulk put '" + path.join(outDir, "kv-media-index.json") + "' --binding LICENSES --remote");
 fs.writeFileSync(path.join(outDir, "upload-media.ps1"), ps.join("\r\n") + "\r\n");
 fs.writeFileSync(path.join(outDir, "upload-media.sh"), sh.join("\n") + "\n");
-report.unshift("Technical Lab media build — " + items.length + " of " + registry.models.length + " models found, " + (totalBytes / 1e6).toFixed(1) + " MB, index " + index.version);
+report.unshift("Protected media build — " + (items.length - extraFiles.length) + " of " + registry.models.length + " models + " + extraFiles.length + " generated file(s), " + (totalBytes / 1e6).toFixed(1) + " MB, index " + index.version);
 fs.writeFileSync(path.join(outDir, "media-report.txt"), report.join("\n") + "\n");
 console.log(report.join("\n"));
 if (missing) console.warn("\n" + missing + " model(s) missing — pass --reference and --android so every registry entry can be located.");
 if (mismatched) console.warn(mismatched + " model(s) differ from the registry hash — regenerate tools/data/systems-lab-models.json if the GLB files were re-exported.");
+if (!extraFiles.length) console.warn("No generated media found in " + extraMediaDir + " — run `node tools/build-cockpit.mjs --android <repo>` to produce the cockpit plate and atlas.");
 console.log("\nOutput → " + outDir);
