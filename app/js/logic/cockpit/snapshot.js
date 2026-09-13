@@ -8,7 +8,7 @@
 */
 import { humanizeKey, canonicalScenarioKey, canonicalVisualKey, canonicalVisualAliases, cockpitVisualKeys, isAnnunciatorVisualHost, visualKeysMatch } from "./keys.js";
 import { warmUp } from "./engine.js";
-import { evaluateFailures, resolveG950Cas, resolveLegacyAnnunciators, normalizeCas, LEGACY_STARTUP_PANEL_ANNUNCIATORS, G950_STARTUP_CAS_MESSAGES, LEGACY_ANNUNCIATOR_ID_MAP } from "./cas.js";
+import { evaluateFailures, resolveG950Cas, resolveLegacyAnnunciators, normalizeCas, casSpecFor, LEGACY_STARTUP_PANEL_ANNUNCIATORS, G950_STARTUP_CAS_MESSAGES, LEGACY_ANNUNCIATOR_ID_MAP } from "./cas.js";
 import { snapshotVariantKey, displayVariant, rectPx } from "./hitboxes.js";
 import { FLIGHT_IDLE_GATE_01 } from "./sprites.js";
 
@@ -443,10 +443,19 @@ export function snapshotVisualState(state, variant) {
   }
   const airGround = wow ? "GROUND" : "AIR";
   const explicit = {};
-  (state.annunciators || []).forEach(function (raw) {
-    const n = normalizeCas(raw, null, airGround);
+  /* parseSnapshot yields { id, level } entries — read the id, not the object. */
+  (state.annunciators || []).forEach(function (entry) {
+    const rawId = entry && typeof entry === "object" ? entry.id : entry;
+    if (!rawId) return;
+    const n = normalizeCas(rawId, null, airGround);
     if (isG950 && n.stableId === "AC_400_CYCLE") return;
-    explicit[n.stableId] = n;
+    /* The catalogue priority wins; a snapshot level only fills in for an id the
+       catalogue does not know (an operator-specific lamp). */
+    const level = entry && typeof entry === "object" ? String(entry.level || "").toUpperCase() : "";
+    const resolved = (!casSpecFor(n.stableId) && (level === "WARNING" || level === "CAUTION"))
+      ? Object.assign({}, n, { priority: level })
+      : n;
+    explicit[n.stableId] = resolved;
     if (derivedIds.indexOf(n.stableId) === -1) derivedIds.push(n.stableId);
   });
   const casEntries = derivedIds.map(function (id, i) {

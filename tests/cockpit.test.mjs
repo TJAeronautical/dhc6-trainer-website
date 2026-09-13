@@ -850,3 +850,30 @@ test("the saved override payload is in the shape the snapshot registry reads bac
   assert.equal(snapshotSwitchStates({ L_DC_GEN: "OFF" }).L_DC_GEN, "RIGHT", "canonical switch ids resolve as well as spaced labels");
   assert.equal(snapshotSwitchStates({ "Generator L": "OFF" }).L_DC_GEN, "RIGHT");
 });
+
+test("explicit snapshot annunciators light the right lamp (parsed entries are objects, not ids)", () => {
+  function lamps(annunciators, variant) {
+    const snapshot = parseSnapshot({ controls: { "Snapshot Annunciators Override": "ON" }, instruments: {}, annunciators: annunciators });
+    const visual = snapshotVisualState(snapshot, variant || "LEGACY");
+    return { lit: Object.keys(visual.annunciators).filter((k) => visual.annunciators[k]), cas: visual.casMessages };
+  }
+  // Regression: parseSnapshot yields { id, level } objects. Reading the object as an
+  // id produced the lamp "OBJECT_OBJECT", so nothing ever lit on the plate.
+  const genFail = lamps([{ id: "L_GEN_FAIL", level: "ON" }]);
+  assert.deepEqual(genFail.lit, ["MASTER_CAUTION", "L_GENERATOR"], "the CAS id maps onto the legacy lamp host");
+  assert.deepEqual(genFail.cas, ["L GEN FAIL"]);
+  assert.equal(genFail.lit.some((k) => /OBJECT/.test(k)), false);
+
+  assert.deepEqual(lamps([{ id: "L_GENERATOR", level: "CAUTION" }]).lit, ["MASTER_CAUTION", "L_GENERATOR"], "the legacy lamp id resolves too");
+  assert.deepEqual(lamps([{ id: "L_ENG_FIRE", level: "WARNING" }]).lit, ["MASTER_WARNING", "L_ENG_FIRE"]);
+  assert.deepEqual(lamps([{ id: "L_GEN_FAIL", level: "ON" }], "G950").lit, ["MASTER_CAUTION", "L_GEN_FAIL"], "the G950 plate uses the CAS id directly");
+
+  // an operator-specific lamp the CAS catalogue does not know keeps the snapshot's level
+  assert.deepEqual(lamps([{ id: "OPERATOR_SPECIFIC", level: "WARNING" }]).lit, ["MASTER_WARNING", "OPERATOR_SPECIFIC"]);
+  // …but the catalogue wins for an id it does know
+  assert.deepEqual(lamps([{ id: "L_GEN_FAIL", level: "WARNING" }]).lit, ["MASTER_CAUTION", "L_GENERATOR"], "L GEN FAIL is a CAUTION in the catalogue");
+
+  // turning every annunciator off leaves the panel dark
+  const none = lamps([]);
+  assert.deepEqual(none.lit, [], "an explicit empty list means no lamps, not the derived set");
+});
