@@ -306,6 +306,7 @@ html { scroll-padding-bottom: calc(var(--bottomnav-h) + 24px); scroll-padding-to
 .btn.outlined { background: transparent; border: 1px solid rgba(255, 255, 255, 0.80); color: #fff; height: 56px; border-radius: 28px; }
 .btn.outlined.selected { border: 2px solid var(--selected-glow); }
 .btn.outlined.small { height: 40px; }
+.btn.primary.small { height: 40px; border-radius: 20px; }
 .btn.text { background: transparent; color: #fff; padding: 0 12px; height: 40px; }
 .btn.tonal { background: var(--action-blue-muted); color: #fff; height: 36px; padding: 0 14px; font-size: 13px; letter-spacing: 0.3px; }
 .btn.mat { background: var(--primary); color: #fff; height: 40px; }

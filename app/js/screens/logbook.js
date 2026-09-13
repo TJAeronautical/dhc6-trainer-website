@@ -58,17 +58,38 @@ export async function logbook(ctx) {
       h("span", { class: "t-body-s c-sec", text: "Drills and quizzes you complete here are stored in this browser only. Cloud sync with the Android logbook is a later phase." })
     ]));
 
-    body.appendChild(filterBar(render, all, visible));
-
+    /* No filter bar over zero rows. Search, five sort chips, three selects and
+       the overrides toggle filter nothing when the logbook is empty, and on a
+       390px phone they push the empty state — the only useful thing on the
+       screen — below the fold. */
     if (!all.length) {
-      body.appendChild(notice("No attempts yet. Complete a procedure drill (PROCS → open a procedure) or a quiz to add debrief entries."));
+      body.appendChild(emptyState());
       return;
     }
+
+    body.appendChild(filterBar(render, all, visible));
+
     if (!visible.length) {
       body.appendChild(notice("No entries match these filters."));
       return;
     }
     body.appendChild(h("div", { class: "stack-8" }, visible.map(entryRow)));
+  }
+
+  /* The three screens that actually call Store.addLogbookEntry, with links.
+     The old empty state described the path in prose and offered no way to take
+     it, which reads as a broken screen rather than an empty one. */
+  function emptyState() {
+    return blueCard([
+      h("div", { class: "t-title-l w-xbold c-white", text: "No attempts yet" }),
+      h("p", { class: "t-body-m c-sec", text: "An entry is written when you finish one of these. Reading a checklist does not record anything." }),
+      h("div", { class: "row wrap gap-8 mt-10" }, [
+        h("a", { class: "btn primary small", href: "#/qrh", text: "Run a procedure drill" }),
+        h("a", { class: "btn outlined small", href: "#/quizzes", text: "Take a quiz" }),
+        h("a", { class: "btn outlined small", href: "#/live", text: "Fly a scenario drill" })
+      ]),
+      h("p", { class: "t-body-s c-ter mt-10", text: "In a procedure the drill sits below the checklist — use Start Procedure Drill at the top of the page to jump to it." })
+    ]);
   }
 
   function filterBar(rerender, all, visible) {

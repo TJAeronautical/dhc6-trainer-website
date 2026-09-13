@@ -134,6 +134,12 @@ export async function procedureDetail(ctx) {
   const lines = P.qrhDrillSteps(detail);
   const memoryAccent = "var(--sem-normal)";
   const checklistAccent = "var(--accent-sky)";
+  /* Same condition the drill pane is built under, hoisted so the top of the
+     screen can offer a way into it. Measured before this existed: on a 390px
+     phone the pane starts 2,298px down a 5,030px page — nearly three screens
+     below the fold, with nothing above it to say a drill is there. The drill is
+     the only thing on this screen that writes a Debrief Logbook entry. */
+  const hasDrill = lines.memoryItems.length > 0 || lines.checklistItems.length > 0;
 
   const nodes = [
     h("div", { class: "row" }, [backText(backHref)]),
@@ -146,6 +152,19 @@ export async function procedureDetail(ctx) {
       ? h("p", { class: "t-body-s", style: "color:rgba(255,255,255,.74)", text: "Your edits are saved to your account and stay available on every device while your subscription is active. They never change the published procedure for anyone else." })
       : h("p", { class: "t-body-s", style: "color:rgba(255,255,255,.74)", text: "QRH editing requires Instructor, Admin, or Owner access. Pro users can view and complete QRH checklists, but cannot edit source procedures." })
   ];
+  if (hasDrill) {
+    nodes.push(h("button", {
+      class: "btn primary block drill-jump", type: "button", text: "Start Procedure Drill",
+      onclick: function () {
+        const pane = document.querySelector("#view .drill");
+        if (!pane) return;
+        pane.scrollIntoView({ behavior: "smooth", block: "start" });
+        const first = pane.querySelector(".flash-card, .flow-row");
+        if (first) window.setTimeout(function () { first.focus({ preventScroll: true }); }, 320);
+      }
+    }));
+    nodes.push(h("p", { class: "t-body-s c-ter", text: "Self-test on the memory items, then the checklist flow. Completed drills are saved to your Debrief Logbook — reading this page is not." }));
+  }
   if (savedEdit) nodes.push(notice("You are viewing your edited version of this procedure.", "ok"));
   if (detail.trigger) nodes.push(panelCard("Condition / Trigger", checklistAccent, [P.cleanQrhLine(detail.trigger)], false));
   nodes.push(panelCard("Memory Items", memoryAccent, lines.memoryItems.length ? lines.memoryItems : ["No memorised items are mapped for this checklist yet."], true, "Recall before opening the complete QRH."));
@@ -167,9 +186,7 @@ export async function procedureDetail(ctx) {
   if (detail.notes.length) nodes.push(panelCard("Notes", "var(--sem-caution)", detail.notes.map(P.cleanQrhLine).filter(Boolean), false));
   if (procedure.sourceNote) nodes.push(h("p", { class: "t-body-s c-ter", text: "Source: " + procedure.sourceNote }));
   nodes.push(h("div", { class: "spacer-24" }));
-  const s = screen({ variant: "qrh", ariaLabel: detail.title }, nodes);
-  if (ctx.query.get("drill") === "1") setTimeout(function () { const d = s.querySelector(".drill"); if (d) d.scrollIntoView({ behavior: "smooth", block: "start" }); }, 50);
-  return s;
+  return screen({ variant: "qrh", ariaLabel: detail.title }, nodes);
 }
 
 /* QrhPanelCard */
@@ -299,6 +316,16 @@ export function drillPane(opts) {
     root.replaceChildren(header(), phase === "MEMORY" ? memoryPhase() : phase === "FLOW" ? flowPhase() : summaryPhase());
   }
   render();
+  /* `autoStart` used to be accepted and never read — the ?drill=1 deep link only
+     scrolled, from code that lived in procedureDetail. The pane owns that now, so
+     the option means something and there is one implementation. */
+  if (opts.autoStart) {
+    window.setTimeout(function () {
+      root.scrollIntoView({ behavior: "smooth", block: "start" });
+      const first = root.querySelector(".flash-card, .flow-row");
+      if (first) first.focus({ preventScroll: true });
+    }, 60);
+  }
   return root;
 }
 
