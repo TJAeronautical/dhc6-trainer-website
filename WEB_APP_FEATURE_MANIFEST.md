@@ -109,9 +109,21 @@ Build: `node tools/build-content.mjs --android "C:\Android Studio\DHC-6-Trainer"
    text, it is a one-line change in both apps.
 3. **`intent` field** — the procedure JSON carries no `intent`, so every step defaults to `ANNOUNCE` (Moshi default), which
    is why every flow row shows the CALLOUT pill. Same as Android.
-4. **Verified screenshot** — `assets/actual-android-app.jpeg` shows a bottom bar and a landplane performance screen that
-   do not exist in the exported Kotlin (bottom bar is HOME / PROCS / AIRCRAFT / QRH / SETTINGS; the performance
-   calculator is the seaplane QRH table set). The web follows the Kotlin.
+4. **"Verified screenshot" — resolved: it was not the app.** `assets/actual-android-app.jpeg` was shipped as the one
+   verified Android capture. It is not a capture of the app at all. It is a phone screenshot **of a web page** — Chrome
+   custom-tab chrome ("…ainer.com", share/play/overflow) and the dhc6trainer.com site header are baked into the top of
+   the image — showing a light-themed mock-up. Three independent checks:
+   * **Theme.** `core-ui/ui/theme/DHC6TrainerTheme.kt` builds *both* day and night from `darkColorScheme`
+     (`background = appBg`, `onBackground = Color.White`). The app has no white-background mode; the image is white.
+   * **Navigation.** `app/ui/navigation/PrimaryNavigation.kt:61` fixes the bottom bar at
+     **HOME / PROCS / AIRCRAFT / QRH / SETTINGS**. The image shows Home / QRH / Drill / Checklists / More, plus a left
+     sidebar the phone UI does not have.
+   * **Strings.** "Welcome, Pilot", "RECENT ACTIVITY", "SYNC STATUS", "ALL ITEMS", "FAVORITES", "Practice Questions"
+     and its VMC quiz question appear **nowhere** in the Kotlin, JSON or XML.
+
+   The file is deleted. The genuine Android capture is `assets/app-screens-collage.webp`, which matches on all three
+   counts — dark theme, the correct five-tab bar, and strings that trace to `ProcedureLibraryScreen.kt`,
+   `QrhHubScreen.kt`, `ScenarioDrillRunWidgets.kt` and `scenario_snapshots.json`.
 5. **Stock tile art** — `procedure_tile_takeoff.webp` carried a visible *gettyimages* watermark (and showed an
    Airbus A340, not a DHC-6). It was deleted from this repo and the Takeoff / Initial Climb context now uses
    `procedure_tile_takeoff_custom.webp`. The remaining tiles are unwatermarked airliner stock photos carried over

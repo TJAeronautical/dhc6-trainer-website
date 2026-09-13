@@ -37,6 +37,13 @@ test("no concept artwork is shipped, and nothing is labelled as the wrong produc
     other.
   */
   const CONCEPT = ["assets/latest-design-overview.webp", "assets/latest-design-mcc.webp",
+    // Was shipped as "the verified Android screenshot". It is not: it is a phone
+    // screenshot OF A WEB PAGE (Chrome custom-tab chrome and the dhc6trainer.com
+    // header are baked into it) showing a light-themed mock-up. The real app is
+    // dark (both themes derive from darkColorScheme) and its bottom nav reads
+    // HOME / PROCS / AIRCRAFT / QRH / SETTINGS, not Home / QRH / Drill /
+    // Checklists / More. None of its screen strings exist in the Android source.
+    "assets/actual-android-app.jpeg",
     "assets/screenshots/3d-viewer.webp", "assets/screenshots/aircraft-focus-snapshot.webp",
     "assets/screenshots/aircraft-state.webp", "assets/screenshots/cockpit-drill-runner.webp",
     "assets/screenshots/dashboard.webp", "assets/screenshots/memory-drill.webp",
@@ -58,8 +65,9 @@ test("no concept artwork is shipped, and nothing is labelled as the wrong produc
       if (/assets\/screenshots\/web-/.test(src)) {
         assert.doesNotMatch(tag, /android/i, `${file}: ${src} is a browser capture and must not be called Android`);
       }
-      if (/actual-android-app/.test(src)) {
+      if (/app-screens-collage/.test(src)) {
         assert.doesNotMatch(tag, /\b(web app|browser)\b/i, `${file}: the Android capture must not be called a browser capture`);
+        assert.match(tag, /android/i, `${file}: the Android capture must say which platform it is from`);
       }
     }
   }
