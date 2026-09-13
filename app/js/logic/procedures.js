@@ -103,6 +103,10 @@ export function materializeProcedures(packProcedures, selectedVariant) {
         context: p.context || null,
         sourceNote: p.sourceNote || null,
         aircraftVariant: pair[0],
+        /* The build derives this from the Android asset file name
+           (procedures/<category>/<slug>.json). The CRM drill names its four
+           source procedures by asset path, so it needs the slug to find them. */
+        slug: p.slug || null,
         memory: (body.memory || []).map(toProcedureStep),
         flow: (body.flow || []).map(toProcedureStep)
       });
