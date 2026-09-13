@@ -26,6 +26,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { buildSystemsLabPack } from "./lib/systems-lab.mjs";
+import { stripComments, findCalls, argMap, valDeclaration } from "./lib/kotlin-lite.mjs";
 
 const TOOLS_DIR = path.dirname(fileURLToPath(import.meta.url));
 
@@ -71,6 +72,10 @@ const KOTLIN_SOURCES = {
   systemsLabHome: [
     "feature-knowledge/src/main/java/com/dhc6trainer/feature/knowledge/ui/screens/SystemsLabHomeScreen.kt",
     "feature-knowledge/feature/knowledge/ui/screens/SystemsLabHomeScreen.kt"
+  ],
+  qrhEditorCatalog: [
+    "feature-procedures/src/main/java/com/dhc6trainer/feature/procedures/ui/screens/QrhEditorCockpitCatalog.kt",
+    "feature-procedures/feature/procedures/ui/screens/QrhEditorCockpitCatalog.kt"
   ],
   aircraftSystem: [
     "domain/src/main/java/com/dhc6trainer/domain/knowledge/model/AircraftSystem.kt",
@@ -566,6 +571,51 @@ function buildGlossary() {
   };
 }
 
+/* ------------------------------------------------------------- qrh editor */
+// The manual QRH editor's control palette: canonical cockpit control ids, their
+// valid position labels and aliases, plus the PF/PM callout starter templates.
+// Extracted from QrhEditorCockpitCatalog.kt so the web never retypes them.
+function buildQrhEditorCatalog() {
+  const file = findKotlin("qrhEditorCatalog");
+  if (!file) {
+    console.warn("  (qrh-editor skipped: QrhEditorCockpitCatalog.kt not found — pass --kotlin <dir> or use the full repo)");
+    return null;
+  }
+  const source = stripComments(fs.readFileSync(file, "utf8"));
+
+  const controls = findCalls(source, "ControlEntry").map(function (call) {
+    const args = argMap(call);
+    return {
+      controlId: args.controlId,
+      displayName: args.displayName,
+      positions: Array.isArray(args.positions) ? args.positions : [],
+      aliases: Array.isArray(args.aliases) ? args.aliases : []
+    };
+  }).filter(function (c) { return typeof c.controlId === "string" && c.controlId; });
+
+  function templates(listName) {
+    const declaration = valDeclaration(source, listName);
+    if (!declaration) return [];
+    return findCalls(declaration, "CalloutTemplate").map(function (call) {
+      const args = argMap(call);
+      const kind = args.itemKind && args.itemKind.ident ? String(args.itemKind.ident).split(".").pop() : "GENERIC";
+      return { label: args.label, roleTag: args.roleTag, writtenStep: args.writtenStep, itemKind: kind };
+    }).filter(function (t) { return t.label && t.writtenStep; });
+  }
+
+  const memoryCallouts = templates("MemoryCallouts");
+  const flowCallouts = templates("FlowCallouts");
+  if (!controls.length) return null;
+  return {
+    id: "qrh-editor",
+    source: "DHC-6-Trainer feature-procedures …/ui/screens/QrhEditorCockpitCatalog.kt",
+    count: controls.length,
+    controls: controls,
+    memoryCallouts: memoryCallouts,
+    flowCallouts: flowCallouts
+  };
+}
+
 /* -------------------------------------------------------------- systems lab */
 // Technical Lab: authored part pins, faults, drill prompts and the live-readout
 // simulation come from SystemsLabSection.kt; the model registry maps the
@@ -625,6 +675,8 @@ function main() {
   if (systemsLab) packs["systems-lab"] = systemsLab;
   const cockpit = readCockpitPack();
   if (cockpit) packs["cockpit-plates"] = cockpit;
+  const qrhEditor = buildQrhEditorCatalog();
+  if (qrhEditor) packs["qrh-editor"] = qrhEditor;
 
   fs.mkdirSync(path.join(outDir, "packs"), { recursive: true });
   const manifestPacks = [];

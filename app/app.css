@@ -673,3 +673,14 @@ table.data th { color: var(--text-secondary); font-weight: 600; font-size: 12px;
 .stepper-input { flex: 1.25 1 0; width: 100%; min-width: 0; text-align: center; font-weight: 700; border: 1px solid rgba(255, 255, 255, 0.3); background: rgba(0, 0, 0, 0.25); color: #fff; border-radius: var(--r-xs); padding: 9px 6px; }
 .notes-input { width: 100%; border: 1px solid rgba(255, 255, 255, 0.3); background: rgba(0, 0, 0, 0.25); color: #fff; border-radius: var(--r-sm); padding: 10px 12px; font-family: var(--font); resize: vertical; }
 .notice.ok { border-color: rgba(52, 199, 123, 0.55); background: rgba(52, 199, 123, 0.12); }
+
+/* --- Manual QRH editor (QrhManualEditScreen) --- */
+.edit-field { display: block; margin-top: 10px; }
+.edit-field > span { display: block; margin-bottom: 4px; }
+.edit-input { width: 100%; border: 1px solid rgba(255, 255, 255, 0.3); background: rgba(0, 0, 0, 0.25); color: #fff; border-radius: var(--r-xs); padding: 10px 12px; }
+.step-card { border: 1px solid var(--hairline); border-radius: var(--r-sm); background: rgba(255, 255, 255, 0.04); overflow: hidden; }
+.step-card.open { border-color: rgba(53, 183, 255, 0.55); }
+.step-head { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; background: none; border: 0; color: #fff; padding: 12px 14px; }
+.step-head:hover { background: rgba(255, 255, 255, 0.05); }
+.step-n { flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-container); font-size: 12px; font-weight: 700; }
+.step-body { padding: 0 14px 14px; border-top: 1px solid var(--hairline); }

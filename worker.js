@@ -21,6 +21,7 @@ import { onRequestPost as webAccessRequestLink } from "./functions/api/web-acces
 import { onRequestPost as webAccessLinkSession } from "./functions/api/web-access/link-session.js";
 import { onRequestGet as protectedContent } from "./functions/api/content/index.js";
 import { onRequestGet as protectedMedia } from "./functions/api/media/index.js";
+import { onRequestGet as qrhEditsGet, onRequestPut as qrhEditsPut, onRequestDelete as qrhEditsDelete } from "./functions/api/qrh-edits/index.js";
 import { authorizeWebRequest } from "./functions/api/web-access/_session.js";
 
 export const API_ROUTES = [
@@ -44,7 +45,9 @@ export const API_ROUTES = [
   "/api/content/manifest",
   "/api/content/pack/:id",
   "/api/media/index",
-  "/api/media/:path"
+  "/api/media/:path",
+  "/api/qrh-edits",
+  "/api/qrh-edits/:procedureId"
 ];
 
 function json(body, status) {
@@ -86,6 +89,12 @@ async function routeApi(context) {
   if (method === "POST" && path === "/api/web-access/link-session") return webAccessLinkSession(context);
   if (method === "GET" && (path === "/api/content/manifest" || path.startsWith("/api/content/pack/"))) return protectedContent(context);
   if ((method === "GET" || method === "HEAD") && (path === "/api/media" || path.startsWith("/api/media/"))) return protectedMedia(context);
+  if (path === "/api/qrh-edits" || path.startsWith("/api/qrh-edits/")) {
+    if (method === "GET") return qrhEditsGet(context);
+    if (method === "PUT") return qrhEditsPut(context);
+    if (method === "DELETE") return qrhEditsDelete(context);
+    return json({ ok: false, error: "method_not_allowed" }, 405);
+  }
 
   return json({ ok: false, error: "api_route_not_found" }, 404);
 }
