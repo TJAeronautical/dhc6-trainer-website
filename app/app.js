@@ -12,7 +12,7 @@ import { dashboard } from "./js/screens/dashboard.js";
 import { procedureLibrary, procedureDetail, qrhHub, qrhList } from "./js/screens/procedures.js";
 import { qrhManualEdit } from "./js/screens/qrhmanualedit.js";
 import { studyHome, definitions, srsStudy, deckBrowser, limitations, melReference, aerodromes, casLibrary, knowledgeSearch } from "./js/screens/study.js";
-import { quizHome, quizRun, performanceCalc, fuelPlan, weightBalance, logbook, laterTraining } from "./js/screens/training.js";
+import { quizHome, quizRun, performanceCalc, fuelPlan, weightBalance, logbook, competencyDashboard, laterTraining } from "./js/screens/training.js";
 import { libraryHub, laterScreen, settings } from "./js/screens/misc.js";
 import { systemsLabHome, systemsLabDetail } from "./js/screens/systemslab.js";
 import { systemsHome, systemDetail } from "./js/screens/systems2d.js";
@@ -76,7 +76,7 @@ route("/training/performance", performanceCalc);
 route("/training/fuel-plan", fuelPlan);
 route("/training/weight-balance", weightBalance);
 route("/training/logbook", logbook);
-route("/training/competency-dashboard", laterTraining("readiness"));
+route("/training/competency-dashboard", competencyDashboard);
 route("/training/oral-exam", laterTraining("oral-exam"));
 route("/training/crm-drill", laterTraining("crm"));
 

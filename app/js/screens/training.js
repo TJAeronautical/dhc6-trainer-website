@@ -9,6 +9,7 @@ import { screen, blueCard, libraryDivider, backText, backTonal, backBubble, matB
 import { knowledgePool } from "../data.js";
 import * as Q from "../logic/quiz.js";
 import * as PERF from "../logic/performance.js";
+import * as CMP from "../logic/competency.js";
 import { FuelPlanCalculator, WeightBalanceCalculator, OCCUPANT_TYPES, nextOccupant, CG_ENVELOPE } from "../logic/calculators.js";
 
 /* ---------------------------------------------------------------- Quizzes */
@@ -372,13 +373,135 @@ export async function logbook(ctx) {
   ]);
 }
 
+/* ------------------------------------------------- Check Ride Readiness */
+/* Port of feature-training/ui/dashboard/CompetencyDashboardScreen.kt, in the
+   same card order: overall ring, divider, "Category Breakdown", three category
+   cards, overdue list, then the three threshold/weight/count footer lines. */
+export async function competencyDashboard(ctx) {
+  ctx.setTopbar({ title: "Check Ride Readiness", subtitle: "Drill currency and score trend", back: "#/dashboard" });
+  const readiness = CMP.analyze(Store.logbook());
+
+  const header = [backBubble("#/dashboard"), h("span", { class: "bubble light" }, [document.createTextNode("Entries"), h("small", { text: String(readiness.totalDrillCount) })])];
+
+  if (readiness.totalDrillCount === 0) {
+    return screen({ title: "Check Ride Readiness", library: true, header: header }, [
+      blueCard([
+        h("div", { class: "t-title-m w-bold c-white", text: "No training data yet" }),
+        h("p", { class: "t-body-m mt-6 c-sec", text: "Complete procedure drills to start tracking your check ride readiness. This screen shows currency, score trends, and overdue items across Emergency, Abnormal, and Normal categories." })
+      ]),
+      navCard("Open a procedure drill", "PROCS → open a procedure to run the memory + flow drill.", { href: "#/systems" })
+    ]);
+  }
+
+  return screen({ title: "Check Ride Readiness", library: true, header: header }, [
+    overallReadinessCard(readiness),
+    libraryDivider(),
+    h("h3", { class: "t-title-m w-bold c-white", text: "Category Breakdown" }),
+    h("div", { class: "stack-8" }, CMP.categoriesOf(readiness).map(categoryCard)),
+    overdueSection(CMP.allOverdue(readiness)),
+    libraryDivider(),
+    h("div", { class: "stack-2" }, CMP.footerLines(readiness).map(function (line) {
+      return h("div", { class: "t-label-s c-ter", text: line });
+    })),
+    /* Not in the Kotlin. The labels here ("Check Ride Ready", "Overdue") read
+       like a currency statement, so say plainly that they are this trainer's
+       own study scheme and not a regulatory or operator recency requirement. */
+    notice("These windows and weights are the trainer's own study scheme for spacing practice. They are not a regulatory, operator or training-organisation recency requirement, and this screen is not a record of your currency.")
+  ]);
+}
+
+function overallReadinessCard(readiness) {
+  const band = CMP.readinessBand(readiness.overallPercent);
+  return blueCard([
+    h("div", { class: "row gap-16 readiness-head" }, [
+      h("div", { class: "readiness-ring band-" + band, role: "img", "aria-label": "Overall readiness " + readiness.overallPercent + " percent" }, [
+        h("span", { class: "readiness-ring-value", text: readiness.overallPercent + "%" })
+      ]),
+      h("div", { class: "grow" }, [
+        h("div", { class: "t-title-l w-bold c-white", text: readiness.readinessLabel }),
+        h("div", { class: "t-body-s c-sec", text: "Overall check ride readiness" }),
+        h("div", { class: "row gap-8 mt-6" }, CMP.categoriesOf(readiness).map(function (cat, i) {
+          return miniScore(cat, ["EM", "AB", "NM"][i]);
+        }))
+      ])
+    ])
+  ]);
+}
+
+function miniScore(cat, abbrev) {
+  return h("div", { class: "mini-score" }, [
+    h("span", { class: "t-label-s c-ter", text: abbrev }),
+    h("span", { class: "t-label-m w-bold band-" + CMP.readinessBand(cat.scorePercent), text: cat.scorePercent + "%" })
+  ]);
+}
+
+function categoryCard(competency) {
+  const band = CMP.statusBand(competency);
+  const label = CMP.displayLabel(competency.category);
+  return h("a", {
+    class: "competency-card band-" + band,
+    href: CMP.drillHref(competency.category),
+    "aria-label": label + " " + competency.scorePercent + " percent, " + competency.statusLabel + ". Drill this category."
+  }, [
+    h("div", { class: "row between gap-12" }, [
+      h("div", { class: "row gap-8" }, [
+        h("span", { class: "status-dot" }),
+        h("span", { class: "t-title-s w-bold c-white", text: label }),
+        h("span", { class: "t-label-s c-ter", text: CMP.WEIGHT_LABEL[competency.category] })
+      ]),
+      h("div", { class: "col-end" }, [
+        h("span", { class: "t-title-m w-xbold", text: competency.scorePercent + "%" }),
+        h("span", { class: "t-label-s", text: competency.statusLabel })
+      ])
+    ]),
+    h("div", { class: "row wrap gap-16 mt-8" }, [
+      statPill("Threshold", CMP.thresholdLabel(competency)),
+      statPill("Last drill", CMP.lastDrillLabel(competency.daysSinceLastDrill)),
+      statPill("Current", CMP.currentLabel(competency))
+    ]),
+    competency.recentScores.length ? h("div", { class: "row wrap gap-4 mt-6 trend-row" }, [
+      h("span", { class: "t-label-s c-ter", text: "Trend:" })
+    ].concat(competency.recentScores.slice(0, 5).map(scoreChip), [
+      h("span", { class: "t-label-s c-ter", text: competency.trendLabel })
+    ])) : null,
+    h("div", { class: "t-label-s tap-to-drill mt-6", text: "Tap to drill this category" })
+  ]);
+}
+
+function statPill(label, value) {
+  return h("div", { class: "stat-pill" }, [
+    h("span", { class: "t-label-s c-ter", text: label }),
+    h("span", { class: "t-body-s w-semi c-white", text: value })
+  ]);
+}
+
+function scoreChip(score) {
+  return h("span", { class: "score-chip band-" + CMP.readinessBand(score), title: score + "%", text: CMP.scoreChipText(score) });
+}
+
+function overdueSection(overdue) {
+  if (!overdue.length) return null;
+  return h("div", null, [
+    libraryDivider(),
+    blueCard([
+      h("div", { class: "t-title-s w-bold band-overdue", text: "Overdue Procedures" }),
+      h("div", { class: "stack-2 mt-6" }, overdue.map(function (item) {
+        return h("div", { class: "row between gap-8 overdue-row" }, [
+          h("span", { class: "overdue-dot cat-" + item.category.toLowerCase() }),
+          h("span", { class: "t-body-s c-white grow", text: item.name }),
+          h("span", { class: "t-label-s c-ter", text: CMP.displayLabel(item.category) })
+        ]);
+      }))
+    ])
+  ]);
+}
+
 /* --------------------------------------------- Later training features */
 export function laterTraining(id) {
   return async function (ctx) {
     const f = feature(id);
     ctx.setTopbar({ title: f.title, subtitle: "Coming later", back: "#/dashboard" });
-    const extra = id === "readiness" ? "Readiness depends on the shared logbook: once cloud sync lands, drill currency, score trend and overdue procedures will be computed from CompetencyAnalyzer exactly as on Android."
-      : id === "oral-exam" ? "The Android app calls /api/ai/oral-exam with a Firebase token. The web version needs a subscriber-session-gated proxy variant before it can be enabled; this is scheduled for the AI phase."
+    const extra = id === "oral-exam" ? "The Android app calls /api/ai/oral-exam with a Firebase token. The web version needs a subscriber-session-gated proxy variant before it can be enabled; this is scheduled for the AI phase."
       : "The CRM drill runs the challenge–response flow with role timing. The step data is already in every procedure (PF / PM flow); the standalone drill screen is scheduled for the CRM phase.";
     return screen({ title: f.title, library: true, header: [backBubble("#/dashboard")] }, [
       h("div", { class: "row wrap gap-8" }, [statusPill(f.status), h("span", { class: "t-body-s c-sec", text: f.desc })]),
