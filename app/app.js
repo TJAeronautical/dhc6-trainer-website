@@ -10,6 +10,7 @@ import { APP_VERSION, h, Store, Content, route, match, parseHash, navigate, curr
 import { ICONS } from "./js/ui.js";
 import { dashboard } from "./js/screens/dashboard.js";
 import { procedureLibrary, procedureDetail, qrhHub, qrhList } from "./js/screens/procedures.js";
+import { qrhManualEdit } from "./js/screens/qrhmanualedit.js";
 import { studyHome, definitions, srsStudy, deckBrowser, limitations, melReference, aerodromes, casLibrary, knowledgeSearch } from "./js/screens/study.js";
 import { quizHome, quizRun, performanceCalc, fuelPlan, weightBalance, logbook, laterTraining } from "./js/screens/training.js";
 import { libraryHub, laterScreen, settings } from "./js/screens/misc.js";
@@ -48,6 +49,7 @@ route("/drill/run/:id", drillRun);
 route("/qrh", qrhHub);
 route("/qrh/category/:category", qrhList);
 route("/qrh/detail/:id", procedureDetail);
+route("/qrh/edit/:id", qrhManualEdit);
 route("/settings", settings);
 route("/knowledge/home", studyHome);
 route("/knowledge/definitions", definitions);

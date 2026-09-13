@@ -5,10 +5,12 @@
     feature-procedures/ui/screens/ProcedureDrillPane.kt
 */
 import { h, Store, currentVariant } from "../core.js";
-import { screen, smallBadge, categoryBadge, tile, searchField, backText, qrhStatusBadge, contentUnavailable, emptyState, withSearchFocus } from "../ui.js";
+import { screen, smallBadge, categoryBadge, tile, searchField, backText, qrhStatusBadge, contentUnavailable, emptyState, notice, withSearchFocus } from "../ui.js";
 import { allProcedures, procedureById } from "../data.js";
 import * as P from "../logic/procedures.js";
 import { createDrill, drillResultToLogbookEntry } from "../logic/drill.js";
+import { applyDraftToDetail } from "../logic/qrhedit.js";
+import { loadEdit, canEdit as canEditQrh } from "../qrhedits.js";
 
 /* --------------------------------------------------- Procedure Library */
 const libraryState = { query: "", categoryFilter: "ALL", bucket: "ALL", priorityOnly: false };
@@ -108,7 +110,14 @@ export async function procedureDetail(ctx) {
   ctx.setTopbar({ title: procedure.displayTitle, subtitle: procedure.category + " · " + procedure.aircraftVariant, back: backHref });
   Store.recordRecent({ id: procedure.compiledId, kind: "procedure", title: procedure.displayTitle, category: procedure.category, route: "#/procedures/detail/" + encodeURIComponent(procedure.compiledId) });
 
-  const detail = P.toQrhDetail(procedure);
+  /* A saved manual edit belonging to this account replaces the displayed procedure
+     (QrhRouteHost: `savedEdit?.let { sourceDetail.copy(...) } ?: sourceDetail`). */
+  const sourceDetail = P.toQrhDetail(procedure);
+  let savedEdit = null;
+  let mayEdit = false;
+  try { savedEdit = await loadEdit(compiledId); } catch (error) { savedEdit = null; }
+  try { mayEdit = await canEditQrh(); } catch (error) { mayEdit = false; }
+  const detail = applyDraftToDetail(sourceDetail, savedEdit);
   const lines = P.qrhDrillSteps(detail);
   const memoryAccent = "var(--sem-normal)";
   const checklistAccent = "var(--accent-sky)";
@@ -117,9 +126,14 @@ export async function procedureDetail(ctx) {
     h("div", { class: "row" }, [backText(backHref)]),
     h("h2", { class: "t-display-s c-white clamp-2", text: detail.title }),
     h("p", { class: "t-body-l w-semi", style: "color:rgba(255,255,255,.86)", text: "QRH checklist  -  memorised items separated from complete actions" }),
-    h("div", { class: "row" }, [h("button", { class: "btn outlined small", type: "button", disabled: true, style: "flex:1;color:rgba(255,255,255,.56)", text: "Edit QRH" })]),
-    h("p", { class: "t-body-s", style: "color:rgba(255,255,255,.74)", text: "QRH editing requires Instructor, Admin, or Owner access. Pro users can view and complete QRH checklists, but cannot edit source procedures." })
+    h("div", { class: "row" }, [mayEdit
+      ? h("a", { class: "btn outlined small", href: "#/qrh/edit/" + encodeURIComponent(compiledId), style: "flex:1", text: "Edit QRH" })
+      : h("button", { class: "btn outlined small", type: "button", disabled: true, style: "flex:1;color:rgba(255,255,255,.56)", text: "Edit QRH" })]),
+    mayEdit
+      ? h("p", { class: "t-body-s", style: "color:rgba(255,255,255,.74)", text: "Your edits are saved to your account and stay available on every device while your subscription is active. They never change the published procedure for anyone else." })
+      : h("p", { class: "t-body-s", style: "color:rgba(255,255,255,.74)", text: "QRH editing requires Instructor, Admin, or Owner access. Pro users can view and complete QRH checklists, but cannot edit source procedures." })
   ];
+  if (savedEdit) nodes.push(notice("You are viewing your edited version of this procedure.", "ok"));
   if (detail.trigger) nodes.push(panelCard("Condition / Trigger", checklistAccent, [P.cleanQrhLine(detail.trigger)], false));
   nodes.push(panelCard("Memory Items", memoryAccent, lines.memoryItems.length ? lines.memoryItems : ["No memorised items are mapped for this checklist yet."], true, "Recall before opening the complete QRH."));
   nodes.push(panelCard("Complete QRH Checklist", checklistAccent, lines.checklistItems.length ? lines.checklistItems : ["No complete QRH checklist items are mapped yet."], true, "Use after memory items are complete. This includes non-memory checklist actions, confirmations, notes, and follow-up items."));
