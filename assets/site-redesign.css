@@ -156,6 +156,8 @@ section{padding:72px 0}
 .screens.landscape{grid-template-columns:repeat(3,minmax(0,1fr))}
 .shot.landscape img{aspect-ratio:16/10;object-position:center}
 .shot.landscape.tall img{aspect-ratio:4/5}
+.screens.single{grid-template-columns:minmax(0,1fr);max-width:760px;margin-inline:auto}
+.shot.landscape.wide img{aspect-ratio:3/2}
 .lightbox{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:24px;background:rgba(0,6,12,.88);backdrop-filter:blur(14px);opacity:0;visibility:hidden;transition:.2s ease}.lightbox.is-open{opacity:1;visibility:visible}.lightbox-dialog{position:relative;max-width:min(1100px,96vw);max-height:92vh}.lightbox img{display:block;max-height:88vh;width:auto;border-radius:20px;border:1px solid var(--line-strong);box-shadow:var(--shadow)}.lightbox-close{position:absolute;right:-12px;top:-12px;width:42px;height:42px;border-radius:50%;border:1px solid var(--line-strong);background:#0a1a29;color:#fff;font-size:1.3rem;cursor:pointer}
 
 /* Platform/comparison/pricing */

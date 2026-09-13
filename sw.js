@@ -9,7 +9,7 @@
   Pages can post {type:"clear-protected"} to drop any cached copies (logout,
   entitlement expiry) and {type:"clear-all"} to wipe every site cache.
 */
-const CACHE_NAME = "dhc6-trainer-site-v6";
+const CACHE_NAME = "dhc6-trainer-site-v7";
 const CORE_ASSETS = [
   "/",
   "/index.html",
@@ -28,9 +28,11 @@ const CORE_ASSETS = [
   "/assets/js/desktop-launch.js",
   "/assets/js/web-app-login.js",
   "/assets/app-icon-192.png",
-  "/assets/app-icon-512.png",
-  "/assets/actual-android-app.jpeg"
+  "/assets/app-icon-512.png"
 ];
+/* Screenshots are deliberately NOT precached: they are large, the hero is
+   already <link rel=preload>ed for first paint, and the runtime
+   stale-while-revalidate below caches them on first visit anyway. */
 
 function isProtectedRequest(url) {
   const path = url.pathname;
