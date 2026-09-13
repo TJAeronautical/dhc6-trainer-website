@@ -9,7 +9,7 @@
 import { h, Store, Content, currentVariant, variantLabel, navigate, feature } from "../core.js";
 import { screen, blueCard, tile, bubble, backBubble, selectableChip, searchField, statusPill, notice, emptyState, contentUnavailable, withSearchFocus, primaryButton, outlinedButton } from "../ui.js";
 import { openEditStateSheet, canEditScenarioState } from "./scenarioedit.js";
-import { CONTEXTS, contextByRouteKey, scenarioItems, scenarioMetaFor, allowedContextsFor, scenarioTileArt, cleanScenarioProcedureTitle, CONTEXT_PRESETS } from "../logic/cockpit/scenarios.js";
+import { CONTEXTS, contextByRouteKey, scenarioItems, scenarioMetaFor, allowedContextsFor, scenarioEntryRoute, scenarioTileArt, cleanScenarioProcedureTitle, CONTEXT_PRESETS } from "../logic/cockpit/scenarios.js";
 import { PHASES, buildScenarioBundle, snapshotVisualState, phaseSummaryText, summaryLines, regionsFor, displayFocusTarget, visibleControls } from "../logic/cockpit/snapshot.js";
 import { snapshotRegistry, bindingsIndex, cockpitSurface, cockpitPack, variantPackFor, disclaimer } from "./cockpitcommon.js";
 import { displayVariant } from "../logic/cockpit/hitboxes.js";
@@ -136,10 +136,8 @@ export async function scenarioProcedures(ctx) {
   }
 
   function openProcedure(meta) {
-    const contexts = allowedContextsFor(meta.title);
     Store.recordRecent({ id: meta.compiledId, title: meta.title, kind: "scenario" });
-    if (contexts.length === 1) navigate("/scenario/state/" + encodeURIComponent(meta.compiledId) + "/" + contexts[0].routeKey);
-    else navigate("/scenario/select/" + encodeURIComponent(meta.compiledId));
+    navigate(scenarioEntryRoute(meta.compiledId, meta.title, proceduresState.context).route);
   }
 
   function render() {

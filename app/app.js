@@ -108,8 +108,8 @@ function buildNav() {
   bottomList.replaceChildren.apply(bottomList, TABS.map(function (t) { return navLink(t, "bottomnav-item"); }));
 }
 
-function markActive(path) {
-  const active = owningTab(path);
+function markActive(path, query) {
+  const active = owningTab(path, query);
   document.querySelectorAll("[data-tab]").forEach(function (a) {
     if (a.dataset.tab === active) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
   });
@@ -193,7 +193,7 @@ async function render() {
   if (LEGACY_ROUTES[parsed.path]) { navigate(LEGACY_ROUTES[parsed.path], true); return; }
   if (parsed.path.startsWith("/procedure/")) { navigate("/systems", true); return; }
   const found = match(parsed.path);
-  markActive(parsed.path);
+  markActive(parsed.path, parsed.query);
   Store.set("lastRoute", "#" + parsed.path);
   if (!found) { navigate("/dashboard", true); return; }
   view.setAttribute("aria-busy", "true");

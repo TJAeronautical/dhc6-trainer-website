@@ -93,7 +93,10 @@ function libraryRow(p, pinned, rerender) {
     h("div", { class: "badge-row" }, badges)
   ]);
   const pin = h("button", { class: "pin-btn" + (isPriority ? " on" : ""), type: "button", "aria-pressed": isPriority ? "true" : "false", "aria-label": (isPriority ? "Unpin " : "Pin ") + p.displayTitle, text: isPriority ? "PINNED" : "PIN", onclick: function (e) { e.preventDefault(); Store.togglePinned(p.compiledId); rerender(); } });
-  const drill = h("a", { class: "drill-btn", href: detailHref(p) + "&drill=1", "aria-label": "Start drill: " + p.displayTitle, html: "›" });
+  /* ProcedureLibraryRow.onQuickStartDrill -> Screen.DrillRun (ScenarioDrillRunScreen),
+     not the detail page's inline pane. Tapping the row body still opens the QRH detail. */
+  const drill = h("a", { class: "drill-btn", href: "#/drill/run/" + encodeURIComponent(p.compiledId) + "?from=procs", title: "Start drill", "aria-label": "Start drill: " + p.displayTitle, html: "›",
+    onclick: function () { Store.set("lastDrillProcedureId", p.compiledId); } });
   return h("div", { class: "lib-row-wrap" }, [card, pin, drill]);
 }
 

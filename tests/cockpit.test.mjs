@@ -18,7 +18,7 @@ import { warmUp, createEngineModel, createSimRunner, C } from "../app/js/logic/c
 import { normalizeCas, casSpecFor, annunciatorCatalog, createCasSystem, createCasController, evaluateFailures, resolveG950Cas, resolveLegacyAnnunciators, LEGACY_STARTUP_PANEL_ANNUNCIATORS, G950_STARTUP_CAS_MESSAGES } from "../app/js/logic/cockpit/cas.js";
 import { SCENARIO_ANNUNCIATOR_OVERRIDE_KEY, PHASES, ProcedureKeyNormalizer, parseSnapshot, createSnapshotRegistry, toPhaseState, annunciatorOverrideEnabled, visibleControls, parseSnapshotPowerLever, parseSnapshotPropLever, parseSnapshotFuelLever, parseSnapshotFlap, snapshotLeverPositions, parseSnapshotSwitchState, snapshotSwitchStates, instrumentNormalized, instrumentOverlayKeys, parseInstrumentOverride, inferWow, snapshotVisualState, summaryLines, deriveTextFocusTargets, mapHitboxIdToFocusTarget } from "../app/js/logic/cockpit/snapshot.js";
 import { defaultOffStateForSwitch, seedSwitchStates, seedLeverPositions, switchModeFor, nextSwitchState, createInteractionController } from "../app/js/logic/cockpit/interaction.js";
-import { CONTEXTS, contextByRouteKey, cleanScenarioProcedureTitle, inferNormalBucket, inferScenarioPhase, inferProcedureGroup, scenarioMetaFor, matchesContext, matchesSearch, allowedContextsFor, scenarioTileArt, scenarioItems } from "../app/js/logic/cockpit/scenarios.js";
+import { CONTEXTS, contextByRouteKey, cleanScenarioProcedureTitle, inferNormalBucket, inferScenarioPhase, inferProcedureGroup, scenarioMetaFor, matchesContext, matchesSearch, allowedContextsFor, scenarioEntryRoute, scenarioTileArt, scenarioItems } from "../app/js/logic/cockpit/scenarios.js";
 import { normalizeControlId, switchStateSatisfiesAction, flapLeverPositionSatisfiesAction, powerLeverPositionSatisfiesAction, requiredPositionLabelForAction, drillTargetLabel, isChecklistDisplayCue, isMandatoryCockpitActionCue, isQuestionOrChallengeAction, GRADING, formatDuration, inferredPhaseForProgress, createDrillRun } from "../app/js/logic/cockpit/drillrun.js";
 import { createHitboxIndex, createBindingsIndex } from "../app/js/logic/cockpit/bindings.js";
 import { SECTIONS, STYLE, canonicalKey, stripAnnunciatorStateSuffix, canonicalAnnunciatorKey, humanLabel, isAnnunciatorOverrideControl, extractNumber, formatNumber, buildAnnunciatorOptions, buildInstrumentOptions, buildControlOptions, buildToggleOptions, initialEnabledKeys, initialValues, coerceValue, stepOrdered, stepNumeric, withToggleSelection, phaseOverridePayload } from "../app/js/logic/cockpit/stateeditor.js";
@@ -876,4 +876,36 @@ test("explicit snapshot annunciators light the right lamp (parsed entries are ob
   // turning every annunciator off leaves the panel dark
   const none = lamps([]);
   assert.deepEqual(none.lit, [], "an explicit empty list means no lamps, not the derived set");
+});
+
+test("opening a procedure keeps the context the user already chose", () => {
+  const ground = CONTEXTS.find((c) => c.key === "GROUND_START");
+  const cruise = CONTEXTS.find((c) => c.key === "CRUISE");
+  const approach = CONTEXTS.find((c) => c.key === "APPROACH_LANDING");
+
+  // Ground / Start -> "Before Starting Engines" -> straight into the ground state,
+  // instead of asking for the context a second time.
+  const fromGround = scenarioEntryRoute("NORMAL/Before Starting Engines", "Before Starting Engines", ground);
+  assert.equal(fromGround.asked, false);
+  assert.equal(fromGround.context.key, "GROUND_START");
+  assert.equal(fromGround.route, "/scenario/state/" + encodeURIComponent("NORMAL/Before Starting Engines") + "/ground_start");
+
+  // an in-flight procedure is not valid on the ground, so the selector still appears
+  const mismatch = scenarioEntryRoute("EMERGENCY/Engine Fire in Flight", "Engine Fire in Flight", ground);
+  assert.equal(mismatch.asked, true);
+  assert.equal(mismatch.route, "/scenario/select/" + encodeURIComponent("EMERGENCY/Engine Fire in Flight"));
+  assert.equal(mismatch.context, null);
+
+  // the same procedure opened from Cruise keeps Cruise
+  const fromCruise = scenarioEntryRoute("EMERGENCY/Engine Fire in Flight", "Engine Fire in Flight", cruise);
+  assert.equal(fromCruise.asked, false);
+  assert.equal(fromCruise.route.endsWith("/cruise"), true);
+  assert.equal(scenarioEntryRoute("EMERGENCY/Engine Fire in Flight", "Engine Fire in Flight", approach).route.endsWith("/approach_landing"), true);
+
+  // no context chosen: a single allowed context still skips the selector
+  const single = scenarioEntryRoute("EMERGENCY/Engine Fire on Ground", "Engine Fire on Ground", null);
+  assert.equal(single.asked, false);
+  assert.equal(single.route.endsWith("/ground_start"), true);
+  // …and an ambiguous one still asks
+  assert.equal(scenarioEntryRoute("NORMAL/Shutdown", "Shutdown", null).asked, true);
 });
