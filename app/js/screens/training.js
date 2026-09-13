@@ -354,25 +354,6 @@ function cgChart(weightLb, cgArmIn, ok) {
   return svg;
 }
 
-/* --------------------------------------------------------- Debrief Logbook */
-export async function logbook(ctx) {
-  ctx.setTopbar({ title: "Debrief Logbook", subtitle: "Local attempts in this browser", back: "#/dashboard" });
-  const entries = Store.logbook().slice().sort(function (a, b) { return b.timestampUtc - a.timestampUtc; });
-  return screen({ title: "Debrief Logbook", library: true, header: [backBubble("#/dashboard"), h("span", { class: "bubble light" }, [document.createTextNode("Entries"), h("small", { text: String(entries.length) })])] }, [
-    h("div", { class: "row wrap gap-8" }, [statusPill("partial"), h("span", { class: "t-body-s c-sec", text: "Procedure drills and quizzes you complete here are stored in this browser only. Cloud sync with the Android logbook is a later phase." })]),
-    entries.length ? h("div", { class: "stack-10" }, entries.map(function (e) {
-      const when = new Date(e.timestampUtc);
-      return h("div", { class: "log-entry" }, [
-        h("div", { class: "row between gap-12" }, [h("div", { class: "t-title-s w-semi grow clamp-2", text: e.procedureName }), h("span", { class: "score " + e.scoreBand, text: (e.scorePercent != null ? e.scorePercent + "%" : "") })]),
-        h("div", { class: "row wrap gap-8" }, [h("span", { class: "pill " + String(e.category || "").toLowerCase(), text: e.category }), h("span", { class: "pill info", text: e.aircraftVariant }), h("span", { class: "pill info", text: "Score: " + e.scoreBand }), h("span", { class: "pill info", text: Q.formatQuizDuration(e.totalTimeMs || 0) })]),
-        h("div", { class: "t-body-s c-sec", style: "white-space:pre-line", text: e.remarks }),
-        e.instructorFeedback ? h("div", { class: "t-body-s c-accent", text: e.instructorFeedback }) : null,
-        h("div", { class: "t-label-s c-ter", text: when.toLocaleString() })
-      ]);
-    })) : notice("No attempts yet. Complete a procedure drill (PROCS → open a procedure) or a quiz to add debrief entries.")
-  ]);
-}
-
 /* ------------------------------------------------- Check Ride Readiness */
 /* Port of feature-training/ui/dashboard/CompetencyDashboardScreen.kt, in the
    same card order: overall ring, divider, "Category Breakdown", three category
