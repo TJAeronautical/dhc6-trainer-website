@@ -28,20 +28,64 @@ test("public pages have essential metadata and shared design", () => {
   }
 });
 
-test("concept imagery is never labelled as a real app screenshot", () => {
+test("no concept artwork is shipped, and nothing is labelled as the wrong product", () => {
+  /*
+    The design mock-ups the site used to run on are gone: every remaining
+    screenshot is a capture of the product actually running. The rules that
+    survive are (a) a concept file must never come back and be called real, and
+    (b) an Android capture and a browser capture must never be described as each
+    other.
+  */
+  const CONCEPT = ["assets/latest-design-overview.webp", "assets/latest-design-mcc.webp",
+    "assets/screenshots/3d-viewer.webp", "assets/screenshots/aircraft-focus-snapshot.webp",
+    "assets/screenshots/aircraft-state.webp", "assets/screenshots/cockpit-drill-runner.webp",
+    "assets/screenshots/dashboard.webp", "assets/screenshots/memory-drill.webp",
+    "assets/screenshots/procedures.webp", "assets/screenshots/qrh-checklist.webp",
+    "assets/screenshots/study-cards.webp", "assets/screenshots/systems-lab.webp"];
+  for (const file of CONCEPT) {
+    assert.equal(fs.existsSync(path.join(root, file)), false, file + " is design mock-up artwork and must stay deleted");
+  }
+
   for (const file of htmlFiles) {
     const html = fs.readFileSync(path.join(root, file), "utf8");
     for (const match of html.matchAll(/<img[^>]+src="([^"]+)"[^>]*>/gi)) {
       const src = match[1];
       const tag = match[0];
-      if (/latest-design|assets\/screenshots\//.test(src)) {
-        assert.doesNotMatch(tag, /\b(actual|verified|real)\b/i, `${file}: concept image ${src} described as real`);
-        assert.match(tag, /concept|illustration|mock/i, `${file}: concept image ${src} must be labelled as a concept/illustration`);
+      for (const concept of CONCEPT) {
+        assert.notEqual(src, concept, `${file}: ${src} is concept artwork and must not be displayed`);
+      }
+      // A browser capture is never presented as the Android app, and vice versa.
+      if (/assets\/screenshots\/web-/.test(src)) {
+        assert.doesNotMatch(tag, /android/i, `${file}: ${src} is a browser capture and must not be called Android`);
+      }
+      if (/actual-android-app/.test(src)) {
+        assert.doesNotMatch(tag, /\b(web app|browser)\b/i, `${file}: the Android capture must not be called a browser capture`);
       }
     }
   }
+
   const sw = fs.readFileSync(path.join(root, "sw.js"), "utf8");
-  assert.doesNotMatch(sw, /latest-design|assets\/screenshots/);
+  assert.doesNotMatch(sw, /latest-design/);
+});
+
+test("every screenshot the public pages reference exists and is a real capture", () => {
+  const referenced = new Set();
+  for (const file of htmlFiles) {
+    const html = fs.readFileSync(path.join(root, file), "utf8");
+    for (const match of html.matchAll(/(?:src|href|content)="(assets\/(?:screenshots\/[^"]+|[^"/]+\.(?:webp|jpe?g|png)))"/gi)) {
+      referenced.add(match[1]);
+    }
+    // live.html swaps the preview image from a script table.
+    for (const match of html.matchAll(/image:"(assets\/screenshots\/[^"]+)"/g)) referenced.add(match[1]);
+  }
+  for (const src of referenced) {
+    assert.ok(fs.existsSync(path.join(root, src)), "referenced asset is missing: " + src);
+  }
+  const shots = fs.readdirSync(path.join(root, "assets", "screenshots"));
+  assert.ok(shots.length > 0, "the screenshots directory must not be empty");
+  for (const name of shots) {
+    assert.match(name, /^web-[a-z0-9-]+\.webp$/, name + ": screenshots are captures of the running trainer, named web-*.webp");
+  }
 });
 
 test("subscriber app shell is server-gated and keeps no session secret in web storage", () => {

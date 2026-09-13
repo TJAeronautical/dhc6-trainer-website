@@ -151,7 +151,11 @@ section{padding:72px 0}
 .screens{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px}
 .shot{overflow:hidden;border-radius:22px;border:1px solid var(--line);background:rgba(255,255,255,.035);box-shadow:var(--shadow-sm);transition:.2s ease}
 .shot:hover{transform:translateY(-4px);border-color:rgba(103,179,255,.3);box-shadow:var(--shadow)}
-.shot button{display:block;width:100%;padding:0;border:0;background:none;cursor:zoom-in}.shot img{display:block;width:100%;aspect-ratio:9/19;object-fit:cover;object-position:top}.shot div{padding:14px}.shot p{font-size:.87rem;margin:0}.shot h3{font-size:1rem}
+.shot button{display:block;width:100%;padding:0;border:0;background:none;cursor:zoom-in}.shot img{display:block;width:100%;height:auto;aspect-ratio:9/19;object-fit:cover;object-position:top}.shot div{padding:14px}.shot p{font-size:.87rem;margin:0}.shot h3{font-size:1rem}
+/* Landscape captures of the trainer running in a browser: the 9/19 phone crop above would cut them in half. */
+.screens.landscape{grid-template-columns:repeat(3,minmax(0,1fr))}
+.shot.landscape img{aspect-ratio:16/10;object-position:center}
+.shot.landscape.tall img{aspect-ratio:4/5}
 .lightbox{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:24px;background:rgba(0,6,12,.88);backdrop-filter:blur(14px);opacity:0;visibility:hidden;transition:.2s ease}.lightbox.is-open{opacity:1;visibility:visible}.lightbox-dialog{position:relative;max-width:min(1100px,96vw);max-height:92vh}.lightbox img{display:block;max-height:88vh;width:auto;border-radius:20px;border:1px solid var(--line-strong);box-shadow:var(--shadow)}.lightbox-close{position:absolute;right:-12px;top:-12px;width:42px;height:42px;border-radius:50%;border:1px solid var(--line-strong);background:#0a1a29;color:#fff;font-size:1.3rem;cursor:pointer}
 
 /* Platform/comparison/pricing */
@@ -184,11 +188,11 @@ input,select,textarea{width:100%;border:1px solid var(--line);background:rgba(25
 
 @media(max-width:1100px){
   .navlinks{gap:2px}.navlinks a{padding-inline:8px;font-size:.86rem}
-  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}.screens{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}.screens{grid-template-columns:repeat(3,minmax(0,1fr))}.screens.landscape{grid-template-columns:repeat(2,minmax(0,1fr))}
   .footer-grid{grid-template-columns:1.25fr repeat(2,.75fr)}
 }
 @media(max-width:920px){
-  .hero{min-height:auto;padding-top:56px}.hero-grid,.page-grid,.split,.preview-strip{grid-template-columns:1fr}.hero-grid{gap:32px}.page-grid{gap:28px}.hero h1{max-width:12ch}.visual-card{transform:none;max-width:760px}.preview-img{min-height:340px}
+  .hero{min-height:auto;padding-top:56px}.hero-grid,.page-grid,.split,.preview-strip{grid-template-columns:1fr}.screens.landscape{grid-template-columns:1fr}.hero-grid{gap:32px}.page-grid{gap:28px}.hero h1{max-width:12ch}.visual-card{transform:none;max-width:760px}.preview-img{min-height:340px}
   .navlinks,.topbar .nav-actions>.desktop-only{display:none}.menu-toggle{display:flex;position:relative}.mobile-only{display:inline-flex}
   .mobile-nav-panel{position:fixed;left:14px;right:14px;top:82px;z-index:49;display:grid;gap:5px;padding:12px;border:1px solid var(--line-strong);border-radius:18px;background:rgba(5,16,28,.97);box-shadow:var(--shadow);backdrop-filter:blur(20px);transform:translateY(-12px);opacity:0;visibility:hidden;transition:.18s ease}.mobile-nav-panel.is-open{transform:none;opacity:1;visibility:visible}.mobile-nav-panel a{padding:12px 13px;border-radius:11px;text-decoration:none;color:#d0deea;font-weight:850}.mobile-nav-panel a:hover,.mobile-nav-panel a[aria-current="page"]{background:rgba(45,127,255,.12);color:#fff}.mobile-nav-panel .btn{margin-top:6px}
   .bento>*{grid-column:span 6}.bento .wide-card{grid-column:span 12}
@@ -200,6 +204,8 @@ input,select,textarea{width:100%;border:1px solid var(--line);background:rgba(25
   .grid,.grid.three,.grid.two,.hero-stats,.preview-status-strip{grid-template-columns:1fr}.screens{grid-template-columns:repeat(2,minmax(0,1fr))}.bento{display:grid;grid-template-columns:1fr}.bento>*,.bento .wide-card{grid-column:auto}.section-head{align-items:flex-start;flex-direction:column;margin-bottom:22px}.actions{display:grid;grid-template-columns:1fr;width:100%}.actions .btn{width:100%}
   .floating-card{position:relative;left:auto;right:auto;bottom:auto;margin-top:9px}.visual-card{border-radius:25px}.visual-card img{border-radius:18px}.dark-panel,.card,.panel{padding:20px}.cta-band{padding:25px 20px}
   .screens{gap:10px}.shot{border-radius:16px}.shot div{padding:11px}.shot p{display:none}
+  /* The landscape cards are one per row on a phone and the caption is the point, so it stays. */
+  .shot.landscape p{display:block}
   .footer-grid{grid-template-columns:1fr}.footer-bottom{align-items:flex-start;flex-direction:column}.footer{padding-bottom:42px}
   .billing-toggle{width:100%;display:grid;grid-template-columns:1fr 1fr}.billing-toggle button{width:100%}
 }
