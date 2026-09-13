@@ -209,7 +209,8 @@ export async function drillRun(ctx) {
   const procedureId = ctx.params.id;
   const preset = String(ctx.query.get("preset") || "").toLowerCase();
   const variant = currentVariant();
-  const backHref = "#/live/procedures";
+  /* Android pops back to whichever graph launched the drill. */
+  const backHref = ctx.query.get("from") === "procs" ? "#/systems" : "#/live/procedures";
 
   let index, item, steps, title, category;
   try {
@@ -261,7 +262,7 @@ function memoryChecklistDrill(ctx, opts) {
 
 /* The MCC crew-flow runner over the live cockpit. */
 async function flowDrill(ctx, opts) {
-  ctx.setTopbar({ title: opts.preset === "mcc" ? "MCC Flow" : "Flow Drill", subtitle: "AIRCRAFT · drill", back: opts.backHref });
+  ctx.setTopbar({ title: opts.preset === "mcc" ? "MCC Flow" : "Flow Drill", subtitle: (ctx.query.get("from") === "procs" ? "PROCS" : "AIRCRAFT") + " · drill", back: opts.backHref });
   const rig = await liveRig({ scenarioMode: true, stageClass: "cockpit-live" });
   rig.live.setScenarioMode(true);
 

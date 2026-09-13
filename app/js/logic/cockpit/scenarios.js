@@ -170,6 +170,23 @@ export const CONTEXT_PRESETS = {
   APPROACH_LANDING: { notes: "Use for approach, landing, or go-around related procedure context.", focusTargets: ["airspeed", "vertical_speed", "flaps", "power_levers"] }
 };
 
+/*
+  Where a procedure row goes from the Day-to-Day list.
+
+  The user has already chosen an operating context to reach the list, so asking
+  again on the way in is a wasted step (Ground -> procedure -> Ground). Only route
+  through ScenarioSelectorScreen when the chosen context is not valid for the
+  procedure and more than one context is possible.
+*/
+export function scenarioEntryRoute(procedureId, title, chosenContext) {
+  const allowed = allowedContextsFor(title);
+  const keep = chosenContext && allowed.some(function (c) { return c.key === chosenContext.key; }) ? chosenContext : null;
+  const target = keep || (allowed.length === 1 ? allowed[0] : null);
+  return target
+    ? { route: "/scenario/state/" + encodeURIComponent(procedureId) + "/" + target.routeKey, context: target, asked: false }
+    : { route: "/scenario/select/" + encodeURIComponent(procedureId), context: null, asked: true };
+}
+
 /* Build the visible Day-to-Day list for one context. */
 export function scenarioItems(indexItems, contextKey, bucketFilter, query) {
   return indexItems

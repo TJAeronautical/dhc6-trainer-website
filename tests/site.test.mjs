@@ -174,6 +174,21 @@ test("no tile art carries a stock-library watermark and every referenced tile ex
   assert.deepEqual(missing, [], "tile art referenced by the app but not committed");
 });
 
+test("the Procedures library row opens the QRH detail, and its arrow opens the drill runner", () => {
+  const source = fs.readFileSync(path.join(root, "app", "js", "screens", "procedures.js"), "utf8");
+  // ProcedureLibraryRow: tapping the row body -> onOpenProcedureDetail,
+  // tapping the arrow -> onQuickStartDrill -> Screen.DrillRun (the full runner).
+  assert.match(source, /href: "#\/drill\/run\/" \+ encodeURIComponent\(p\.compiledId\)/, "the arrow must open the drill runner, not the detail page");
+  assert.doesNotMatch(source, /drill-btn[^}]*drill=1/, "the arrow must no longer just scroll the detail page's inline pane");
+  assert.match(source, /class: "lib-row hero"[\s\S]{0,400}href: detailHref\(p\)/, "the row body still opens the QRH detail");
+  assert.match(source, /from=procs/, "the drill remembers which tab launched it");
+
+  const core = fs.readFileSync(path.join(root, "app", "js", "core.js"), "utf8");
+  assert.match(core, /path\.startsWith\("\/drill\/"\) && query && query\.get\("from"\) === "procs"/, "a drill launched from PROCS keeps the PROCS tab highlighted");
+  const drill = fs.readFileSync(path.join(root, "app", "js", "screens", "cockpitscreens.js"), "utf8");
+  assert.match(drill, /ctx\.query\.get\("from"\) === "procs" \? "#\/systems"/, "Back returns to the launching tab");
+});
+
 test("every cockpit screen keeps the training-support-only disclaimer", () => {
   const common = fs.readFileSync(path.join(root, "app", "js", "screens", "cockpitcommon.js"), "utf8");
   assert.match(common, /Training support only/);

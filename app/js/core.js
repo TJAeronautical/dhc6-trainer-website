@@ -387,7 +387,10 @@ export function feature(id) { return FEATURES.find(function (f) { return f.id ==
 export function tileUrl(name) { return "/app/assets/tiles/" + name + ".webp"; }
 
 /* PrimaryNavigation.owningPrimaryTab */
-export function owningTab(path) {
+export function owningTab(path, query) {
+  /* A drill can be launched from the Procedures library or from Aircraft State;
+     keep the tab the user came from highlighted (Android pops back to that graph). */
+  if (path.startsWith("/drill/") && query && query.get("from") === "procs") return "systems";
   if (path === "/dashboard" || path === "/home") return "dashboard";
   if (path === "/systems" || path.startsWith("/procedures/") || path.startsWith("/systems/") || path === "/library/home" || path.startsWith("/library/") || path === "/quizzes" || path.startsWith("/quizzes/")) return "systems";
   if (path === "/training/logbook" || path.startsWith("/training/")) return "dashboard";
