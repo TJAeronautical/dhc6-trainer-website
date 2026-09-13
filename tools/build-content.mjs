@@ -24,6 +24,10 @@
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
+import { fileURLToPath } from "node:url";
+import { buildSystemsLabPack } from "./lib/systems-lab.mjs";
+
+const TOOLS_DIR = path.dirname(fileURLToPath(import.meta.url));
 
 function arg(name, fallback) {
   const index = process.argv.indexOf("--" + name);
@@ -59,6 +63,18 @@ const KOTLIN_SOURCES = {
   procedureLibrary: [
     "feature-procedures/src/main/java/com/dhc6trainer/feature/procedures/ui/screens/ProcedureLibraryScreen.kt",
     "feature-procedures/feature/procedures/ui/screens/ProcedureLibraryScreen.kt"
+  ],
+  systemsLab: [
+    "feature-knowledge/src/main/java/com/dhc6trainer/feature/knowledge/ui/screens/SystemsLabSection.kt",
+    "feature-knowledge/feature/knowledge/ui/screens/SystemsLabSection.kt"
+  ],
+  systemsLabHome: [
+    "feature-knowledge/src/main/java/com/dhc6trainer/feature/knowledge/ui/screens/SystemsLabHomeScreen.kt",
+    "feature-knowledge/feature/knowledge/ui/screens/SystemsLabHomeScreen.kt"
+  ],
+  aircraftSystem: [
+    "domain/src/main/java/com/dhc6trainer/domain/knowledge/model/AircraftSystem.kt",
+    "domain/domain/knowledge/model/AircraftSystem.kt"
   ]
 };
 
@@ -550,6 +566,27 @@ function buildGlossary() {
   };
 }
 
+/* -------------------------------------------------------------- systems lab */
+// Technical Lab: authored part pins, faults, drill prompts and the live-readout
+// simulation come from SystemsLabSection.kt; the model registry maps the
+// DHC6_REFERENCE_LIBRARY/System-Lab GLB files (served via /api/media) onto them.
+function buildSystemsLab() {
+  const section = findKotlin("systemsLab");
+  const home = findKotlin("systemsLabHome");
+  const aircraftSystem = findKotlin("aircraftSystem");
+  if (!section || !home || !aircraftSystem) {
+    console.warn("  (systems-lab skipped: SystemsLabSection.kt / SystemsLabHomeScreen.kt / AircraftSystem.kt not found — pass --kotlin <dir> or use the full repo)");
+    return null;
+  }
+  const registry = JSON.parse(fs.readFileSync(path.join(TOOLS_DIR, "data", "systems-lab-models.json"), "utf8"));
+  return buildSystemsLabPack({
+    sectionSource: fs.readFileSync(section, "utf8"),
+    homeSource: fs.readFileSync(home, "utf8"),
+    aircraftSystemSource: fs.readFileSync(aircraftSystem, "utf8"),
+    registry: registry
+  });
+}
+
 /* ----------------------------------------------------------------------- main */
 function main() {
   const packs = Object.assign({}, buildProcedures());
@@ -571,6 +608,8 @@ function main() {
   packs["canonical-items"] = passthrough("canonical-items", "procedures/canonical/canonical_items.json");
   const glossary = buildGlossary();
   if (glossary) packs.glossary = glossary;
+  const systemsLab = buildSystemsLab();
+  if (systemsLab) packs["systems-lab"] = systemsLab;
 
   fs.mkdirSync(path.join(outDir, "packs"), { recursive: true });
   const manifestPacks = [];

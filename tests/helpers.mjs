@@ -4,8 +4,58 @@ export function memoryKv(initial) {
   const map = new Map(Object.entries(initial || {}));
   return {
     map: map,
-    async get(key) { return map.has(key) ? map.get(key) : null; },
-    async put(key, value) { map.set(key, String(value)); },
+    async get(key, type) {
+      if (!map.has(key)) return null;
+      const value = map.get(key);
+      if (type === "arrayBuffer") {
+        if (value instanceof Uint8Array) return value.buffer.slice(value.byteOffset, value.byteOffset + value.byteLength);
+        if (value instanceof ArrayBuffer) return value;
+        return new TextEncoder().encode(String(value)).buffer;
+      }
+      if (value instanceof Uint8Array) return new TextDecoder().decode(value);
+      return value;
+    },
+    async put(key, value) { map.set(key, value instanceof Uint8Array || value instanceof ArrayBuffer ? new Uint8Array(value) : String(value)); },
+    async delete(key) { map.delete(key); }
+  };
+}
+
+/* Minimal R2 bucket double: objects = { key: Uint8Array | { bytes, contentType } } */
+export function memoryR2(initial) {
+  const map = new Map();
+  Object.keys(initial || {}).forEach(function (key) {
+    const entry = initial[key];
+    const bytes = entry instanceof Uint8Array ? entry : entry.bytes;
+    map.set(key, { bytes: bytes, contentType: entry.contentType || null, etag: "r2-" + key.length + "-" + bytes.byteLength });
+  });
+  function describe(key, entry, range) {
+    return {
+      key: key,
+      size: entry.bytes.byteLength,
+      etag: entry.etag,
+      httpEtag: '"' + entry.etag + '"',
+      httpMetadata: entry.contentType ? { contentType: entry.contentType } : {},
+      range: range || undefined
+    };
+  }
+  return {
+    map: map,
+    async head(key) { const entry = map.get(key); return entry ? describe(key, entry) : null; },
+    async get(key, options) {
+      const entry = map.get(key);
+      if (!entry) return null;
+      let bytes = entry.bytes;
+      let range = null;
+      if (options && options.range) {
+        range = { offset: options.range.offset || 0, length: options.range.length || (bytes.byteLength - (options.range.offset || 0)) };
+        bytes = bytes.slice(range.offset, range.offset + range.length);
+      }
+      return Object.assign(describe(key, entry, range), {
+        body: new Blob([bytes]).stream(),
+        async arrayBuffer() { return bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength); }
+      });
+    },
+    async put(key, value, options) { const bytes = value instanceof Uint8Array ? value : new Uint8Array(value); map.set(key, { bytes: bytes, contentType: options && options.httpMetadata && options.httpMetadata.contentType || null, etag: "r2-" + key.length + "-" + bytes.byteLength }); },
     async delete(key) { map.delete(key); }
   };
 }

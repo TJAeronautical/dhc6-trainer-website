@@ -52,7 +52,9 @@ Tile artwork is the real `core-res/drawable-nodpi` set converted to WebP (`app/a
 | CockpitHomeScreen (Aircraft State) | `live` | Later | Structure and copy in place; needs cockpit imagery in R2 (phase 5) |
 | LibraryHubScreen | `library/home` (+ sources / import / published) | Partial / Later | Read-only hub; storage decision pending |
 | CompetencyDashboardScreen, OralExamScreen, CrmDrillScreen | `training/competency-dashboard`, `training/oral-exam`, `training/crm-drill` | Later | Explained on-screen |
-| AircraftSystemsHome / SystemsLabHome | `systems/home`, `systems/lab` | Later | Need R2 imagery / GLB models |
+| SystemsLabHomeScreen (Systems Lab) | `systems/lab` | Available | Full-aircraft explorer (`DHC6WHEELS.glb`, orbit / pinch, the 7 Android exterior hotspots projected from the bounding box, internal-system chips), Aircraft / My Notes lanes, all-systems grid with model size / publish status, component-replica row |
+| SystemsLabDetailScreen + SystemsLabSection + SystemsLab3dViewerCard (Technical Lab) | `systems/lab/:system` | Available | 16 systems × 21 models (18 `DHC6_REFERENCE_LIBRARY/System-Lab` replicas + 3 Android-bundled models for electrical / pitot-static / environmental): live controls + readout (`labSimulation` port with the authored fault branches and normal-state templates), 3D card with model chips, numbered pins (Android `LabPart`s mapped to the real node names via `tools/data/systems-lab-models.json`, plus model-only groups), highlight / isolate / wireframe / reset / auto-rotate, embedded animation clips grouped and scrubbable, archived-part toggle, tap-to-identify nodes, selected-pin card with per-part study notes (local), fault mode with the fault simulation card, drill cue + training bridge, action cards (QRH / Flashcards / Procedures / Quiz). Models stream from the protected media API and are cached per browser until sign-out. Not ported: Android's procedural exploded view, the retired Open/Normal/Reverse governor states, the Android bleed-valve piston travel, poster "Reference:" bubbles (posters not yet published) |
+| AircraftSystemsHome / SystemDetailScreen (Knowledge → Systems) | `systems/home` | Later | 22 `systems/*.json` descriptions + 27 posters; needs the poster media publish (same `/api/media` path as the models) |
 | SettingsScreen | `settings` | Available | Account, Plan, Offline Access (+ refresh / clear local progress), Procedure Packs (later), Display (Dark Mode), Audio, Help, Privacy, Cockpit Mode variant selector |
 
 ## Content packs (all derived from the private repo; never committed)
@@ -66,6 +68,16 @@ Tile artwork is the real `core-res/drawable-nodpi` set converted to WebP (`app/a
 | `performance` | `performance/dhc6_performance_tables.json` + `calculators/dhc6_calc_data.json` | Performance |
 | `limitations`, `mel`, `maldives-strips`, `cas-library` | as before | Study screens |
 | `cockpit-bindings`, `scenario-snapshots`, `canonical-items`, `quiz-bank` | as before | reserved / reference |
+| `systems-lab` (new) | `SystemsLabSection.kt` (definitions, parts, faults, `labSimulation` branches / templates, training bridges, short titles, lever defaults), `SystemsLabHomeScreen.kt` (explorer lists, hotspots), `AircraftSystem.kt` (display titles) + `tools/data/systems-lab-models.json` (GLB registry: file, sha256, node-name selectors per part, hidden archive groups, clip groups) | Systems Lab home + Technical Lab |
+
+### Protected media (new)
+
+| Path (`/api/media/<path>`) | Store | Source |
+| --- | --- | --- |
+| `models/systems-lab/<FILE>.glb` × 21 | R2 bucket `dhc6-web-media` (binding `WEB_MEDIA`) — two files exceed the 25 MiB KV value limit | `C:\Android Studio\DHC6_REFERENCE_LIBRARY\System-Lab` (18) + `core-res/…/models/systems_lab/models` (3) |
+| `webmedia:index` | KV (`LICENSES`) | `tools/build-media.mjs` |
+
+Publish: `node tools/build-media.mjs --reference "…\System-Lab" --android "…\DHC-6-Trainer" --out build\media`, then run `build\media\upload-media.ps1` and the `kv bulk put` line it prints (see `WEB_APP_SECURITY.md` §4b).
 
 Build: `node tools/build-content.mjs --android "C:\Android Studio\DHC-6-Trainer" --out build\content`
 (the Kotlin sources are read from the module tree; add `--kotlin <dir>` when only a flattened export is available).

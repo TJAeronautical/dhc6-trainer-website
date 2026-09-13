@@ -42,6 +42,12 @@
     {
       "binding": "DESKTOP_RELEASES",
       "bucket_name": "dhc6-trainer-private-releases"
+    },
+    {
+      // Protected training media (GLB models, posters, cockpit plates).
+      // Create before deploying: npx wrangler r2 bucket create dhc6-web-media
+      "binding": "WEB_MEDIA",
+      "bucket_name": "dhc6-web-media"
     }
   ]
 }

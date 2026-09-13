@@ -53,17 +53,21 @@ test("service worker bypasses protected requests and clears protected entries on
   assert.equal(dispatchFetch("https://dhc6trainer.com/live.html", "navigate"), false);
   assert.equal(dispatchFetch("https://dhc6trainer.com/api/content/pack/limitations"), false);
   assert.equal(dispatchFetch("https://dhc6trainer.com/api/web-access/verify"), false);
+  assert.equal(dispatchFetch("https://dhc6trainer.com/api/media/models/systems-lab/PT6A27_ENGINE_REPLICA.glb"), false, "3D models never enter the public cache");
+  assert.equal(dispatchFetch("https://dhc6trainer.com/app/vendor/three-lab.js"), false, "app code under /app/ is left to the browser cache");
   assert.equal(dispatchFetch("https://evil.example/app/"), false);
   assert.equal(dispatchFetch("https://dhc6trainer.com/index.html", "navigate"), true);
   assert.equal(dispatchFetch("https://dhc6trainer.com/assets/site-redesign.css"), true);
 
   sw.cacheStore.set("https://dhc6trainer.com/app/", "stale-protected");
   sw.cacheStore.set("https://dhc6trainer.com/api/content/pack/mel", "stale-protected");
+  sw.cacheStore.set("https://dhc6trainer.com/api/media/models/systems-lab/FLAP_SYSTEM.glb", "stale-protected");
   sw.cacheStore.set("https://dhc6trainer.com/index.html", "public");
   let done;
   sw.listeners.message({ data: { type: "clear-protected" }, waitUntil(p) { done = p; } });
   await done;
   assert.equal(sw.cacheStore.has("https://dhc6trainer.com/app/"), false);
   assert.equal(sw.cacheStore.has("https://dhc6trainer.com/api/content/pack/mel"), false);
+  assert.equal(sw.cacheStore.has("https://dhc6trainer.com/api/media/models/systems-lab/FLAP_SYSTEM.glb"), false);
   assert.equal(sw.cacheStore.has("https://dhc6trainer.com/index.html"), true);
 });

@@ -20,6 +20,7 @@ import { onRequestPost as webAccessLogout } from "./functions/api/web-access/log
 import { onRequestPost as webAccessRequestLink } from "./functions/api/web-access/request-link.js";
 import { onRequestPost as webAccessLinkSession } from "./functions/api/web-access/link-session.js";
 import { onRequestGet as protectedContent } from "./functions/api/content/index.js";
+import { onRequestGet as protectedMedia } from "./functions/api/media/index.js";
 import { authorizeWebRequest } from "./functions/api/web-access/_session.js";
 
 export const API_ROUTES = [
@@ -41,7 +42,9 @@ export const API_ROUTES = [
   "/api/web-access/request-link",
   "/api/web-access/link-session",
   "/api/content/manifest",
-  "/api/content/pack/:id"
+  "/api/content/pack/:id",
+  "/api/media/index",
+  "/api/media/:path"
 ];
 
 function json(body, status) {
@@ -82,6 +85,7 @@ async function routeApi(context) {
   if (method === "POST" && path === "/api/web-access/request-link") return webAccessRequestLink(context);
   if (method === "POST" && path === "/api/web-access/link-session") return webAccessLinkSession(context);
   if (method === "GET" && (path === "/api/content/manifest" || path.startsWith("/api/content/pack/"))) return protectedContent(context);
+  if ((method === "GET" || method === "HEAD") && (path === "/api/media" || path.startsWith("/api/media/"))) return protectedMedia(context);
 
   return json({ ok: false, error: "api_route_not_found" }, 404);
 }
