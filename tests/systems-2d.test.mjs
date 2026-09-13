@@ -86,8 +86,23 @@ const DIAGRAMS = [
   { mediaPath: "systems/posters/powerplant_engine_cutaway.webp", androidPath: "systems/posters/powerplant_engine_cutaway.png", label: "powerplant engine cutaway", group: "poster" }
 ];
 
-function fixturePack() {
-  return buildSystems2dPack(Object.assign({}, SOURCES, { descriptions: DESCRIPTIONS, diagrams: DIAGRAMS }));
+/* Mirrors tools/data/systems-2d-references.json: a reference the operator
+   assigned to a system the Android source does not give one, where the authored
+   pins were not made for that drawing. */
+const OPERATOR_REFERENCES = {
+  references: {
+    ICE_RAIN_PROTECTION: [
+      { label: "Fuel heater", assetPath: "systems/posters/fuel_heater.png", decidedBy: "TJ Aeronautical", pinsApply: false, why: "fixture" }
+    ]
+  }
+};
+
+function fixturePack(extra) {
+  return buildSystems2dPack(Object.assign({}, SOURCES, {
+    descriptions: DESCRIPTIONS,
+    diagrams: DIAGRAMS,
+    operatorReferences: OPERATOR_REFERENCES
+  }, extra || {}));
 }
 
 /* ------------------------------------------------------------ extraction */
@@ -194,10 +209,48 @@ test("a reference declared with the wrong extension resolves to the file that ex
 });
 
 test("pins with no drawing behind them are flagged rather than dropped", () => {
-  const pack = fixturePack();
+  const pack = fixturePack({ operatorReferences: null });
   assert.equal(pack.systems.ICE_RAIN_PROTECTION.pins.length, 1);
   assert.equal(resolvedReferences(pack.systems.ICE_RAIN_PROTECTION).length, 0);
   assert.ok(pack.issues.some((i) => i.kind === "pins_without_diagram" && i.system === "ICE_RAIN_PROTECTION"));
+});
+
+test("an operator-assigned reference is merged, marked, and kept out of the Kotlin record", () => {
+  const pack = fixturePack();
+  const refs = pack.systems.ICE_RAIN_PROTECTION.references;
+  assert.equal(refs.length, 1);
+  assert.equal(refs[0].label, "Fuel heater");
+  assert.equal(refs[0].mediaPath, "systems/posters/fuel_heater.webp");
+  assert.equal(refs[0].origin, "operator", "the pack says this did not come from SystemDetailScreen");
+  assert.equal(refs[0].decidedBy, "TJ Aeronautical");
+
+  /* The Kotlin extraction itself must not gain the entry. */
+  const detail = readDetailScreen(SOURCES.detailSource);
+  assert.equal(detail.references.ICE_RAIN_PROTECTION, undefined);
+
+  /* And a declared reference is never marked as operator-assigned. */
+  assert.equal(pack.systems.ELECTRICAL.references[0].origin, undefined);
+});
+
+test("an operator reference whose file was never produced is reported, not shown", () => {
+  const pack = fixturePack({
+    operatorReferences: { references: { ICE_RAIN_PROTECTION: [{ label: "Nope", assetPath: "systems/posters/does_not_exist.png" }] } }
+  });
+  assert.equal(pack.systems.ICE_RAIN_PROTECTION.references[0].mediaPath, null);
+  assert.ok(pack.issues.some((i) => i.kind === "operator_reference_missing" && i.system === "ICE_RAIN_PROTECTION"));
+});
+
+test("pins are never placed on a drawing they were not authored for", () => {
+  const pack = fixturePack();
+  const system = pack.systems.ICE_RAIN_PROTECTION;
+  const diagram = diagramFor(system);
+  assert.equal(diagram.mode, "reference", "the image is shown, the pins are not put on it");
+  assert.equal(diagram.placePins, false);
+  assert.equal(diagram.image.mediaPath, "systems/posters/fuel_heater.webp", "the reference is still displayed");
+  assert.equal(diagram.pins.length, 1, "the authored pin text is kept, not dropped");
+  const issue = pack.issues.find((i) => i.kind === "pins_without_diagram" && i.system === "ICE_RAIN_PROTECTION");
+  assert.ok(issue);
+  assert.match(issue.detail, /instead of being placed on an unrelated drawing/);
 });
 
 test("an authored pack Android cannot reach is wired up and the gap recorded", () => {
@@ -224,7 +277,8 @@ test("tile status distinguishes available, partial and coming later", () => {
   const pack = fixturePack();
   assert.equal(systemStatus(pack, pack.systems.ELECTRICAL), "available", "pack + drawing");
   assert.equal(systemStatus(pack, pack.systems.AIRCRAFT_GENERAL), "partial", "pack, no drawing");
-  assert.equal(systemStatus(pack, pack.systems.ICE_RAIN_PROTECTION), "later", "neither");
+  assert.equal(systemStatus(pack, pack.systems.ICE_RAIN_PROTECTION), "partial", "an operator-assigned drawing, no bundled pack");
+  assert.equal(systemStatus(fixturePack({ operatorReferences: null }), fixturePack({ operatorReferences: null }).systems.ICE_RAIN_PROTECTION), "later", "neither");
   assert.equal(systemStatus(pack, pack.systems.ATA_100), "later", "a declared but missing image does not count");
 });
 
@@ -326,7 +380,7 @@ test("a limit's regulatory status is shown only where the pack states it", () =>
 test("the diagram mode follows what is actually available", () => {
   const pack = fixturePack();
   assert.equal(diagramFor(pack.systems.POWERPLANT).mode, "interactive", "pins + drawing");
-  assert.equal(diagramFor(pack.systems.ICE_RAIN_PROTECTION).mode, "list", "pins, no drawing");
+  assert.equal(diagramFor(fixturePack({ operatorReferences: null }).systems.ICE_RAIN_PROTECTION).mode, "list", "pins, no drawing");
   assert.equal(diagramFor(pack.systems.ELECTRICAL).mode, "static", "drawing, no pins");
   assert.equal(diagramFor(pack.systems.ATA_100).mode, "none");
   assert.equal(diagramFor(pack.systems.POWERPLANT).image.mediaPath, "systems/posters/powerplant_engine_cutaway.webp",

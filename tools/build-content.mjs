@@ -689,6 +689,11 @@ function buildSystems2d() {
     console.warn("  (systems-2d: " + diagramsFile + " not found — run `node tools/build-diagrams.mjs --android <repo>` so reference images resolve)");
   }
 
+  const operatorRefsFile = path.join(TOOLS_DIR, "data", "systems-2d-references.json");
+  const operatorReferences = fs.existsSync(operatorRefsFile)
+    ? JSON.parse(fs.readFileSync(operatorRefsFile, "utf8"))
+    : null;
+
   return buildSystems2dPack({
     aircraftSystemSource: fs.readFileSync(aircraftSystem, "utf8"),
     homeSource: fs.readFileSync(home, "utf8"),
@@ -696,7 +701,8 @@ function buildSystems2d() {
     diagramSource: fs.readFileSync(diagram, "utf8"),
     repositorySource: fs.readFileSync(repository, "utf8"),
     descriptions: descriptions,
-    diagrams: diagrams
+    diagrams: diagrams,
+    operatorReferences: operatorReferences
   });
 }
 

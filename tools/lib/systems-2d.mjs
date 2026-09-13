@@ -292,9 +292,32 @@ export function buildSystems2dPack(input) {
     };
   }
 
+  /*
+    References the operator assigned to a system that the Android source does not
+    declare (tools/data/systems-2d-references.json). Kept separate from the
+    Kotlin extraction so `detail.references` stays a faithful record of what
+    SystemDetailScreen declares, and marked origin="operator" in the pack.
+  */
+  const operatorRefs = (input.operatorReferences && input.operatorReferences.references) || {};
+
   const systems = {};
   taxonomy.members.forEach((key) => {
-    const refs = (detail.references[key] || []).map(resolveReference);
+    const declared = (detail.references[key] || []).map(resolveReference);
+    const added = (operatorRefs[key] || []).map((ref) => Object.assign(resolveReference(ref), {
+      origin: "operator",
+      pinsApply: ref.pinsApply !== false,
+      decidedBy: ref.decidedBy || null,
+      why: ref.why || null
+    }));
+    added.forEach((ref) => {
+      if (ref.mediaPath) return;
+      issues.push({
+        kind: "operator_reference_missing",
+        system: key,
+        detail: "tools/data/systems-2d-references.json assigns " + ref.androidPath + " to " + key + ", but the diagram build did not produce it."
+      });
+    });
+    const refs = declared.concat(added);
     const missing = refs.filter((r) => !r.mediaPath);
     if (missing.length) {
       issues.push({
@@ -310,12 +333,15 @@ export function buildSystems2dPack(input) {
       usedBasenames.add(basename);
     }
     const resolved = refs.filter((r) => r.mediaPath);
+    const pinnable = resolved.filter((r) => r.pinsApply !== false);
     const systemPins = pins[key] || [];
-    if (systemPins.length && !resolved.length) {
+    if (systemPins.length && !pinnable.length) {
       issues.push({
         kind: "pins_without_diagram",
         system: key,
-        detail: systemPins.length + " diagram pin(s) are authored but no reference image resolves, so the diagram cannot be drawn."
+        detail: resolved.length
+          ? systemPins.length + " diagram pin(s) are authored, but no reference image they were authored for resolves, so they are shown as study cards instead of being placed on an unrelated drawing."
+          : systemPins.length + " diagram pin(s) are authored but no reference image resolves, so the diagram cannot be drawn."
       });
     }
     systems[key] = {

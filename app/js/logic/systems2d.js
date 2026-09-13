@@ -230,18 +230,30 @@ export function regulatoryLabel(limit) {
 
 /*
   Interactive2dDiagramViewer draws the pins over the FIRST bundled reference.
-  A pin set with no image behind it is listed as study cards instead of being
-  painted onto an empty rectangle.
+
+  Two cases Android does not have:
+
+  * A pin set with no image behind it is listed as study cards rather than being
+    painted onto an empty rectangle.
+  * A reference the operator assigned to a system can carry pinsApply=false,
+    meaning the authored pin coordinates were not made for that drawing. The
+    image is still shown, and the pins are still listed — but they are never
+    placed on a drawing they would point at the wrong parts of.
+
+  Modes: "interactive" (pins on the image), "reference" (image shown, pins as
+  cards), "static" (image, no pins), "list" (pins, no image), "none".
 */
 export function diagramFor(system) {
   const pins = (system && system.pins) || [];
-  const image = resolvedReferences(system)[0] || null;
-  return {
-    image: image,
-    pins: pins,
-    // Android renders the viewer only when a reference image exists at all.
-    mode: pins.length && image ? "interactive" : pins.length ? "list" : image ? "static" : "none"
-  };
+  const resolved = resolvedReferences(system);
+  const pinnable = resolved.filter(function (r) { return r.pinsApply !== false; })[0] || null;
+  const image = pinnable || resolved[0] || null;
+  let mode = "none";
+  if (pins.length && pinnable) mode = "interactive";
+  else if (pins.length && image) mode = "reference";
+  else if (pins.length) mode = "list";
+  else if (image) mode = "static";
+  return { image: image, pins: pins, placePins: mode === "interactive", mode: mode };
 }
 
 /* fittedImageRect(): the contain-fit rect of the image inside its box, so a pin

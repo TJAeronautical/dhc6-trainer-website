@@ -255,6 +255,9 @@ function diagramImagePath(system) {
   return diagram.image && (diagram.mode === "interactive" || diagram.mode === "static") ? diagram.image.mediaPath : null;
 }
 
+/* placePins === false: the diagram card shows no image, so the reference card
+   above keeps it. Nothing is rendered twice either way. */
+
 function referenceImagesCard(pack, system, s, references, pinnedPath) {
   const body = h("div", { class: "stack-8 mt-8" });
 
@@ -317,9 +320,10 @@ function diagramCard(pack, system, s) {
   if (!s.pinId && pins.length) s.pinId = pins[0].id;
   if (pins.length && s.visited.indexOf(s.pinId) === -1) s.visited.push(s.pinId);
 
-  /* No image resolves: the authored pin text is still worth reading, so it is
-     listed rather than painted onto an empty rectangle. */
-  if (diagram.mode === "list") {
+  /* Either no image resolves, or the one that does was not the drawing these
+     pins were authored for. The authored text is still worth reading, so it is
+     listed rather than placed where it would point at the wrong parts. */
+  if (diagram.mode === "list" || diagram.mode === "reference") {
     const list = h("div", { class: "stack-8 mt-8" });
     function renderList() {
       list.replaceChildren.apply(list, pins.map(function (pin, i) {
@@ -347,7 +351,9 @@ function diagramCard(pack, system, s) {
         h("div", { class: "t-label-l w-bold c-white", text: "Component study cards" }),
         statusPill("partial")
       ]),
-      h("p", { class: "t-body-s c-white mt-6", text: pins.length + " components are authored for " + system.title + ", but the diagram they were pinned to is not in the source repository. The notes are shown as cards until an approved drawing is supplied." }),
+      h("p", { class: "t-body-s c-white mt-6", text: diagram.mode === "reference"
+        ? pins.length + " components are authored for " + system.title + ". They were pinned to a drawing that is not in the source repository, and are not placed on the reference above because they would point at unrelated parts of it. The notes are shown as cards until that drawing is supplied."
+        : pins.length + " components are authored for " + system.title + ", but the diagram they were pinned to is not in the source repository. The notes are shown as cards until an approved drawing is supplied." }),
       list
     ]);
   }
