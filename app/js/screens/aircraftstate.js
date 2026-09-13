@@ -8,6 +8,7 @@
 */
 import { h, Store, Content, currentVariant, variantLabel, navigate, feature } from "../core.js";
 import { screen, blueCard, tile, bubble, backBubble, selectableChip, searchField, statusPill, notice, emptyState, contentUnavailable, withSearchFocus, primaryButton, outlinedButton } from "../ui.js";
+import { openEditStateSheet, canEditScenarioState } from "./scenarioedit.js";
 import { CONTEXTS, contextByRouteKey, scenarioItems, scenarioMetaFor, allowedContextsFor, scenarioTileArt, cleanScenarioProcedureTitle, CONTEXT_PRESETS } from "../logic/cockpit/scenarios.js";
 import { PHASES, buildScenarioBundle, snapshotVisualState, phaseSummaryText, summaryLines, regionsFor, displayFocusTarget, visibleControls } from "../logic/cockpit/snapshot.js";
 import { snapshotRegistry, bindingsIndex, cockpitSurface, cockpitPack, variantPackFor, disclaimer } from "./cockpitcommon.js";
@@ -117,7 +118,7 @@ export async function scenarioProcedures(ctx) {
   function contextCard(context) {
     return tile({ class: "hero h-150 scenario-context", art: context.art, accent: context.accent, thinAccent: true, onClick: function () { proceduresState.context = context; render(); } }, [
       h("div", { class: "t-title-l w-bold c-white clamp-1", text: context.title }),
-      h("div", { class: "t-body-m w-semi clamp-2", style: "color:rgba(255,255,255,.86)", text: context.shortDescription }),
+      h("div", { class: "t-body-m w-semi clamp-3", style: "color:rgba(255,255,255,.86)", text: context.shortDescription }),
       h("span", { class: "btn outlined block mt-8", text: "Open Context" })
     ]);
   }
@@ -146,7 +147,7 @@ export async function scenarioProcedures(ctx) {
       if (!proceduresState.context) {
         root.replaceChildren(
           header("Day-to-Day Operations", "Choose the operating context first. Ground, taxi, takeoff, cruise, and landing drill lists open after this step."),
-          h("div", { class: "stack-12" }, CONTEXTS.map(contextCard)),
+          h("div", { class: "stack-12 tile-grid" }, CONTEXTS.map(contextCard)),
           disclaimer()
         );
         return;
@@ -162,7 +163,7 @@ export async function scenarioProcedures(ctx) {
           return selectableChip(b[1], proceduresState.bucket === b[0], function () { proceduresState.bucket = b[0]; render(); });
         })),
         visible.length
-          ? h("div", { class: "stack-10" }, visible.map(procedureRow))
+          ? h("div", { class: "stack-10 tile-grid" }, visible.map(procedureRow))
           : blueCard([h("div", { class: "t-title-m w-bold c-white", text: "No procedures found" }),
             h("div", { class: "t-body-m mt-6", style: "color:var(--white-secondary)", text: "No " + context.title.toLowerCase() + " procedure matched the current search or bucket filter." })]),
         disclaimer()
@@ -194,7 +195,7 @@ export async function scenarioSelector(ctx) {
         h("div", { class: "t-title-l w-bold c-white", text: context.title }),
         recommended ? h("span", { class: "badge", text: compact ? "Fast launch" : "Recommended" }) : null
       ]),
-      h("div", { class: "t-body-m clamp-2", style: "color:var(--white-secondary)", text: context.shortDescription }),
+      h("div", { class: "t-body-m clamp-3", style: "color:var(--white-secondary)", text: context.shortDescription }),
       h("span", { class: "btn outlined block mt-8", text: "Use This Context" })
     ]);
   }
@@ -209,7 +210,7 @@ export async function scenarioSelector(ctx) {
         navigate("/drill/run/" + encodeURIComponent(procedureId) + "?preset=memory");
       }, { block: true }))
     ]),
-    h("div", { class: "stack-12" }, contexts.map(function (c, i) { return contextCard(c, i === 0); })),
+    h("div", { class: "stack-12 tile-grid" }, contexts.map(function (c, i) { return contextCard(c, i === 0); })),
     disclaimer()
   ]);
 }
@@ -223,12 +224,13 @@ export async function scenarioState(ctx) {
   const variant = currentVariant();
   ctx.setTopbar({ title: "State Preview", subtitle: "AIRCRAFT · " + context.title, back: "#/live/procedures" });
 
-  let bundle, index, surface, hitboxes = [];
+  let bundle, index, surface, hitboxes = [], procKey = procedureId, rebuild = null;
   try {
     index = await procedureIndex();
     const item = indexItemFor(index, procedureId);
     const steps = item ? await procedureSteps(item, variant) : { memory: [], flow: [] };
     const registry = await snapshotRegistry();
+    procKey = registry.resolveKey(procedureId);
     const pack = await cockpitPack();
     const variantPack = variantPackFor(pack, variant);
     hitboxes = variantPack.hitboxes;
@@ -237,6 +239,13 @@ export async function scenarioState(ctx) {
     bundle = buildScenarioBundle(registry, procedureId, title, variant, (steps.flow || []).concat(steps.memory || []), function (action) { return bindings.lookup(procedureId, action); });
     bundle.item = item;
     bundle.steps = steps;
+    /* Re-resolve after an Edit State save: the registry is rebuilt with the new overrides. */
+    rebuild = async function () {
+      const fresh = await snapshotRegistry();
+      const next = buildScenarioBundle(fresh, procedureId, title, variant, (steps.flow || []).concat(steps.memory || []), function (action) { return bindings.lookup(procedureId, action); });
+      next.item = item; next.steps = steps;
+      bundle = next;
+    };
   } catch (error) {
     return screen({ title: "State Preview", header: [backBubble("#/live/procedures")] }, [contentUnavailable("scenario-snapshots", error)]);
   }
@@ -252,6 +261,20 @@ export async function scenarioState(ctx) {
       surface.setVisualState(snapshotVisualState(state.snapshot, variant));
       surface.setScrim(phase);
     }).catch(function () { /* overlay shows the reason */ });
+  }
+
+  function editPhase(phase, state) {
+    openEditStateSheet({
+      procKey: procKey,
+      phase: phase,
+      title: bundle.title,
+      variant: variant,
+      phaseState: { annunciators: state.annunciators, instruments: state.instruments, controls: state.controls, notes: state.notes },
+      onSaved: function () {
+        if (!rebuild) return;
+        rebuild().then(function () { applyPhase(); render(); }).catch(function () { /* keep the current view */ });
+      }
+    });
   }
 
   function keyValueCard(title, map) {
@@ -340,7 +363,10 @@ export async function scenarioState(ctx) {
           }, { block: true })
         ]),
         h("div", { class: "row gap-8 equal-row mt-8" }, [
-          outlinedButton(stateScreenState.details ? "Hide Details" : "Review Details", function () { stateScreenState.details = !stateScreenState.details; render(); }, { block: true, selected: stateScreenState.details })
+          outlinedButton(stateScreenState.details ? "Hide Details" : "Review Details", function () { stateScreenState.details = !stateScreenState.details; render(); }, { block: true, selected: stateScreenState.details }),
+          canEditScenarioState()
+            ? outlinedButton("Edit State", function () { editPhase(phase, state); }, { block: true })
+            : null
         ]),
         h("div", { class: "t-body-s c-ter mt-8", text: focusTargets.length ? "Preview stays frozen. Focus opens a static snapshot before any live cockpit entry." : "Use Enter Cockpit only when you need live interaction. Keep this screen as a launcher and review surface." })
       ]),
@@ -379,12 +405,13 @@ export async function frozenSnapshot(ctx) {
   const initialTarget = ctx.query.get("focusTarget") || "";
   ctx.setTopbar({ title: "Focus Snapshot", subtitle: "AIRCRAFT · frozen review", back: "#/scenario/state/" + encodeURIComponent(procedureId) + "/cruise" });
 
-  let bundle, hitboxes = [];
+  let bundle, hitboxes = [], procKey = procedureId;
   try {
     const index = await procedureIndex();
     const item = indexItemFor(index, procedureId);
     const steps = item ? await procedureSteps(item, variant) : { memory: [], flow: [] };
     const registry = await snapshotRegistry();
+    procKey = registry.resolveKey(procedureId);
     const pack = await cockpitPack();
     const variantPack = variantPackFor(pack, variant);
     hitboxes = variantPack.hitboxes;
@@ -469,6 +496,15 @@ export async function frozenSnapshot(ctx) {
           rememberCockpitResume("/scenario/run/" + encodeURIComponent(procedureId) + "/" + phase, bundle.title, procedureId);
           navigate("/scenario/run/" + encodeURIComponent(procedureId) + "/" + phase);
         }, { block: true }),
+        canEditScenarioState()
+          ? outlinedButton("Edit State", function () {
+            openEditStateSheet({
+              procKey: procKey, phase: phase, title: bundle.title, variant: variant,
+              phaseState: { annunciators: state.annunciators, instruments: state.instruments, controls: state.controls, notes: state.notes },
+              onSaved: function () { window.location.reload(); }
+            });
+          }, { block: true })
+          : null,
         outlinedButton("Close", function () { window.history.back(); }, { block: true })
       ]),
       disclaimer()

@@ -56,6 +56,7 @@ Tile artwork is the real `core-res/drawable-nodpi` set converted to WebP (`app/a
 | ScenarioSelectorScreen | `scenario/select/:id` | Available | `allowedScenarioContextsForProcedure`, `ScenarioLaunchPreset` notes and focus targets |
 | ScenarioStateScreen | `scenario/state/:id/:phase` | Available | BEFORE / DURING / AFTER phase switch, resolved snapshot counts, frozen plate preview, launcher for drill list, MCC flow, cockpit entry and phase review |
 | FrozenSnapshotScreen | `scenario/focus/:id/:phase` | Available | Focus-target regions highlighted on the plate, scrim, humanized annunciator / instrument / control review |
+| ScenarioStateEditSheetV2 + ScenarioStateToggleEditorDialog + ScenarioStateNotesEditorDialog ("Edit State") | inside `scenario/state` and `scenario/focus` | Available | The four Android sections — Annunciators / Caution Lights (the full CAS catalogue grouped Warnings → Cautions → Advisories → Status), Instrument Indications (21 gauges with the Android defaults, steps and min/max plus Weight On Wheels), Controls / Configuration (lever choice steppers, switch ON/OFF, crossfeed, flaps, trim, parking brake, pitot heat, exterior lights) and Notes. Values already in the phase are loaded; unknown entries become "Current custom …" rows. Saving writes a per-browser override (localStorage) exactly as Android writes `filesDir` — the published procedure is never changed — and "Reset to published state" removes it |
 | CockpitScreen (free play + scenario run) | `live/cockpit`, `scenario/run/:id/:phase` | Available | Canonical plate render (LEGACY 3748 × 5276 / G950 3744 × 5276 contain-fit), 125 hitboxes, control sprites from the packed atlas, gauges, annunciator lamps, master WARNING/CAUTION, G950 PFD/CAS/MFD, pan / pinch / wheel zoom, tap-to-toggle switches, lever drag with the Android gate bands, live `EngineSystemsModel` at 30 Hz, `FailureStateEvaluator` → `CasSystem` indications HUD |
 | ScenarioDrillRunScreen (memory + MCC flow) | `drill/run/:id?preset=` | Available | `DrillStepEvaluator` port: expected cockpit targets per step, Next locked until the control is in the required position, already-correct confirm, wrong-role / callout / timing counters, the Android score table (−20 / −15 / −10 / −3), score band, instructor feedback and the logbook entry; MCC flow adds Web Speech callouts |
 | LibraryHubScreen | `library/home` (+ sources / import / published) | Partial / Later | Read-only hub; storage decision pending |
@@ -120,3 +121,9 @@ Build: `node tools/build-content.mjs --android "C:\Android Studio\DHC-6-Trainer"
    CAUTION lamp artwork unconditionally (QUIRK-3). The web paints them only when lit, so an unlit cockpit does not
    show two permanently glowing masters. Every other documented quirk (QUIRK-1, 2, 4, 5, 6, 7 and the missing
    `switch_button` family, G1) is reproduced exactly and covered by `tests/cockpit.test.mjs`.
+7. **Edit QRH** — `QrhDetailScreen` shows the Android "Edit QRH" button, permanently disabled with the Android
+   lock copy. On Android an owner or instructor can enable it and open `QrhManualEditScreen` (1 480 lines:
+   structured step kinds, a cockpit control picker, auto-parsing, validation) backed by `QrhManualEditStore`,
+   which is **in-memory only** — Android does not persist manual QRH edits across an app restart. Porting it is a
+   phase of its own, and it needs a decision: keep Android's behaviour (edits live in the browser, like Edit State)
+   or publish edits to KV so every subscriber sees them. See the phase 4b status doc.

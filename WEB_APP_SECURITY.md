@@ -156,7 +156,7 @@ Open `http://127.0.0.1:8788/web-app.html` and sign in with `pilot@example.com` /
 
 ## 6. Verification checklist
 
-- `npm test` — **117 tests**. Phase 4a adds `tests/cockpit.test.mjs` (39 tests: canonical visual keys and the
+- `npm test` — **123 tests**. Phase 4b adds six Edit State tests (canonical keys and the annunciator alias table, the Android gauge ranges and lever choices, loading existing values with coercion, stepper clamping, per-section saves with the annunciator override flag, and an override round-trip through the snapshot registry). Phase 4a adds `tests/cockpit.test.mjs` (39 tests: canonical visual keys and the
   annunciator alias table, host roles, hitbox parsing / clamping / G950 parity, the contain-fit transform, sprite
   families and calibration, the lever travel profiles, the `EngineSystemsModel` 180-tick reference set,
   the autofeather arm gates, `CasCatalog` normalisation, `CasSystem` latch / ack / phase inhibit, the masters,
