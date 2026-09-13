@@ -437,3 +437,90 @@ test("the browser client and editor never cache protected drafts or bypass the A
   assert.match(detail, /applyDraftToDetail/, "a saved edit replaces the displayed procedure");
   assert.match(detail, /#\/qrh\/edit\//, "the Edit QRH button opens the editor when permitted");
 });
+
+test("opening an unedited procedure costs no request and logs no 404", async () => {
+  /*
+    GET /api/qrh-edits/<id> answers 404 when a procedure has never been edited.
+    That is the right REST answer, but the client used to ask on every procedure
+    open, so the app's most-used screen put a 404 in the console — noise that
+    hides real 404s — to learn nothing. The index already lists every edited
+    procedure, so absence from it is proof and needs no request.
+  */
+  const calls = [];
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async function (url) {
+    calls.push(String(url));
+    if (String(url).endsWith("/api/qrh-edits")) {
+      return new Response(JSON.stringify({
+        ok: true, canEdit: false, updatedAt: 1,
+        items: [{ procedureId: "EMERGENCY/Edited One", title: "Edited One", updatedAt: 1 }]
+      }), { status: 200, headers: { "Content-Type": "application/json" } });
+    }
+    return new Response(JSON.stringify({ ok: true, edited: true, draft: { title: "Edited One" } }),
+      { status: 200, headers: { "Content-Type": "application/json" } });
+  };
+
+  try {
+    const client = await import("../app/js/qrhedits.js?case=index-first");
+    client.resetQrhEditCache();
+
+    /* Never edited: the index answers it, and nothing else is fetched. */
+    const none = await client.loadEdit("NORMAL/Taxi");
+    assert.equal(none, null);
+    assert.deepEqual(calls, ["/api/qrh-edits"], "only the index is fetched");
+
+    /* A second unedited procedure needs no fetch at all. */
+    assert.equal(await client.loadEdit("NORMAL/Before Start"), null);
+    assert.equal(calls.length, 1, "the index is fetched once per session");
+
+    /* A procedure the index lists IS fetched. */
+    const draft = await client.loadEdit("EMERGENCY/Edited One");
+    assert.equal(draft.title, "Edited One");
+    assert.equal(calls.length, 2);
+    assert.match(calls[1], /Edited%20One$/);
+
+    /* Saving adds to the index, so the draft is not written off afterwards. */
+    client.resetQrhEditCache();
+    await client.loadEdit("NORMAL/Taxi");          // refetches the index
+    await client.saveEdit("NORMAL/Taxi", { title: "Taxi" });
+    const after = await client.loadEdit("NORMAL/Taxi");
+    assert.ok(after, "a procedure edited this session must not be treated as unedited");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("a failed or truncated index falls back to asking per procedure", async () => {
+  const originalFetch = globalThis.fetch;
+
+  /* Index unavailable (no session, offline): behaviour must not get worse. */
+  let calls = [];
+  globalThis.fetch = async function (url) {
+    calls.push(String(url));
+    if (String(url).endsWith("/api/qrh-edits")) return new Response("{}", { status: 401 });
+    return new Response(JSON.stringify({ ok: true, edited: false, draft: null }), { status: 404, headers: { "Content-Type": "application/json" } });
+  };
+  try {
+    const client = await import("../app/js/qrhedits.js?case=index-unavailable");
+    client.resetQrhEditCache();
+    assert.equal(await client.loadEdit("NORMAL/Taxi"), null);
+    assert.equal(calls.length, 2, "the per-procedure request still happens when the index is unusable");
+
+    /* Index at the server cap may be truncated, so it is no longer proof. */
+    calls = [];
+    const items = Array.from({ length: 500 }, (_, i) => ({ procedureId: "P" + i, title: "P" + i, updatedAt: 1 }));
+    globalThis.fetch = async function (url) {
+      calls.push(String(url));
+      if (String(url).endsWith("/api/qrh-edits")) {
+        return new Response(JSON.stringify({ ok: true, canEdit: false, items: items }), { status: 200, headers: { "Content-Type": "application/json" } });
+      }
+      return new Response(JSON.stringify({ ok: true, edited: false, draft: null }), { status: 404, headers: { "Content-Type": "application/json" } });
+    };
+    const capped = await import("../app/js/qrhedits.js?case=index-capped");
+    capped.resetQrhEditCache();
+    assert.equal(await capped.loadEdit("NORMAL/Not In The First 500"), null);
+    assert.equal(calls.length, 2, "at the index cap the client must ask per procedure");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});

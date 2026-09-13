@@ -58,7 +58,7 @@ route("/knowledge/home", studyHome);
 route("/knowledge/definitions", definitions);
 route("/knowledge/search", knowledgeSearch);
 route("/library/home", libraryHub);
-route("/library/sources", laterScreen("library", "Source documents (manuals, imported PDFs) need document storage. Decision pending: create an R2 bucket for web content or reuse DESKTOP_RELEASES under a web-content/ prefix."));
+route("/library/sources", laterScreen("library", "Source documents (manuals, imported PDFs) will be served from a dedicated R2 bucket for web content, dhc6-web-content, behind the same session gate as the training packs and media. The bucket and its binding are not configured yet."));
 route("/library/import", laterScreen("import", "Import runs the on-device extraction pipeline and writes to the app's Room database; it is an authoring tool for the owner/instructor accounts and is not planned for the browser edition."));
 route("/library/published", laterScreen("library", "Published library content will be served from R2 behind the subscriber session once the document decision is made."));
 route("/systems/home", systemsHome);
