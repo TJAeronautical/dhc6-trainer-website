@@ -34,16 +34,26 @@ for (const seed of [arg("kv", ""), arg("media-kv", "")]) {
   if (seed && fs.existsSync(seed)) for (const entry of JSON.parse(fs.readFileSync(seed, "utf8"))) kv.set(entry.key, entry.value);
 }
 /* In-memory R2 double for WEB_MEDIA: objects are read lazily from --media-dir
-   (one or more directories, ";"-separated) by file name under webmedia/models/systems-lab/. */
+   (one or more directories, ";"-separated). A key is tried as its path relative to
+   webmedia/ first (so build/cockpit/media works as-is) and then by bare file name
+   (so the flat GLB reference library works too). */
 const mediaDirs = String(arg("media-dir", "")).split(";").map((d) => d.trim()).filter(Boolean);
+const DEV_CONTENT_TYPES = { ".glb": "model/gltf-binary", ".gltf": "model/gltf+json", ".webp": "image/webp", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".svg": "image/svg+xml", ".json": "application/json", ".pdf": "application/pdf" };
+function devContentType(file) { return DEV_CONTENT_TYPES[path.extname(file).toLowerCase()] || "application/octet-stream"; }
 function mediaFile(key) {
+  const relative = key.replace(/^webmedia\//, "");
   const name = key.split("/").pop();
-  for (const dir of mediaDirs) { const f = path.join(dir, name); if (fs.existsSync(f)) return f; }
+  for (const dir of mediaDirs) {
+    const nested = path.join(dir, relative);
+    if (fs.existsSync(nested) && fs.statSync(nested).isFile()) return nested;
+    const flat = path.join(dir, name);
+    if (fs.existsSync(flat) && fs.statSync(flat).isFile()) return flat;
+  }
   return null;
 }
 if (mediaDirs.length) {
   env.WEB_MEDIA = {
-    async head(key) { const f = mediaFile(key); if (!f) return null; const st = fs.statSync(f); return { key, size: st.size, etag: "dev-" + st.size, httpEtag: '"dev-' + st.size + '"', httpMetadata: { contentType: "model/gltf-binary" } }; },
+    async head(key) { const f = mediaFile(key); if (!f) return null; const st = fs.statSync(f); return { key, size: st.size, etag: "dev-" + st.size, httpEtag: '"dev-' + st.size + '"', httpMetadata: { contentType: devContentType(f) } }; },
     async get(key, options) {
       const f = mediaFile(key); if (!f) return null;
       const st = fs.statSync(f);
@@ -51,7 +61,7 @@ if (mediaDirs.length) {
       if (options && options.range) { start = options.range.offset || 0; end = options.range.length ? start + options.range.length - 1 : end; }
       const body = fs.createReadStream(f, { start, end });
       const stream = new ReadableStream({ start(controller) { body.on("data", (c) => controller.enqueue(new Uint8Array(c))); body.on("end", () => controller.close()); body.on("error", (e) => controller.error(e)); } });
-      return { key, size: st.size, etag: "dev-" + st.size, httpEtag: '"dev-' + st.size + '"', httpMetadata: { contentType: "model/gltf-binary" }, body: stream, range: options && options.range ? { offset: start, length: end - start + 1 } : undefined };
+      return { key, size: st.size, etag: "dev-" + st.size, httpEtag: '"dev-' + st.size + '"', httpMetadata: { contentType: devContentType(f) }, body: stream, range: options && options.range ? { offset: start, length: end - start + 1 } : undefined };
     }
   };
 }

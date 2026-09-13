@@ -14,7 +14,7 @@ Status legend: **Available** = fully usable from Android data/logic · **Partial
 | --- | --- | --- |
 | HOME (Screen.Dashboard, `dashboard`) | `/app/#/dashboard` | Bottom nav on phones (`NavigationBar`, accent-sky selected state); 104 px rail with the `DHC-6 / TRAINER` header on ≥ 900 px |
 | PROCS (Screen.Systems, `systems`) | `/app/#/systems` | ProcedureLibraryScreen |
-| AIRCRAFT (Screen.Live, `live`) | `/app/#/live` | CockpitHomeScreen structure, marked Later |
+| AIRCRAFT (Screen.Live, `live`) | `/app/#/live`, `/live/cockpit`, `/live/procedures`, `/scenario/*`, `/drill/run/:id` | CockpitHomeScreen, ScenarioProceduresScreen, ScenarioSelectorScreen, ScenarioStateScreen, FrozenSnapshotScreen, CockpitScreen, ScenarioDrillRunScreen |
 | QRH (Screen.Qrh, `qrh`) | `/app/#/qrh`, `/qrh/category/:c`, `/qrh/detail/:id` | QrhHub / QrhList / QrhDetail |
 | SETTINGS (`settings`) | `/app/#/settings` | SettingsScreen sections |
 | Tab ownership | `owningTab()` in `app/js/core.js` | Same prefix rules as `owningPrimaryTab` (training/* → HOME, library/* + quizzes → PROCS, …) |
@@ -23,7 +23,9 @@ Theme: `app/app.css` transcribes `AviationColors.kt` (surface ramp, AccentSky, s
 tile blues), the day/night schemes from `DHC6TrainerTheme.kt` (night = true-dark canonical ramp; day = blue-derived
 `#0E3A56` scheme), `LibraryTheme.kt` background (`lerp(lerp(bg, primaryContainer, .72), black, .10)` → `#062439` night /
 `#082F49` day), `Typography.kt` (display 30/27/24 … label 13/12/11) and `Shapes.kt` (8/12/16/22/28).
-Tile artwork is the real `core-res/drawable-nodpi` set converted to WebP (`app/assets/tiles`, 48 files, ≤ 960 px).
+Tile artwork is the real `core-res/drawable-nodpi` set converted to WebP (`app/assets/tiles`, 47 files, ≤ 960 px).
+`procedure_tile_takeoff.webp` was removed in phase 4a: it is a watermarked Getty Images comp of an A340 — see
+"Assumptions to confirm" §5.
 
 ## Screens
 
@@ -49,7 +51,13 @@ Tile artwork is the real `core-res/drawable-nodpi` set converted to WebP (`app/a
 | CAS library (web-only presentation of `cas-library/*`) | `study/cas` | Available | Warning / caution / advisory lists for the selected variant |
 | KnowledgeSearchScreen | `knowledge/search` | Partial | Searches knowledge units, procedure steps and definitions; published-library search comes with the Library phase |
 | LogbookScreen | `training/logbook` | Partial | Local entries only (procedure drills + quizzes); Android cloud logbook sync later |
-| CockpitHomeScreen (Aircraft State) | `live` | Later | Structure and copy in place; needs cockpit imagery in R2 (phase 5) |
+| CockpitHomeScreen (Aircraft State) | `live` | Available | Entry cards, resume, variant badge, Day-to-Day Operations and free-play cockpit launchers |
+| ScenarioProceduresScreen | `live/procedures` | Available | Six entry contexts (`ScenarioEntryContext`), per-context procedure lists built from the `procedures-index` pack with the Android `matchesContext` / `matchesBucket` / `matchesSearch` rules, bucket pills, search, tile art (`scenarioContextDrawableRes`) |
+| ScenarioSelectorScreen | `scenario/select/:id` | Available | `allowedScenarioContextsForProcedure`, `ScenarioLaunchPreset` notes and focus targets |
+| ScenarioStateScreen | `scenario/state/:id/:phase` | Available | BEFORE / DURING / AFTER phase switch, resolved snapshot counts, frozen plate preview, launcher for drill list, MCC flow, cockpit entry and phase review |
+| FrozenSnapshotScreen | `scenario/focus/:id/:phase` | Available | Focus-target regions highlighted on the plate, scrim, humanized annunciator / instrument / control review |
+| CockpitScreen (free play + scenario run) | `live/cockpit`, `scenario/run/:id/:phase` | Available | Canonical plate render (LEGACY 3748 × 5276 / G950 3744 × 5276 contain-fit), 125 hitboxes, control sprites from the packed atlas, gauges, annunciator lamps, master WARNING/CAUTION, G950 PFD/CAS/MFD, pan / pinch / wheel zoom, tap-to-toggle switches, lever drag with the Android gate bands, live `EngineSystemsModel` at 30 Hz, `FailureStateEvaluator` → `CasSystem` indications HUD |
+| ScenarioDrillRunScreen (memory + MCC flow) | `drill/run/:id?preset=` | Available | `DrillStepEvaluator` port: expected cockpit targets per step, Next locked until the control is in the required position, already-correct confirm, wrong-role / callout / timing counters, the Android score table (−20 / −15 / −10 / −3), score band, instructor feedback and the logbook entry; MCC flow adds Web Speech callouts |
 | LibraryHubScreen | `library/home` (+ sources / import / published) | Partial / Later | Read-only hub; storage decision pending |
 | CompetencyDashboardScreen, OralExamScreen, CrmDrillScreen | `training/competency-dashboard`, `training/oral-exam`, `training/crm-drill` | Later | Explained on-screen |
 | SystemsLabHomeScreen (Systems Lab) | `systems/lab` | Available | Full-aircraft explorer (`DHC6WHEELS.glb`, orbit / pinch, the 7 Android exterior hotspots projected from the bounding box, internal-system chips), Aircraft / My Notes lanes, all-systems grid with model size / publish status, component-replica row |
@@ -67,7 +75,8 @@ Tile artwork is the real `core-res/drawable-nodpi` set converted to WebP (`app/a
 | `flashcards` | `flashcards/*.json` (Android-valid decks only) | Study Card Review |
 | `performance` | `performance/dhc6_performance_tables.json` + `calculators/dhc6_calc_data.json` | Performance |
 | `limitations`, `mel`, `maldives-strips`, `cas-library` | as before | Study screens |
-| `cockpit-bindings`, `scenario-snapshots`, `canonical-items`, `quiz-bank` | as before | reserved / reference |
+| `cockpit-bindings`, `scenario-snapshots`, `canonical-items`, `quiz-bank` | as before | Aircraft State (bindings + snapshots), reference |
+| `cockpit-plates` (new) | `tools/build-cockpit.mjs` over `core-res/src/main/assets/cockpit` (hitboxes, `source_exact` sprite families, instruments, annunciators, plates) | Aircraft State cockpit render |
 | `systems-lab` (new) | `SystemsLabSection.kt` (definitions, parts, faults, `labSimulation` branches / templates, training bridges, short titles, lever defaults), `SystemsLabHomeScreen.kt` (explorer lists, hotspots), `AircraftSystem.kt` (display titles) + `tools/data/systems-lab-models.json` (GLB registry: file, sha256, node-name selectors per part, hidden archive groups, clip groups) | Systems Lab home + Technical Lab |
 
 ### Protected media (new)
@@ -75,9 +84,17 @@ Tile artwork is the real `core-res/drawable-nodpi` set converted to WebP (`app/a
 | Path (`/api/media/<path>`) | Store | Source |
 | --- | --- | --- |
 | `models/systems-lab/<FILE>.glb` × 21 | R2 bucket `dhc6-web-media` (binding `WEB_MEDIA`) — two files exceed the 25 MiB KV value limit | `C:\Android Studio\DHC6_REFERENCE_LIBRARY\System-Lab` (18) + `core-res/…/models/systems_lab/models` (3) |
+| `cockpit/plates/{legacy,g950}.webp` | R2 bucket `dhc6-web-media` | `tools/build-cockpit.mjs` (canonical plate downscaled to 2000 px wide) |
+| `cockpit/atlas/{legacy,g950}.webp` | R2 bucket `dhc6-web-media` | `tools/build-cockpit.mjs` (shelf-packed sprite / instrument / annunciator atlas, trimmed to opaque bounds) |
 | `webmedia:index` | KV (`LICENSES`) | `tools/build-media.mjs` |
 
-Publish: `node tools/build-media.mjs --reference "…\System-Lab" --android "…\DHC-6-Trainer" --out build\media`, then run `build\media\upload-media.ps1` and the `kv bulk put` line it prints (see `WEB_APP_SECURITY.md` §4b).
+The cockpit plate and atlas are **protected training content**: they are never committed to this
+public repo, `/live.html` loads the legacy plate through `/api/media/cockpit/plates/legacy.webp`, and
+`app/js/cockpit.js` drops both the decoded bitmaps and the `dhc6-media-v1` cache entries on 401/403.
+
+Publish: `node tools/build-cockpit.mjs --android "…\DHC-6-Trainer" --out build\cockpit` first (it writes
+`build/cockpit/cockpit-pack.json`, consumed by `build-content.mjs`, and `build/cockpit/media`, picked up by
+`build-media.mjs --extra-media`), then `node tools/build-media.mjs --reference "…\System-Lab" --android "…\DHC-6-Trainer" --out build\media`, then run `build\media\upload-media.ps1` and the `kv bulk put` line it prints (see `WEB_APP_SECURITY.md` §4b).
 
 Build: `node tools/build-content.mjs --android "C:\Android Studio\DHC-6-Trainer" --out build\content`
 (the Kotlin sources are read from the module tree; add `--kotlin <dir>` when only a flattened export is available).
@@ -94,3 +111,12 @@ Build: `node tools/build-content.mjs --android "C:\Android Studio\DHC-6-Trainer"
 4. **Verified screenshot** — `assets/actual-android-app.jpeg` shows a bottom bar and a landplane performance screen that
    do not exist in the exported Kotlin (bottom bar is HOME / PROCS / AIRCRAFT / QRH / SETTINGS; the performance
    calculator is the seaplane QRH table set). The web follows the Kotlin.
+5. **Stock tile art** — `procedure_tile_takeoff.webp` carried a visible *gettyimages* watermark (and showed an
+   Airbus A340, not a DHC-6). It was deleted from this repo and the Takeoff / Initial Climb context now uses
+   `procedure_tile_takeoff_custom.webp`. The remaining tiles are unwatermarked airliner stock photos carried over
+   from the Android bundle — **confirm you hold a licence for them**, and replace the watermarked file in the
+   Android app too.
+6. **Documented Android deviation (cockpit)** — the Android snapshot renderer paints the master WARNING and
+   CAUTION lamp artwork unconditionally (QUIRK-3). The web paints them only when lit, so an unlit cockpit does not
+   show two permanently glowing masters. Every other documented quirk (QUIRK-1, 2, 4, 5, 6, 7 and the missing
+   `switch_button` family, G1) is reproduced exactly and covered by `tests/cockpit.test.mjs`.

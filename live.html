@@ -253,7 +253,9 @@
           <span class="score-badge" id="sim-phase">Awaiting confirmation</span>
         </div>
         <div class="cockpit-viewport" aria-label="DHC-6 cockpit control panel">
-          <img class="cockpit-art" src="assets/cockpit/legacy-cockpit-base-clean.webp" alt="DHC-6 cockpit artwork used by the interim drill (illustration)">
+          <!-- The cockpit plate is protected training content: it is served from R2 through the
+               session-gated media API, never from a public asset path. -->
+          <img class="cockpit-art" id="cockpit-art" src="/api/media/cockpit/plates/legacy.webp" alt="DHC-6 cockpit plate rendered from the protected media store">
           <div class="cockpit-shade"></div>
           <div id="cockpit-hotspots"></div>
           <div class="cockpit-state-strip" id="cockpit-state-strip"></div>
@@ -333,6 +335,12 @@
 
 <script>
 "use strict";
+/* The protected cockpit plate may not be published yet (or the session may have
+   lapsed): hide the element rather than showing a broken image. */
+(function(){
+  var art = document.getElementById("cockpit-art");
+  if (art) art.addEventListener("error", function(){ art.style.display = "none"; });
+})();
 /* =====================================================================
    DHC-6 Trainer — Live Web Trainer
    Content grounded in: DHC-6 Series 300 AFM/POH (PSM 1-63),

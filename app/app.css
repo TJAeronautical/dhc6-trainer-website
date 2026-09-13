@@ -592,3 +592,38 @@ table.data th { color: var(--text-secondary); font-weight: 600; font-size: 12px;
 
 .app-noscript { padding: 24px; text-align: center; }
 @media (prefers-reduced-motion: reduce) { * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
+
+/* AIRCRAFT tab — canonical cockpit surface (CockpitPlateView / ScenarioPhaseSnapshotRenderer) */
+.variant-badge { display: inline-flex; align-items: center; border-radius: 999px; padding: 8px 12px; background: var(--accent-container); color: var(--accent-sky); font-size: 13px; font-weight: 700; white-space: nowrap; }
+.badge.state { background: rgba(42, 111, 161, 0.86); font-weight: 600; }
+.badge.phase { background: var(--normal-green); }
+.badge.bucket { background: var(--cockpit-info-blue-dark, #14558A); }
+.badge.section { background: var(--cockpit-info-blue, #2B79A8); }
+.cockpit-stage { position: relative; width: 100%; border-radius: var(--r-md); overflow: hidden; background: #000; border: 1px solid var(--hairline); }
+.cockpit-host { width: 100%; height: min(56vh, 480px); min-height: 260px; touch-action: none; }
+/* The frozen snapshot shows the whole plate, so the card takes the plate's aspect
+   ratio (3748/5276) the way the Android preview card does. */
+.cockpit-stage.cockpit-preview { max-width: 520px; margin-inline: auto; }
+.cockpit-stage.cockpit-preview .cockpit-host { height: auto; aspect-ratio: 3748 / 5276; }
+.cockpit-stage.cockpit-focus .cockpit-host { height: 360px; }
+.cockpit-stage.cockpit-live .cockpit-host { height: min(70vh, 560px); }
+.cockpit-canvas { display: block; width: 100% !important; height: 100% !important; outline: none; }
+.cockpit-canvas:focus-visible { outline: 2px solid var(--accent-sky); outline-offset: -2px; }
+.cockpit-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 18px; text-align: center; background: rgba(6, 14, 24, 0.86); color: #fff; font-size: 14px; }
+.cockpit-overlay.error { background: rgba(62, 21, 18, 0.9); }
+.cockpit-overlay.warn { background: rgba(62, 46, 12, 0.9); }
+.cockpit-hud { display: flex; flex-direction: column; gap: 6px; background: rgba(8, 40, 61, 0.93); border: 1px solid var(--hairline); border-radius: var(--r-md); padding: 12px; margin-top: 10px; }
+.hud-chip { display: inline-flex; align-items: center; border-radius: 999px; padding: 4px 10px; font-size: 12px; font-weight: 600; color: #fff; background: rgba(255, 255, 255, 0.10); border: 1px solid var(--hairline); white-space: nowrap; }
+.hud-chip.warn { background: rgba(255, 59, 48, 0.22); border-color: rgba(255, 59, 48, 0.55); }
+.hud-chip.caut { background: rgba(255, 213, 79, 0.20); border-color: rgba(255, 213, 79, 0.5); }
+.snapshot-summary { display: flex; flex-direction: column; gap: 8px; background: rgba(255, 255, 255, 0.05); border-radius: var(--r-md); padding: 14px; }
+.drill-path-row { display: block; width: 100%; text-align: left; border-radius: var(--r-md); border: 1px solid rgba(255, 255, 255, 0.35); background: rgba(10, 76, 122, 0.16); color: #fff; padding: 12px 14px; font: inherit; cursor: pointer; }
+.drill-path-row:hover, .drill-path-row:focus-visible { border-color: #fff; background: rgba(10, 76, 122, 0.28); outline: none; }
+.memory-row { display: block; width: 100%; text-align: left; border-radius: var(--r-lg); border: 1px solid rgba(255, 255, 255, 0.30); background: #08283D; color: #fff; padding: 16px; font: inherit; cursor: pointer; }
+.memory-row.checked { background: rgba(30, 125, 58, 0.78); border-color: #fff; }
+.tile.scenario-context.recommended { outline: 1px solid rgba(255, 255, 255, 0.44); }
+.c-red { color: var(--emergency-red-strong); }
+@media (min-width: 900px) {
+  .cockpit-stage.cockpit-live .cockpit-host { height: min(74vh, 720px); }
+  .cockpit-stage.cockpit-focus .cockpit-host { height: 440px; }
+}

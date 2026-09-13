@@ -100,14 +100,18 @@ Packs produced (all derived 1:1 from `core-res/src/main/assets`):
 `build-content.mjs` now also needs `SystemsLabSection.kt`, `SystemsLabHomeScreen.kt` and `AircraftSystem.kt`
 (found automatically in the module tree or via `--kotlin`).
 
-### 4b. Publishing protected media (3D models) — owner only
+### 4b. Publishing protected media (3D models + cockpit imagery) — owner only
 
-Binary training media (the Technical Lab GLB models today; posters and cockpit plates next) is served only through
+Binary training media (the Technical Lab GLB models and, since phase 4a, the cockpit plates and sprite atlases;
+posters next) is served only through
 `GET /api/media/<path>` (`functions/api/media/`), which runs the same `authorizeWebRequest` session check as
 `/api/content`, answers `Cache-Control: private, no-store` + `Vary: Cookie, Authorization, Range`, supports `HEAD`,
 `Range` (206) and `If-None-Match` (304), validates the path against an extension allow-list and rejects traversal.
 Models are never committed to this repository and never placed under the public assets directory (`npm test` fails
-if a `.glb` appears anywhere in the tree).
+if a `.glb` appears anywhere in the tree). The same rule now covers the cockpit: `npm test` fails if any `.png` /
+`.webp` / `.jpg` appears under a `cockpit/` directory or is named `*_base_clean*`, `*cockpit-atlas*` or `*source_exact*`.
+Phase 4a deleted the last public copy, `assets/cockpit/legacy-cockpit-base-clean.webp`; `/live.html` now loads that
+plate from `/api/media/cockpit/plates/legacy.webp` and hides the element if it is not published or the session lapsed.
 
 Storage: the Worker reads R2 first (binding `WEB_MEDIA`, object key `webmedia/<path>`) and falls back to KV
 (`webmedia:blob:<path>`, raw bytes) so small images can be published with `kv bulk put` without a new binding.
@@ -117,8 +121,10 @@ lives in R2:
 ```powershell
 cd "C:\Android Studio\dhc6-trainer-website"
 npx wrangler r2 bucket create dhc6-web-media          # once — must exist BEFORE the phase-3 Worker deploys
-node tools/build-media.mjs --reference "C:\Android Studio\DHC6_REFERENCE_LIBRARY\System-Lab" --android "C:\Android Studio\DHC-6-Trainer" --out build\media
-powershell -ExecutionPolicy Bypass -File build\media\upload-media.ps1   # 21 × wrangler r2 object put … --remote (~180 MB)
+npm install sharp                                     # once — build-cockpit.mjs needs it to pack the atlas
+node tools/build-cockpit.mjs --android "C:\Android Studio\DHC-6-Trainer" --out build\cockpit
+node tools/build-media.mjs --reference "C:\Android Studio\DHC6_REFERENCE_LIBRARY\System-Lab" --android "C:\Android Studio\DHC-6-Trainer" --extra-media build\cockpit\media --out build\media
+powershell -ExecutionPolicy Bypass -File build\media\upload-media.ps1   # 21 models + 4 cockpit files, wrangler r2 object put … --remote (~182 MB)
 npx wrangler kv bulk put build\media\kv-media-index.json --binding LICENSES --remote   # publishes webmedia:index
 ```
 
@@ -127,17 +133,20 @@ GLB node names onto the Android `LabPart` ids) and warns when a file was re-expo
 "not published" until `webmedia:index` lists it.
 
 Client-side: `app/js/lab3d.js` downloads a model once (progress bar; files above 12 MB need an explicit tap) and keeps
-it in the Cache API store `dhc6-media-v1` tagged with the registry hash. `subscriber-gate.js` already deletes every
-`/api/` entry from every cache on sign-out or entitlement lapse, so models leave the device with the session; the
-service worker never sees `/api/media`. The renderer (`app/vendor/three-lab.js`, three.js r170) is a public library
+it in the Cache API store `dhc6-media-v1` tagged with the registry hash; `app/js/cockpit.js` caches the plate and atlas
+in the same store. `subscriber-gate.js` already deletes every `/api/` entry from every cache on sign-out or entitlement
+lapse, so models and cockpit imagery leave the device with the session, and `clearCockpitImageCache()` additionally
+drops the decoded bitmaps **and** deletes the whole `dhc6-media-v1` cache the moment `/api/media` answers 401/403 —
+so a revoked session cannot keep rendering the cockpit from a stale cache. The service worker never sees `/api/media`. The renderer (`app/vendor/three-lab.js`, three.js r170) is a public library
 file and carries no content.
 
 ## 5. Local development without Cloudflare
 
 ```powershell
+node tools/build-cockpit.mjs --android "C:\Android Studio\DHC-6-Trainer" --out build\cockpit
 node tools/build-content.mjs --android "C:\Android Studio\DHC-6-Trainer" --out build\content
-node tools/build-media.mjs --reference "C:\Android Studio\DHC6_REFERENCE_LIBRARY\System-Lab" --android "C:\Android Studio\DHC-6-Trainer" --out build\media
-node tools/dev-server.mjs --port 8788 --kv build\content\kv-bulk.json --media-kv build\media\kv-media-index.json --media-dir "C:\Android Studio\DHC6_REFERENCE_LIBRARY\System-Lab;C:\Android Studio\DHC-6-Trainer\core-res\src\main\assets\models\systems_lab\models"
+node tools/build-media.mjs --extra-media build\cockpit\media --reference "C:\Android Studio\DHC6_REFERENCE_LIBRARY\System-Lab" --android "C:\Android Studio\DHC-6-Trainer" --out build\media
+node tools/dev-server.mjs --port 8788 --kv build\content\kv-bulk.json --media-kv build\media\kv-media-index.json --media-dir "build\cockpit\media;C:\Android Studio\DHC6_REFERENCE_LIBRARY\System-Lab;C:\Android Studio\DHC-6-Trainer\core-res\src\main\assets\models\systems_lab\models"
 ```
 
 The dev server serves the models from those folders through an in-memory `WEB_MEDIA` double, so the Technical Lab
@@ -147,7 +156,17 @@ Open `http://127.0.0.1:8788/web-app.html` and sign in with `pilot@example.com` /
 
 ## 6. Verification checklist
 
-- `npm test` — 73 tests (phase 3 adds `tests/protected-media.test.mjs` — anonymous / malformed / expired / revoked /
+- `npm test` — **117 tests**. Phase 4a adds `tests/cockpit.test.mjs` (39 tests: canonical visual keys and the
+  annunciator alias table, host roles, hitbox parsing / clamping / G950 parity, the contain-fit transform, sprite
+  families and calibration, the lever travel profiles, the `EngineSystemsModel` 180-tick reference set,
+  the autofeather arm gates, `CasCatalog` normalisation, `CasSystem` latch / ack / phase inhibit, the masters,
+  `FailureStateEvaluator` ground-idle and cruise outcomes, snapshot parsing and lever / switch / instrument
+  readers, the snapshot registry and overrides, the interaction controller, the scenario context rules, the drill
+  evaluator, the Android grading table, a full drill run with the Next lock and the logbook entry, and the
+  bindings index — including the six documented Android quirks), a cockpit case in `tests/protected-media.test.mjs`
+  (anonymous 401, lapsed 403, `private, no-store`, `Vary: Cookie`) and three site tests (no cockpit imagery in the
+  repo, the Aircraft State routes and their handlers resolve, the disclaimer is on every cockpit screen, no
+  watermarked tile art). Phase 3 adds `tests/protected-media.test.mjs` — anonymous / malformed / expired / revoked /
   lapsed sessions, R2 streaming with `private, no-store`, ETag, HEAD, 206 ranges, 416, traversal and type rejection,
   KV fallback and R2 precedence, Worker routing — `tests/systems-lab.test.mjs` — node-selector semantics, registry
   integrity, the Kotlin reader, the `systems-lab` pack build from fixtures, the `labSimulation` port, lever labels,
@@ -158,6 +177,10 @@ Open `http://127.0.0.1:8788/web-app.html` and sign in with `pilot@example.com` /
 - Browser walkthrough (`tools/playwright-walkthrough.mjs`, phone 390×844 / tablet 820×1180 / desktop 1440×900): every route,
   an emergency drill (MEMORY 8/8 → FLOW 20/20 → SUMMARY), a 5-question quiz saved to the logbook, PROCS filters + search focus,
   sign-out → `/app/` redirects to sign-in. No page errors.
+- Aircraft State walkthrough (phone 390×844 / tablet 834×1112 / desktop 1440×900): `/live`, `/live/procedures` with
+  all six contexts (48 Ground/Start rows), `/scenario/state` with BEFORE/DURING/AFTER, Review Details,
+  `/scenario/focus`, `/live/cockpit` with the lever slider, `/scenario/run`, the memory drill and the MCC flow drill.
+  Plate, gauges, needles, lamps and sprites render from the protected atlas on every viewport. No page errors.
 - Technical Lab walkthrough (`tools/playwright-lab.mjs`, software WebGL): explorer with 7 hotspots, all 16 lab systems
   loaded (21 models incl. the 75 MB engine), pins, animation groups, fault mode + readouts, a saved note, 15 models
   in the Cache API before sign-out and 0 `/api/media` entries after it. No page errors.
