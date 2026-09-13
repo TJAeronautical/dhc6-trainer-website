@@ -36,7 +36,7 @@ export async function studyHome(ctx) {
     ])]),
     h("div", { class: "mt-4" }),
     blueCard([h("div", { class: "t-title-m w-bold", text: "Knowledge" }), h("div", { class: "grid-2 wide-3 mt-10" }, [
-      study({ title: "Systems", subtitle: "2D system diagrams, PNG references, system notes, aircraft manual structure, limitations and operations references.", art: "dhc6_tile_cockpit_panel", color: K, href: "#/systems/home", status: "later" }),
+      study({ title: "Systems", subtitle: "2D system diagrams, PNG references, system notes, aircraft manual structure, limitations and operations references.", art: "dhc6_tile_cockpit_panel", color: K, href: "#/systems/home", status: "available" }),
       study({ title: "Technical Lab", subtitle: "3D model lab only: PT6, propeller, hydraulic pack and aircraft variant models with part highlights.", art: "system_lab_tile", color: K, href: "#/systems/lab", status: "later" }),
       study({ title: "Definitions", subtitle: "Acronyms used in the app: MCC, CRM, QRH, AFM, POH, MEL, MMEL, SOP, CAS, SRS, ATA and more.", art: "dhc6_tile_safety", color: K, href: "#/knowledge/definitions" }),
       study({ title: "Flashcards", subtitle: "Q&A, image cards, and memory prompts from the published study library.", art: "dhc6_tile_engine_cutaway", color: K, href: "#/study/flashcards", status: feature("study-cards").status }),

@@ -41,8 +41,14 @@ const androidRoot = arg("android", process.env.DHC6_ANDROID_REPO || "");
 const outDir = path.resolve(arg("out", "build/media"));
 const bucket = arg("bucket", "dhc6-web-media");
 const R2_PREFIX = "webmedia/";
-// Generated media (the cockpit plate + sprite atlas written by tools/build-cockpit.mjs).
-const extraMediaDir = path.resolve(arg("extra-media", "build/cockpit/media"));
+/* Generated media trees, comma-separated: the cockpit plate + sprite atlas from
+   tools/build-cockpit.mjs, and the system posters and Systems Lab reference figures from tools/build-diagrams.mjs.
+   Each tree publishes its files at their path relative to that tree's root. */
+const extraMediaDirs = String(arg("extra-media", "build/cockpit/media"))
+  .split(",")
+  .map((piece) => piece.trim())
+  .filter(Boolean)
+  .map((piece) => path.resolve(piece));
 
 const registry = JSON.parse(fs.readFileSync(path.join(TOOLS_DIR, "data", "systems-lab-models.json"), "utf8"));
 
@@ -103,7 +109,12 @@ function walk(dir, base) {
   return out;
 }
 const CONTENT_TYPES = { ".webp": "image/webp", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".svg": "image/svg+xml", ".json": "application/json", ".pdf": "application/pdf", ".glb": "model/gltf-binary" };
-const extraFiles = walk(extraMediaDir, extraMediaDir);
+const extraFiles = extraMediaDirs.flatMap((dir) => walk(dir, dir));
+const duplicates = extraFiles.map((e) => e.mediaPath).filter((p, i, all) => all.indexOf(p) !== i);
+if (duplicates.length) {
+  console.error("Duplicate media path(s) across --extra-media trees: " + Array.from(new Set(duplicates)).join(", "));
+  process.exit(1);
+}
 if (extraFiles.length) report.push("");
 for (const entry of extraFiles) {
   const bytes = fs.statSync(entry.file).size;
@@ -135,5 +146,5 @@ fs.writeFileSync(path.join(outDir, "media-report.txt"), report.join("\n") + "\n"
 console.log(report.join("\n"));
 if (missing) console.warn("\n" + missing + " model(s) missing — pass --reference and --android so every registry entry can be located.");
 if (mismatched) console.warn(mismatched + " model(s) differ from the registry hash — regenerate tools/data/systems-lab-models.json if the GLB files were re-exported.");
-if (!extraFiles.length) console.warn("No generated media found in " + extraMediaDir + " — run `node tools/build-cockpit.mjs --android <repo>` to produce the cockpit plate and atlas.");
+if (!extraFiles.length) console.warn("No generated media found in " + extraMediaDirs.join(", ") + " — run `node tools/build-cockpit.mjs --android <repo>` and `node tools/build-diagrams.mjs --android <repo>` first.");
 console.log("\nOutput → " + outDir);

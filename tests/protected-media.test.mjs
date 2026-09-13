@@ -210,6 +210,34 @@ test("cockpit plates, atlases and sprite sheets are session-gated like every oth
   assert.equal(lapsed.status, 403, "a lapsed entitlement loses the cockpit imagery too");
 });
 
+test("system reference posters are session-gated and never publicly cacheable", async () => {
+  const env = envWithLicense();
+  const poster = bytes(6144, 7);
+  env.WEB_MEDIA = memoryR2({
+    [MEDIA_R2_PREFIX + "systems/posters/electrical_system.webp"]: { bytes: poster, contentType: "image/webp" }
+  });
+
+  assert.equal(normalizeMediaPath("systems/posters/electrical_system.webp"), "systems/posters/electrical_system.webp");
+  assert.equal(normalizeMediaPath("systems/posters/../../worker.js"), null);
+  assert.equal(normalizeMediaPath("systems/posters/electrical_system.kt"), null, "only known media types are served");
+
+  const anon = await media({ request: get("/api/media/systems/posters/electrical_system.webp"), env });
+  assert.equal(anon.status, 401, "a reference poster is never public");
+  assert.equal(anon.headers.get("Cache-Control"), "no-store");
+
+  const ok = await media({ request: get("/api/media/systems/posters/electrical_system.webp", { Cookie: await subscriberCookie() }), env });
+  assert.equal(ok.status, 200);
+  assert.equal(ok.headers.get("Content-Type"), "image/webp");
+  assert.equal(ok.headers.get("Cache-Control"), "private, no-store");
+  assert.match(ok.headers.get("Vary"), /Cookie/);
+  assert.equal(new Uint8Array(await ok.arrayBuffer()).byteLength, 6144);
+
+  const lapsedEnv = envWithLicense(activeLicense({ status: "canceled" }));
+  lapsedEnv.WEB_MEDIA = env.WEB_MEDIA;
+  const lapsed = await media({ request: get("/api/media/systems/posters/electrical_system.webp", { Cookie: await subscriberCookie() }), env: lapsedEnv });
+  assert.equal(lapsed.status, 403, "a lapsed entitlement loses the reference diagrams too");
+});
+
 /* ---------------------------------------------------------------- worker */
 test("the Worker routes /api/media through the API middleware with the session gate", async () => {
   const env = envWithLicense();

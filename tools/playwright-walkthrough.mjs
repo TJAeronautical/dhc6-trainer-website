@@ -29,7 +29,7 @@ async function session(viewport, tag) {
   // sign in via API and set cookie
   const res = await context.request.post(BASE + "/api/web-access/session", { data: { email: "pilot@example.com", licenseKey: "DHC6-TEST-TEST-TEST" }, headers: { Origin: BASE } });
   if (!res.ok()) throw new Error("sign-in failed " + res.status());
-  const routes = ["#/dashboard", "#/systems", "#/qrh", "#/qrh/category/EMERGENCY", "#/live", "#/settings", "#/knowledge/home", "#/knowledge/definitions", "#/study/srs", "#/study/limitations", "#/study/mel-reference", "#/study/maldives-strips", "#/study/cas", "#/study/flashcards", "#/quizzes", "#/quizzes/run/BOTH/5", "#/training/performance", "#/training/fuel-plan", "#/training/weight-balance", "#/training/logbook", "#/training/competency-dashboard", "#/library/home", "#/knowledge/search"];
+  const routes = ["#/dashboard", "#/systems", "#/qrh", "#/qrh/category/EMERGENCY", "#/live", "#/settings", "#/knowledge/home", "#/systems/home", "#/systems/detail/electrical", "#/systems/detail/ata_100", "#/knowledge/definitions", "#/study/srs", "#/study/limitations", "#/study/mel-reference", "#/study/maldives-strips", "#/study/cas", "#/study/flashcards", "#/quizzes", "#/quizzes/run/BOTH/5", "#/training/performance", "#/training/fuel-plan", "#/training/weight-balance", "#/training/logbook", "#/training/competency-dashboard", "#/library/home", "#/knowledge/search"];
   for (const r of routes) {
     await page.goto("/app/" + r, { waitUntil: "networkidle" });
     await page.waitForTimeout(250);

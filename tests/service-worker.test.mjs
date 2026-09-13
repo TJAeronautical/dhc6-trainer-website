@@ -54,6 +54,7 @@ test("service worker bypasses protected requests and clears protected entries on
   assert.equal(dispatchFetch("https://dhc6trainer.com/api/content/pack/limitations"), false);
   assert.equal(dispatchFetch("https://dhc6trainer.com/api/web-access/verify"), false);
   assert.equal(dispatchFetch("https://dhc6trainer.com/api/media/models/systems-lab/PT6A27_ENGINE_REPLICA.glb"), false, "3D models never enter the public cache");
+  assert.equal(dispatchFetch("https://dhc6trainer.com/api/media/systems/posters/electrical_system.webp"), false, "system reference posters never enter the public cache");
   assert.equal(dispatchFetch("https://dhc6trainer.com/app/vendor/three-lab.js"), false, "app code under /app/ is left to the browser cache");
   assert.equal(dispatchFetch("https://evil.example/app/"), false);
   assert.equal(dispatchFetch("https://dhc6trainer.com/index.html", "navigate"), true);

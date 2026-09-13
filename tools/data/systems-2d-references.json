@@ -1,0 +1,16 @@
+{
+  "note": "Reference images assigned to a system by the operator rather than by the Android source. tools/lib/systems-2d.mjs merges these into the systems-2d pack and marks each one origin=\"operator\", so the extraction from SystemDetailScreen.kt stays a faithful record of what Android declares. Every entry needs an assetPath that really exists in the Android repository — nothing is drawn, generated or substituted.",
+  "references": {
+    "ICE_RAIN_PROTECTION": [
+      {
+        "label": "Fuel heater",
+        "assetPath": "systems/posters/fuel_heater.png",
+        "decidedBy": "TJ Aeronautical",
+        "decidedOn": "2026-09-13",
+        "why": "systemDetailReferenceImages() has no branch for ICE_RAIN_PROTECTION, so the system had no reference image on Android or on the web. The fuel/oil heat exchanger is ice-protection reference material (it prevents fuel icing), and the owner assigned it to this system.",
+        "pinsApply": false,
+        "pinsWhy": "diagramPinsForSystem(ICE_RAIN_PROTECTION) authors four bleed-air components — P3 bleed source, pneumatic de-ice boots, intake deflectors, windshield/cabin heat. None of them appear on a fuel/oil heat exchanger cutaway, and their coordinates were authored for a bleed-air schematic that is not in the repository. Placing them on this drawing would point each label at an unrelated part, so they stay as study cards until the drawing they were authored for is supplied."
+      }
+    ]
+  }
+}
