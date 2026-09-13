@@ -21,7 +21,7 @@
 </nav></div></header>
 <main>
 <section class="page-hero"><div class="wrap split">
-  <div><span class="eyebrow"><span class="dot"></span> No Play Store required</span><h1>Open DHC-6 Trainer in your browser.</h1><p class="lead">Active subscribers can use the mobile-friendly training app directly from this website on a phone, tablet or computer.</p><div class="hero-chips"><span class="hero-chip">Mobile responsive</span><span class="hero-chip">Installable web app</span><span class="hero-chip">Subscription protected</span></div></div>
+  <div><span class="eyebrow"><span class="dot"></span> No Play Store required</span><h1>Open DHC-6 Trainer in your browser.</h1><p class="lead">Active subscribers can use the browser edition of the DHC-6 Trainer app on a phone, tablet or computer. Sessions last 12 hours and are re-checked against your subscription while you work.</p><div class="hero-chips"><span class="hero-chip">Mobile responsive</span><span class="hero-chip">Installable web app</span><span class="hero-chip">Subscription protected</span><span class="hero-chip">Android content</span></div></div>
   <div class="card">
     <span class="tag green">Subscriber sign-in</span><h2>Confirm your access</h2><p>Use the purchase email and licence key shown on the Manage Licence page.</p>
     <form id="web-access-form" novalidate>
@@ -30,7 +30,14 @@
       <button class="btn primary" type="submit">Open subscriber web app</button>
       <p id="web-access-message" class="muted-sm" role="status" aria-live="polite"></p>
     </form>
-    <p class="muted-sm">Need your key? <a href="access.html#account">Recover or manage your licence</a>.</p>
+    <p class="muted-sm">Manage devices and billing on the <a href="access.html#account">Manage licence</a> page.</p>
+    <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
+    <span class="tag">No licence key to hand?</span><h2>Email me a sign-in link</h2><p>We send a one-time link to the purchase email of an active subscription. Open it on this device to sign in without the key.</p>
+    <form id="email-link-form" novalidate>
+      <div class="gate-field"><label for="emailLinkAddress">Purchase email</label><input id="emailLinkAddress" type="email" autocomplete="email" required placeholder="you@example.com"></div>
+      <button class="btn ghost" type="submit">Send sign-in link</button>
+      <p id="email-link-message" class="muted-sm" role="status" aria-live="polite"></p>
+    </form>
     <hr style="border:0;border-top:1px solid var(--line);margin:24px 0">
     <span class="tag amber">Owner access</span><h2>Sign in as owner</h2><p>Use the Firebase email and password associated with the Android app owner account. No Paddle licence key is required.</p>
     <form id="owner-access-form" novalidate>

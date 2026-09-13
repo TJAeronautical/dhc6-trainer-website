@@ -1,0 +1,17 @@
+{
+ "schemaVersion": "1.1.0",
+ "category": "NORMAL",
+ "items": [
+  {
+   "procedureId": "normal_test_normal",
+   "title": "Test Normal [Test]",
+   "variant": "BOTH",
+   "assetPath": "procedures/normal/test_normal.json",
+   "sortOrder": 1,
+   "phase": "Ground",
+   "procedureGroup": "Preparation and Inspection",
+   "normalSplit": "Everyday Actions",
+   "sourceSection": "0.1"
+  }
+ ]
+}

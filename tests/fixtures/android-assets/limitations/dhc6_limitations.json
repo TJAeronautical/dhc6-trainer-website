@@ -1,0 +1,20 @@
+{
+ "version": "0",
+ "source": "FIXTURE",
+ "sections": [
+  {
+   "id": "test",
+   "title": "Test Section",
+   "reference": "FIXTURE",
+   "items": [
+    {
+     "id": "t1",
+     "label": "Test limit",
+     "value": "0 TEST",
+     "band": "normal",
+     "reference": "FIXTURE"
+    }
+   ]
+  }
+ ]
+}

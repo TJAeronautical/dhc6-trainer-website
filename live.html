@@ -114,11 +114,11 @@
 
 <main>
 <section class="page-hero"><div class="wrap">
-  <span class="eyebrow"><span class="dot"></span> Subscriber web app &middot; Android-aligned workspace</span>
+  <span class="eyebrow"><span class="dot"></span> Legacy live trainer &middot; superseded by the new web app</span>
   <h1>DHC-6 Trainer</h1>
   <p class="lead">The browser workspace mirrors the Android app structure across procedures, QRH, aircraft state, knowledge, technical study, planning and debrief.</p>
   <div class="notice" style="margin-top:18px"><p>Training support only. Always fly the approved AFM, QRH, company OM-B, and current regulatory documents. Figures here are for study and planning, not for operational use.</p></div>
-  <div class="actions"><a class="btn primary" href="#drill">Start MCC cockpit sim</a><a class="btn gold" href="dhc6trainer://live" data-desktop-launch data-fallback-url="live.html" data-launch-status="#live-launch-status">Open desktop app</a><a class="btn ghost" href="access.html">Manage subscription</a><button class="btn ghost" type="button" data-install-app hidden>Install web app</button></div>
+  <div class="notice" style="margin-top:12px"><p><strong>New:</strong> the Android-mirrored subscriber app now lives at <a href="/app/">/app/</a> with the real QRH, checklists, drills, flashcards, limitations, MEL and performance data. This page remains as the earlier interim trainer; its content was hand-authored and is not sourced from the Android app.</p></div><div class="actions"><a class="btn primary" href="/app/">Open the new web app</a><a class="btn ghost" href="#drill">Start MCC cockpit sim</a><a class="btn gold" href="dhc6trainer://live" data-desktop-launch data-fallback-url="live.html" data-launch-status="#live-launch-status">Open desktop app</a><a class="btn ghost" href="access.html">Manage subscription</a><button class="btn ghost" type="button" data-install-app hidden>Install web app</button></div>
   <p id="live-launch-status" class="muted-sm" role="status" aria-live="polite"></p>
 </div></section>
 
@@ -253,7 +253,7 @@
           <span class="score-badge" id="sim-phase">Awaiting confirmation</span>
         </div>
         <div class="cockpit-viewport" aria-label="DHC-6 cockpit control panel">
-          <img class="cockpit-art" src="assets/cockpit/legacy-cockpit-base-clean.webp" alt="DHC-6 cockpit controls from the desktop app">
+          <img class="cockpit-art" src="assets/cockpit/legacy-cockpit-base-clean.webp" alt="DHC-6 cockpit artwork used by the interim drill (illustration)">
           <div class="cockpit-shade"></div>
           <div id="cockpit-hotspots"></div>
           <div class="cockpit-state-strip" id="cockpit-state-strip"></div>
@@ -295,7 +295,7 @@
       <p class="muted-sm">This mirrors the installed desktop app surface: DHC-6 aircraft focus, camera modes, cockpit drill context, and live training state. The full flyable 3D scene runs in the desktop app after purchase.</p>
       <div class="app-sim-grid">
         <div class="app-sim-screen">
-          <img class="app-sim-shot" id="aircraft-sim-shot" src="assets/screenshots/aircraft-focus-snapshot.webp" alt="DHC-6 desktop app simulator preview">
+          <img class="app-sim-shot" id="aircraft-sim-shot" src="assets/screenshots/aircraft-focus-snapshot.webp" alt="Concept illustration of the aircraft simulator preview (design mock-up, not an app screenshot)">
           <div class="app-sim-overlay"></div>
           <div class="flight-badges" id="aircraft-sim-badges"></div>
           <div class="instrument-strip" id="aircraft-sim-instruments"></div>

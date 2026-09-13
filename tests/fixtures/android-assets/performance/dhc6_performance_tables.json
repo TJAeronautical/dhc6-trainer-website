@@ -1,0 +1,60 @@
+{
+ "version": "0",
+ "source_takeoff": "FIXTURE",
+ "source_landing": "FIXTURE",
+ "source_vref": "FIXTURE",
+ "notes": [
+  "Fixture"
+ ],
+ "takeoff": {
+  "temps_c": [
+   0
+  ],
+  "weights_lb": [
+   1000
+  ],
+  "water_run_ft": [
+   [
+    1
+   ]
+  ],
+  "dist_to_50ft": [
+   [
+    2
+   ]
+  ]
+ },
+ "landing": {
+  "temps_c": [
+   0
+  ],
+  "weights_lb": [
+   1000
+  ],
+  "water_run_ft": [
+   [
+    1
+   ]
+  ],
+  "dist_to_50ft": [
+   [
+    2
+   ]
+  ]
+ },
+ "vref": {
+  "weights_lb": [
+   1000
+  ],
+  "rows": [
+   {
+    "flaps": "0",
+    "kias": [
+     1
+    ]
+   }
+  ]
+ },
+ "reference_speeds": {},
+ "performance_summary": {}
+}

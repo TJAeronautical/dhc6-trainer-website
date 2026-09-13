@@ -16,6 +16,33 @@ import { onRequestPost as playValidatePurchase } from "./functions/api/play/vali
 import { onRequestPost as webAccessSession } from "./functions/api/web-access/session.js";
 import { onRequestGet as webAccessVerify } from "./functions/api/web-access/verify.js";
 import { onRequestPost as ownerWebAccessSession } from "./functions/api/web-access/owner-session.js";
+import { onRequestPost as webAccessLogout } from "./functions/api/web-access/logout.js";
+import { onRequestPost as webAccessRequestLink } from "./functions/api/web-access/request-link.js";
+import { onRequestPost as webAccessLinkSession } from "./functions/api/web-access/link-session.js";
+import { onRequestGet as protectedContent } from "./functions/api/content/index.js";
+import { authorizeWebRequest } from "./functions/api/web-access/_session.js";
+
+export const API_ROUTES = [
+  "/api/health",
+  "/api/billing/config",
+  "/api/billing/status",
+  "/api/billing/portal",
+  "/api/ai/oral-exam",
+  "/api/desktop/download",
+  "/api/license/activate",
+  "/api/license/deactivate",
+  "/api/license/validate",
+  "/api/paddle/webhook",
+  "/api/play/validate-purchase",
+  "/api/web-access/session",
+  "/api/web-access/verify",
+  "/api/web-access/owner-session",
+  "/api/web-access/logout",
+  "/api/web-access/request-link",
+  "/api/web-access/link-session",
+  "/api/content/manifest",
+  "/api/content/pack/:id"
+];
 
 function json(body, status) {
   return new Response(JSON.stringify(body), {
@@ -33,26 +60,7 @@ async function routeApi(context) {
   const method = context.request.method.toUpperCase();
 
   if (method === "GET" && path === "/api") {
-    return json({
-      ok: true,
-      service: "dhc6-trainer-billing",
-      routes: [
-        "/api/health",
-        "/api/billing/config",
-        "/api/billing/status",
-        "/api/billing/portal",
-        "/api/ai/oral-exam",
-        "/api/desktop/download",
-        "/api/license/activate",
-        "/api/license/deactivate",
-        "/api/license/validate",
-        "/api/paddle/webhook",
-        "/api/play/validate-purchase"
-        ,"/api/web-access/session",
-        "/api/web-access/verify",
-        "/api/web-access/owner-session"
-      ]
-    });
+    return json({ ok: true, service: "dhc6-trainer-billing", routes: API_ROUTES });
   }
 
   if (method === "GET" && path === "/api/health") return health(context);
@@ -70,12 +78,45 @@ async function routeApi(context) {
   if (method === "POST" && path === "/api/web-access/session") return webAccessSession(context);
   if (method === "GET" && path === "/api/web-access/verify") return webAccessVerify(context);
   if (method === "POST" && path === "/api/web-access/owner-session") return ownerWebAccessSession(context);
+  if (method === "POST" && path === "/api/web-access/logout") return webAccessLogout(context);
+  if (method === "POST" && path === "/api/web-access/request-link") return webAccessRequestLink(context);
+  if (method === "POST" && path === "/api/web-access/link-session") return webAccessLinkSession(context);
+  if (method === "GET" && (path === "/api/content/manifest" || path.startsWith("/api/content/pack/"))) return protectedContent(context);
 
   return json({ ok: false, error: "api_route_not_found" }, 404);
 }
 
 function shouldInjectPrimaryLegalLinks(pathname) {
   return pathname === "/" || pathname === "/index.html" || pathname === "/desktop" || pathname === "/desktop.html";
+}
+
+/*
+  Protected HTML: the browser app shell and the earlier live trainer page.
+  Static assets under /app/ that are pure code (JS/CSS/icons) are served
+  normally; every HTML document and every unknown /app/* path needs a valid
+  session cookie. Training content itself is only reachable via /api/content.
+*/
+export function isProtectedPage(pathname) {
+  if (pathname === "/live.html" || pathname === "/live") return true;
+  if (pathname === "/app" || pathname === "/app/") return true;
+  if (pathname.startsWith("/app/")) {
+    return !/\.(?:js|mjs|css|png|svg|webp|jpg|jpeg|ico|woff2?|json|webmanifest|map)$/i.test(pathname);
+  }
+  return false;
+}
+
+export function signInRedirect(url) {
+  const target = new URL("/web-app.html", url.origin);
+  target.searchParams.set("status", "signin-required");
+  target.searchParams.set("next", url.pathname + url.search);
+  return new Response(null, {
+    status: 302,
+    headers: {
+      "Location": target.toString(),
+      "Cache-Control": "private, no-store",
+      "Vary": "Cookie"
+    }
+  });
 }
 
 class LegalFooterLinks {
@@ -87,35 +128,60 @@ class LegalFooterLinks {
   }
 }
 
+function withSecurityHeaders(assetResponse, url, extra) {
+  const headers = new Headers(assetResponse.headers);
+  headers.set("X-Content-Type-Options", "nosniff");
+  headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  headers.set("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+  if (url.protocol === "https:") headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
+  if (extra) Object.keys(extra).forEach(function (key) { headers.set(key, extra[key]); });
+  return new Response(assetResponse.body, { status: assetResponse.status, statusText: assetResponse.statusText, headers: headers });
+}
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
+    const waitUntil = ctx && ctx.waitUntil ? ctx.waitUntil.bind(ctx) : function () {};
 
     if (url.pathname === "/api" || url.pathname.startsWith("/api/")) {
       return apiMiddleware({
         request: request,
         env: env,
-        waitUntil: ctx.waitUntil.bind(ctx),
+        waitUntil: waitUntil,
         next: function () {
-          return routeApi({ request: request, env: env, waitUntil: ctx.waitUntil.bind(ctx) });
+          return routeApi({ request: request, env: env, waitUntil: waitUntil });
         }
+      });
+    }
+
+    if (isProtectedPage(url.pathname)) {
+      const auth = await authorizeWebRequest({ request: request, env: env });
+      if (!auth.ok) return signInRedirect(url);
+      // Deep links such as /app/qrh/engine-fire are handled by the shell's
+      // client-side router: serve the canonical /app/ document for them.
+      // Everything else is passed through unchanged so the asset layer's own
+      // canonical redirects (/app -> /app/) keep working without loops.
+      let target = request;
+      if (url.pathname.startsWith("/app/") && url.pathname !== "/app/" && !/\.[a-z0-9]+$/i.test(url.pathname)) {
+        target = new Request(new URL("/app/" + url.search, url.origin), request);
+      }
+      const protectedResponse = await env.ASSETS.fetch(target);
+      return withSecurityHeaders(protectedResponse, url, {
+        "Cache-Control": "private, no-store",
+        "Vary": "Cookie",
+        "X-Robots-Tag": "noindex, nofollow"
       });
     }
 
     let assetResponse = await env.ASSETS.fetch(request);
     const contentType = assetResponse.headers.get("Content-Type") || "";
-    if (assetResponse.ok && request.method === "GET" && contentType.includes("text/html") && shouldInjectPrimaryLegalLinks(url.pathname)) {
+    if (assetResponse.ok && request.method === "GET" && contentType.includes("text/html") && shouldInjectPrimaryLegalLinks(url.pathname) && typeof HTMLRewriter !== "undefined") {
       assetResponse = new HTMLRewriter()
         .on("footer .footer-bottom", new LegalFooterLinks())
         .transform(assetResponse);
     }
 
-    const headers = new Headers(assetResponse.headers);
-    headers.set("X-Content-Type-Options", "nosniff");
-    headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-    headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
-    headers.set("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
-    if (url.protocol === "https:") headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
-    return new Response(assetResponse.body, { status: assetResponse.status, statusText: assetResponse.statusText, headers: headers });
+    return withSecurityHeaders(assetResponse, url);
   }
 };

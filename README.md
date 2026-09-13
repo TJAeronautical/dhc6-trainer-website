@@ -16,13 +16,18 @@ The August 2026 upgrade adds:
 
 See `WEBSITE_UPGRADE_REPORT.md` for the detailed implementation record.
 
+## Subscriber web app (`/app/`)
+
+The browser edition of the Android app lives under `app/` and is served only to signed-in subscribers or the owner (server-side gate in `worker.js`). Training content is transformed from the private Android repository's `core-res/src/main/assets` into KV packs by `tools/build-content.mjs` and is never committed here. Access model, Cloudflare/Firebase configuration and the publishing procedure are documented in `WEB_APP_SECURITY.md`; the Android→web feature status is tracked in `WEB_APP_FEATURE_MANIFEST.md`.
+
 ## Run locally
 
 ```bash
-python -m http.server 8080
+node tools/build-content.mjs --android "C:\Android Studio\DHC-6-Trainer" --out build/content
+node tools/dev-server.mjs --port 8788 --kv build/content/kv-bulk.json
 ```
 
-Open `http://localhost:8080/`. Local desktop checkout uses the bundled Paddle sandbox fallback. Real purchases require the deployed Cloudflare Worker configuration.
+Open `http://127.0.0.1:8788/web-app.html` (dev licence `pilot@example.com` / `DHC6-TEST-TEST-TEST`). The plain static site can still be previewed with `python -m http.server 8080`, but API routes and the gated app need the dev server or `wrangler dev`.
 
 ## Test
 
@@ -58,6 +63,7 @@ Required production secrets:
 - `LICENSE_SIGNING_SECRET`
 - `OPENAI_API_KEY`
 - `FIREBASE_WEB_API_KEY`
+- `OWNER_ACCESS_EMAIL` (owner sign-in to the web app)
 - `GOOGLE_PLAY_SERVICE_ACCOUNT_EMAIL`
 - `GOOGLE_PLAY_SERVICE_ACCOUNT_PRIVATE_KEY`
 

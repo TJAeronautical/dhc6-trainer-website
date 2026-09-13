@@ -3,6 +3,14 @@
   Body: { "licenseKey": "DHC6-....", "email": "buyer@example.com" }
 
   Returns the subscription and activation state for the account page.
+
+  Credential rules (security audit, Sept 2026):
+    - licence key (+ matching email)      -> full record (key, devices, portal id)
+    - valid web session for that licence  -> full record
+    - email only                          -> MASKED status only: no key, no
+                                             customer/subscription ids, no
+                                             device list. Knowing an email
+                                             must never yield the licence.
 */
 
 import {
@@ -16,8 +24,10 @@ import {
   writeLicense,
   paddleApi,
   planFromConfiguredPrice,
-  activationLimitFromPlan
+  activationLimitFromPlan,
+  isExpired
 } from "../_shared.js";
+import { authorizeWebRequest, tokenFromRequest } from "../web-access/_session.js";
 
 function priceIdFromSubscription(subscription) {
   const items = Array.isArray(subscription.items) ? subscription.items : [];
@@ -58,7 +68,7 @@ function newestFirst(a, b) {
   return new Date(b.updated_at || b.created_at || 0).getTime() - new Date(a.updated_at || a.created_at || 0).getTime();
 }
 
-async function recoverLicenseFromPaddle(context, email) {
+export async function recoverLicenseFromPaddle(context, email) {
   const { env } = context;
   if (!email || !env.PADDLE_API_KEY) return null;
 
@@ -134,6 +144,22 @@ async function recoverLicenseFromPaddle(context, email) {
   return null;
 }
 
+export function maskedLicense(record) {
+  const status = record.status === "active" && isExpired(record) ? "expired" : record.status;
+  const key = String(record.key || "");
+  return {
+    masked: true,
+    status: status,
+    plan: record.plan || "desktop",
+    expiresAt: record.expiresAt || null,
+    cancelAt: record.cancelAt || null,
+    keyHint: key.length >= 4 ? "DHC6-\u2022\u2022\u2022\u2022-\u2022\u2022\u2022\u2022-" + key.slice(-4) : null,
+    activationCount: Array.isArray(record.activations) ? record.activations.length : 0,
+    activationLimit: record.activationLimit || 3,
+    requiresKey: true
+  };
+}
+
 export async function onRequestPost(context) {
   const { request, env } = context;
 
@@ -151,21 +177,34 @@ export async function onRequestPost(context) {
   const key = normalizeKey(body.licenseKey);
   const email = normalizeEmail(body.email);
 
-  let record = key ? await getLicense(env, key) : null;
-  if (!record && email) {
-    record = await getLicenseByEmail(env, email);
-  }
-  if (!record && email) {
-    record = await recoverLicenseFromPaddle(context, email);
-  }
-
-  if (!record) {
-    return json({ ok: false, status: "not_found" }, 200);
+  // 1. Licence key presented: the key is the credential.
+  if (key) {
+    const record = await getLicense(env, key);
+    if (!record) return json({ ok: false, status: "not_found" }, 200);
+    if (email && record.email && normalizeEmail(record.email) !== email) {
+      return json({ ok: false, status: "email_mismatch" }, 200);
+    }
+    return json({ ok: true, license: publicLicense(record) });
   }
 
-  if (email && record.email && normalizeEmail(record.email) !== email) {
+  // 2. Signed subscriber web session presented: full details for that licence only.
+  if (tokenFromRequest(request) && env.LICENSE_SIGNING_SECRET) {
+    const auth = await authorizeWebRequest(context);
+    if (auth.ok && auth.role === "subscriber" && auth.record) {
+      if (email && normalizeEmail(auth.record.email) !== email) {
+        return json({ ok: false, status: "email_mismatch" }, 200);
+      }
+      return json({ ok: true, license: publicLicense(auth.record), viaSession: true });
+    }
+  }
+
+  // 3. Email only: masked status, never the key.
+  if (!email) return json({ ok: false, status: "not_found" }, 200);
+  let record = await getLicenseByEmail(env, email);
+  if (!record) record = await recoverLicenseFromPaddle(context, email);
+  if (!record) return json({ ok: false, status: "not_found" }, 200);
+  if (record.email && normalizeEmail(record.email) !== email) {
     return json({ ok: false, status: "email_mismatch" }, 200);
   }
-
-  return json({ ok: true, license: publicLicense(record) });
+  return json({ ok: true, license: maskedLicense(record) });
 }

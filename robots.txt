@@ -3,3 +3,5 @@ Allow: /
 Disallow: /api/
 
 Sitemap: https://dhc6trainer.com/sitemap.xml
+Disallow: /app/
+Disallow: /live.html

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DHC-6 Trainer | Subscriber Web App</title>
+<meta name="description" content="Browser edition of the DHC-6 Trainer app for active subscribers: QRH, checklists, drills, flashcards, limitations, MEL and performance references.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#071421">
+<meta name="color-scheme" content="dark light">
+<link rel="icon" href="/assets/favicon-32.png" type="image/png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="manifest" href="/assets/site.webmanifest">
+<link rel="stylesheet" href="/app/app.css">
+<script src="/assets/js/subscriber-gate.js" defer></script>
+<script type="module" src="/app/app.js"></script>
+</head>
+<body class="subscriber-locked app-body" data-theme="night" data-variant="LEGACY">
+<a class="skip-link" href="#view">Skip to content</a>
+<div class="app-frame" id="app-frame">
+
+  <!-- Navigation rail (tablet / desktop) -->
+  <nav class="app-rail" id="app-rail" aria-label="Primary">
+    <a class="rail-brand" href="#/home" aria-label="DHC-6 Trainer home">
+      <span class="rail-logo" aria-hidden="true">✈</span>
+      <span class="rail-brand-text"><strong>DHC-6</strong><small>TRAINER</small></span>
+    </a>
+    <ul class="rail-list" id="rail-list" role="list"></ul>
+    <div class="rail-footer">
+      <div class="sync-status" id="rail-sync"><span class="sync-dot" aria-hidden="true"></span><span class="sync-label">SYNC STATUS</span><span class="sync-value" id="rail-sync-value">Checking…</span></div>
+      <div class="rail-version" id="rail-version">web</div>
+    </div>
+  </nav>
+
+  <!-- Main column -->
+  <div class="app-main">
+    <header class="app-topbar" id="app-topbar">
+      <button class="topbar-btn" id="topbar-back" type="button" aria-label="Back" hidden>‹</button>
+      <div class="topbar-titles">
+        <h1 class="topbar-title" id="topbar-title">DHC-6 Trainer</h1>
+        <p class="topbar-subtitle" id="topbar-subtitle">Twin Otter study</p>
+      </div>
+      <div class="topbar-actions">
+        <button class="topbar-chip" id="variant-chip" type="button" aria-label="Aircraft variant, tap to change" title="Aircraft variant">LEGACY</button>
+        <span class="topbar-chip status-chip" id="session-chip" aria-live="polite">Checking access…</span>
+        <button class="topbar-btn" id="topbar-search" type="button" aria-label="Search" hidden>⌕</button>
+      </div>
+    </header>
+
+    <div class="app-banner app-banner-offline" id="offline-banner" role="status" hidden>You are offline. Cached content is shown; sign-in and sync will resume when the connection returns.</div>
+    <div class="app-banner app-banner-content" id="content-banner" role="status" hidden></div>
+
+    <main class="app-view" id="view" tabindex="-1" aria-live="polite">
+      <div class="view-loading" id="view-loading"><div class="spinner" aria-hidden="true"></div><p>Loading your training workspace…</p></div>
+    </main>
+
+    <footer class="app-disclaimer" id="app-disclaimer">
+      <strong>Training support only.</strong> This web app does not replace the approved AFM, QRH, MEL, company manuals, approved checklists or regulatory / operator documentation. Verify every value against your current approved documents before operational use.
+    </footer>
+  </div>
+
+  <!-- Bottom navigation (phones) -->
+  <nav class="app-bottomnav" id="app-bottomnav" aria-label="Primary (mobile)">
+    <ul class="bottomnav-list" id="bottomnav-list" role="list"></ul>
+  </nav>
+</div>
+
+<div class="app-sheet" id="app-sheet" hidden>
+  <div class="sheet-backdrop" data-sheet-close></div>
+  <div class="sheet-panel" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <h2 class="sheet-title" id="sheet-title"></h2>
+    <div class="sheet-body" id="sheet-body"></div>
+  </div>
+</div>
+
+<noscript><p class="app-noscript">The DHC-6 Trainer web app needs JavaScript enabled.</p></noscript>
+</body>
+</html>

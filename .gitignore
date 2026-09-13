@@ -11,3 +11,10 @@ downloads/desktop/*.msi
 _local_desktop_installer_backup/
 
 .wrangler/
+
+# Generated protected-content packs (published to KV, never committed)
+build/
+_delivery/
+.dev.vars
+node_modules/
+package-lock.json
