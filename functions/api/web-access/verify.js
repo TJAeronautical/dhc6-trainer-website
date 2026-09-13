@@ -1,25 +1,21 @@
-import { json, getLicense, isExpired, normalizeEmail } from "../_shared.js";
-import { verifyWebSession } from "./_session.js";
+/*
+  GET /api/web-access/verify
+  Accepts the session as `Authorization: Bearer <token>` or the HttpOnly
+  dhc6_web_session cookie. Re-checks signature, expiry, revocation and the
+  live entitlement (KV licence or OWNER_ACCESS_EMAIL) on every call.
+*/
+
+import { json } from "../_shared.js";
+import { authorizeWebRequest } from "./_session.js";
 
 export async function onRequestGet(context) {
-  const { request, env } = context;
-  const authorization = request.headers.get("Authorization") || "";
-  const token = authorization.startsWith("Bearer ") ? authorization.slice(7).trim() : "";
-  const payload = await verifyWebSession(env.LICENSE_SIGNING_SECRET, token);
-  if (!payload) return json({ ok: false, error: "session_invalid" }, 401);
-  if (payload.role === "owner") {
-    const allowedOwner = normalizeEmail(env.OWNER_ACCESS_EMAIL);
-    if (!allowedOwner || normalizeEmail(payload.email) !== allowedOwner) {
-      return json({ ok: false, error: "owner_access_revoked" }, 403);
-    }
-    return json({ ok: true, plan: "owner", role: "owner", expiresAt: new Date(payload.exp * 1000).toISOString() });
-  }
-
-  const record = await getLicense(env, payload.key);
-  const active = record && record.status === "active" && !isExpired(record);
-  if (!active || normalizeEmail(record.email) !== normalizeEmail(payload.email)) {
-    return json({ ok: false, error: "subscription_inactive" }, 403);
-  }
-
-  return json({ ok: true, plan: record.plan || "desktop", expiresAt: new Date(payload.exp * 1000).toISOString() });
+  const auth = await authorizeWebRequest(context);
+  if (!auth.ok) return json({ ok: false, error: auth.error }, auth.status);
+  return json({
+    ok: true,
+    role: auth.role,
+    plan: auth.plan,
+    email: auth.payload.email,
+    expiresAt: auth.expiresAt
+  });
 }

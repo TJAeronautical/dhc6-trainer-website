@@ -1,0 +1,26 @@
+{
+ "schemaId": "flashcard_deck",
+ "schemaVersion": "1.0.0",
+ "deckId": "test_deck",
+ "deckName": "Test Deck",
+ "description": "Fixture",
+ "systemId": "test",
+ "variant": "BOTH",
+ "difficulty": "BASIC",
+ "cards": [
+  {
+   "id": "c1",
+   "front": "Fixture question?",
+   "back": "Fixture answer.",
+   "tags": [
+    "test"
+   ],
+   "references": [
+    {
+     "source": "FIXTURE",
+     "locator": "1"
+    }
+   ]
+  }
+ ]
+}

@@ -21,3 +21,8 @@ worker.js
 .gitignore
 .assetsignore
 GITHUB_PAGES_SETUP
+build/**
+_delivery/**
+node_modules/**
+.dev.vars
+.claude/**

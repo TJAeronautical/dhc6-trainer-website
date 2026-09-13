@@ -1,0 +1,10 @@
+{
+ "version": "0",
+ "source": "FIXTURE",
+ "fuel": {
+  "tanks": [],
+  "total_usable_lb": 0,
+  "burn_rates": []
+ },
+ "weight_and_balance": {}
+}

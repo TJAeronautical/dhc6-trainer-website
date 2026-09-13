@@ -1,0 +1,25 @@
+{
+ "version": "0",
+ "source": "FIXTURE",
+ "disclaimer": "Fixture only.",
+ "categories": [
+  {
+   "id": "test",
+   "title": "Test",
+   "items": [
+    {
+     "id": "m1",
+     "item": "Test item",
+     "qty_installed": 1,
+     "qty_required": 1,
+     "category": "D",
+     "go_status": "GO",
+     "placard": "",
+     "crew_procedure": "",
+     "maintenance_action": "",
+     "reference": "FIXTURE"
+    }
+   ]
+  }
+ ]
+}

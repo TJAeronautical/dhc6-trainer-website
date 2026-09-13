@@ -60,7 +60,7 @@ function statusLabel(status) {
 }
 
 function isActiveLicense(license) {
-  return Boolean(license && license.status === "active");
+  return Boolean(license && license.status === "active" && !license.masked);
 }
 
 function updateDownloadUi(license) {
@@ -83,6 +83,7 @@ function updateDownloadUi(license) {
 async function postJson(path, body) {
   const response = await fetch((BILLING_API_BASE || "") + path, {
     method: "POST",
+    credentials: "same-origin",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body)
   });
@@ -102,14 +103,31 @@ async function postJson(path, body) {
 
 function renderAccount(license) {
   loadedAccount = license;
-  if (portalButton) portalButton.disabled = !license || !license.customerId;
+  if (portalButton) portalButton.disabled = !license || license.masked || !license.customerId;
   updateDownloadUi(license);
   const keyInput = document.getElementById("billingKey");
-  if (license && keyInput && !keyInput.value.trim()) keyInput.value = license.key;
+  if (license && license.key && keyInput && !keyInput.value.trim()) keyInput.value = license.key;
 
   if (!license) {
     billingSummary.innerHTML = "<h2>No account loaded</h2><p>Load your subscription to see current status, renewal date, and activated devices.</p>";
     deviceList.innerHTML = "<p>No devices loaded yet.</p>";
+    return;
+  }
+
+  if (license.masked) {
+    // Email-only lookup: the API deliberately withholds the key, customer
+    // ids and device list until the licence key (or a signed-in web session)
+    // proves ownership of the account.
+    billingSummary.innerHTML =
+      '<h2>' + esc(statusLabel(license.status)) + '</h2>' +
+      '<div class="hero-stats">' +
+        '<div class="stat"><strong>' + esc(String(license.activationCount)) + " / " + esc(String(license.activationLimit)) + '</strong><span>Device seats used</span></div>' +
+        '<div class="stat"><strong>' + esc(license.plan || "desktop") + '</strong><span>Plan</span></div>' +
+        '<div class="stat"><strong>' + esc(fmtDate(license.expiresAt)) + '</strong><span>Renews or expires</span></div>' +
+      '</div>' +
+      '<p style="margin-top:14px">Licence key: <code>' + esc(license.keyHint || "hidden") + '</code></p>' +
+      '<p class="muted-sm">To see the full key, devices and billing tools, enter your licence key above, or <a href="web-app.html">sign in to the web app with an emailed link</a> and return here.</p>';
+    deviceList.innerHTML = "<p>Device details unlock after the licence key is verified.</p>";
     return;
   }
 
@@ -157,7 +175,7 @@ async function loadBillingStatus() {
     return null;
   }
   renderAccount(data.license);
-  billingSetMessage("Billing status loaded. Your licence key is shown on the right.", true);
+  billingSetMessage(data.license.masked ? "Subscription found. Enter the licence key to unlock devices, billing and downloads." : "Billing status loaded. Your licence key is shown on the right.", true);
   return data.license;
 }
 

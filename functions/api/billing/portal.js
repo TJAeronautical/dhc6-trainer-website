@@ -3,7 +3,8 @@
   Body: { "licenseKey": "DHC6-....", "email": "buyer@example.com" }
 
   Creates a Paddle customer portal session so subscribers can manage payment,
-  invoices, renewal, and cancellation with Paddle.
+  invoices, renewal, and cancellation with Paddle. Requires the licence key AND
+  the matching purchase email.
 */
 
 import {
@@ -40,12 +41,17 @@ export async function onRequestPost(context) {
 
   const key = normalizeKey(body.licenseKey);
   const email = normalizeEmail(body.email);
+  if (!key || !email) {
+    return json({ ok: false, status: "credentials_required" }, 200);
+  }
   const record = await getLicense(env, key);
 
   if (!record) {
     return json({ ok: false, status: "not_found" }, 200);
   }
-  if (record.email && email && normalizeEmail(record.email) !== email) {
+  // The billing portal exposes payment methods and invoices: require BOTH the
+  // licence key and the matching purchase email.
+  if (!record.email || normalizeEmail(record.email) !== email) {
     return json({ ok: false, status: "email_mismatch" }, 200);
   }
   if (!record.customerId) {

@@ -1,0 +1,15 @@
+{
+ "schemaVersion": "1.0.0",
+ "source": "FIXTURE",
+ "questions": [
+  {
+   "id": "q1",
+   "title": "Fixture question?",
+   "content": "Fixture answer.",
+   "system": "TEST",
+   "aircraftVariant": "BOTH",
+   "tags": [],
+   "importanceLevel": "LOW"
+  }
+ ]
+}

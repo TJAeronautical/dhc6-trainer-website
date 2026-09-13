@@ -1,0 +1,22 @@
+{
+ "version": "0",
+ "source": "FIXTURE",
+ "disclaimer": "Fixture",
+ "entries": [
+  {
+   "id": "TST",
+   "icao": "XXXX",
+   "iata": "TST",
+   "name": "Test Strip",
+   "region": "Test",
+   "country": "Test",
+   "type": "aerodrome",
+   "elevation_ft": 0,
+   "rwy": [],
+   "notes": "",
+   "fuel": "",
+   "customs": false,
+   "ils": false
+  }
+ ]
+}

@@ -1,0 +1,62 @@
+{
+ "rawName": "Test Normal",
+ "drillName": "Test Normal [Test]",
+ "category": "NORMAL",
+ "context": "Test",
+ "displayLabel": "Test Normal [Test]",
+ "phaseTag": "Ground",
+ "procedureGroup": "Preparation and Inspection",
+ "normalSplit": "Everyday Actions",
+ "manualSection": "Section 0",
+ "sourceSection": "0.1",
+ "sortOrder": 1,
+ "sourceNote": "Synthetic fixture \u2014 not aviation data.",
+ "variants": {
+  "LEGACY": {
+   "memory": [
+    {
+     "stepNumber": 1,
+     "action": "TEST ITEM ONE - SET",
+     "crewRole": "PF",
+     "requiresConfirmation": false,
+     "reference": "FIXTURE"
+    },
+    {
+     "stepNumber": 2,
+     "action": "CONFIRM TEST ITEM TWO",
+     "crewRole": "PM",
+     "requiresConfirmation": true,
+     "reference": "FIXTURE"
+    }
+   ],
+   "flow": [
+    {
+     "stepNumber": 1,
+     "action": "Test item one?",
+     "crewRole": "PM",
+     "requiresConfirmation": false,
+     "reference": "FIXTURE"
+    },
+    {
+     "stepNumber": 2,
+     "action": "Set.",
+     "crewRole": "PF",
+     "requiresConfirmation": false,
+     "reference": "FIXTURE"
+    }
+   ]
+  },
+  "G950": {
+   "memory": [
+    {
+     "stepNumber": 1,
+     "action": "TEST ITEM ONE - SET",
+     "crewRole": "PF",
+     "requiresConfirmation": false,
+     "reference": "FIXTURE"
+    }
+   ],
+   "flow": []
+  }
+ }
+}

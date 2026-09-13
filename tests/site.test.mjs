@@ -6,7 +6,7 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const htmlFiles = fs.readdirSync(root).filter((name) => name.endsWith(".html"));
+const htmlFiles = fs.readdirSync(root).filter((name) => name.endsWith(".html")).concat(["app/index.html"]);
 
 function localTarget(value, sourceFile) {
   if (!value || value.startsWith("#") || /^(?:https?:|mailto:|tel:|data:|javascript:|dhc6trainer:)/i.test(value)) return null;
@@ -21,9 +21,47 @@ test("public pages have essential metadata and shared design", () => {
     const html = fs.readFileSync(path.join(root, file), "utf8");
     assert.match(html, /<title>[^<]+<\/title>/i, `${file}: title missing`);
     if (file !== "404.html") assert.match(html, /<meta\s+name="description"/i, `${file}: description missing`);
-    assert.match(html, /assets\/site-redesign\.css/i, `${file}: shared stylesheet missing`);
+    if (file !== "app/index.html") assert.match(html, /assets\/site-redesign\.css/i, `${file}: shared stylesheet missing`);
     assert.match(html, /<meta\s+name="viewport"/i, `${file}: viewport missing`);
   }
+});
+
+test("concept imagery is never labelled as a real app screenshot", () => {
+  for (const file of htmlFiles) {
+    const html = fs.readFileSync(path.join(root, file), "utf8");
+    for (const match of html.matchAll(/<img[^>]+src="([^"]+)"[^>]*>/gi)) {
+      const src = match[1];
+      const tag = match[0];
+      if (/latest-design|assets\/screenshots\//.test(src)) {
+        assert.doesNotMatch(tag, /\b(actual|verified|real)\b/i, `${file}: concept image ${src} described as real`);
+        assert.match(tag, /concept|illustration|mock/i, `${file}: concept image ${src} must be labelled as a concept/illustration`);
+      }
+    }
+  }
+  const sw = fs.readFileSync(path.join(root, "sw.js"), "utf8");
+  assert.doesNotMatch(sw, /latest-design|assets\/screenshots/);
+});
+
+test("subscriber app shell is server-gated and keeps no session secret in web storage", () => {
+  const worker = fs.readFileSync(path.join(root, "worker.js"), "utf8");
+  assert.match(worker, /isProtectedPage/);
+  assert.match(worker, /authorizeWebRequest/);
+  const login = fs.readFileSync(path.join(root, "assets", "js", "web-app-login.js"), "utf8");
+  assert.doesNotMatch(login, /sessionStorage\.setItem\("dhc6WebAccessToken"/);
+  assert.match(login, /credentials: "same-origin"/);
+  const gate = fs.readFileSync(path.join(root, "assets", "js", "subscriber-gate.js"), "utf8");
+  assert.match(gate, /clear-protected/);
+  assert.match(gate, /api\/web-access\/logout/);
+  const shell = fs.readFileSync(path.join(root, "app", "index.html"), "utf8");
+  assert.match(shell, /Training support only/);
+  assert.match(shell, /AFM, QRH, MEL/);
+  assert.match(shell, /noindex/);
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, "assets", "site.webmanifest"), "utf8"));
+  assert.equal(manifest.start_url, "/app/");
+  const robots = fs.readFileSync(path.join(root, "robots.txt"), "utf8");
+  assert.match(robots, /Disallow: \/app\//);
+  const sitemap = fs.readFileSync(path.join(root, "sitemap.xml"), "utf8");
+  assert.doesNotMatch(sitemap, /live\.html|\/app\//);
 });
 
 test("internal href and src references resolve", () => {
