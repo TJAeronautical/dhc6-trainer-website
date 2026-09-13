@@ -92,7 +92,10 @@ test("every screenshot the public pages reference exists and is a real capture",
   const shots = fs.readdirSync(path.join(root, "assets", "screenshots"));
   assert.ok(shots.length > 0, "the screenshots directory must not be empty");
   for (const name of shots) {
-    assert.match(name, /^web-[a-z0-9-]+\.webp$/, name + ": screenshots are captures of the running trainer, named web-*.webp");
+    // web-*  a single capture;  reel-N-*  a frame of the hero device reel.
+    // Both are captures of the running trainer; nothing else belongs here.
+    assert.match(name, /^(web-[a-z0-9-]+|reel-\d+-[a-z0-9-]+)\.webp$/,
+      name + ": screenshots are captures of the running trainer, named web-*.webp or reel-N-*.webp");
   }
 });
 
@@ -353,4 +356,66 @@ test("all JavaScript modules and browser scripts parse", () => {
   }
   walk(root);
   for (const file of files) execFileSync(process.execPath, ["--check", file], { stdio: "pipe" });
+});
+
+test("the hero device reel is geometrically consistent and loops seamlessly", () => {
+  /*
+    The hero is seven real captures of the trainer scrolled inside a phone
+    frame. Three things have to stay true together or the loop visibly jumps:
+
+      * every frame is exactly two phone-viewport heights tall (390x844 -> the
+        images are 560x2424, ratio 4.3282 = 2 x 844/390);
+      * the keyframes travel (frames - 1) x 200%, because .reel-track is one
+        frame tall and each image overflows it by 200%;
+      * the LAST frame repeats the first, so restarting at 0 shows the same
+        pixels.
+  */
+  const css = fs.readFileSync(path.join(root, "assets", "site-redesign.css"), "utf8");
+
+  for (const file of ["index.html", "mobile.html"]) {
+    const html = fs.readFileSync(path.join(root, file), "utf8");
+    const reel = html.match(/<div class="reel-track">([\s\S]*?)<\/div>/);
+    assert.ok(reel, `${file}: the hero must contain a .reel-track`);
+    const imgs = Array.from(reel[1].matchAll(/<img[^>]*src="([^"]+)"[^>]*width="(\d+)"[^>]*height="(\d+)"[^>]*>/g));
+    assert.equal(imgs.length, 7, `${file}: expected 7 reel frames`);
+
+    assert.equal(imgs[imgs.length - 1][1], imgs[0][1],
+      `${file}: the last frame must repeat the first, or the loop jumps`);
+
+    for (const [, src, w, h] of imgs) {
+      assert.ok(fs.existsSync(path.join(root, src)), `${file}: missing reel frame ${src}`);
+      const ratio = Number(h) / Number(w);
+      assert.ok(Math.abs(ratio - 2 * (844 / 390)) < 0.01,
+        `${file}: ${src} is ${w}x${h} (ratio ${ratio.toFixed(4)}); a reel frame must be two 390x844 viewports`);
+    }
+
+    const travel = (imgs.length - 1) * 200;
+    assert.match(css, new RegExp("translateY\\(-" + travel + "%\\)"),
+      `the keyframes must end at -${travel}% for ${imgs.length} frames`);
+
+    // One description for the whole reel; the frames themselves stay silent.
+    assert.match(html, /class="device-reel" role="img" aria-label="[^"]{40,}"/, `${file}: the reel needs one aria-label`);
+    for (const tag of reel[1].match(/<img[^>]*>/g)) {
+      assert.match(tag, /alt=""/, `${file}: reel frames must have empty alt`);
+      assert.match(tag, /aria-hidden="true"/, `${file}: reel frames must be hidden from assistive tech`);
+    }
+  }
+
+  // Motion is opt-out, and the reel holds on the dashboard rather than racing.
+  assert.match(css, /prefers-reduced-motion[\s\S]*\.reel-track\{animation:none!important/,
+    "the reel must stop for prefers-reduced-motion");
+});
+
+test("hero imagery is not tilted and not stretched by its height attribute", () => {
+  const css = fs.readFileSync(path.join(root, "assets", "site-redesign.css"), "utf8");
+  const rule = css.match(/\n\.visual-card\{[^}]*\}/)[0];
+  assert.doesNotMatch(rule, /rotate[XY]?\(/, "the hero device must not be tilted");
+
+  /* An <img> width/height attribute becomes a presentational height that beats
+     an auto layout, so without height:auto desktop.html's 1600x1116 cockpit
+     rendered 1116px tall inside a 501px column. Same bug that hit .shot img. */
+  const img = css.match(/\.visual-card img\{[^}]*\}/)[0];
+  assert.match(img, /height:auto/, ".visual-card img needs height:auto");
+  const shot = css.match(/\.shot img\{[^}]*\}/)[0];
+  assert.match(shot, /height:auto/, ".shot img needs height:auto");
 });
