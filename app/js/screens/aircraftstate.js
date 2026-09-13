@@ -37,6 +37,11 @@ async function procedureSteps(indexItem, variant) {
   return { memory: v.memory || [], flow: v.flow || [], procedure: proc };
 }
 
+/* Focus Snapshot zoom. Multiplicative so each press moves the same proportion,
+   and the range goes below 1 so you can pull back from the framing the screen
+   picked rather than only push in. */
+export const ZOOM_STEP = 1.4, ZOOM_MIN = 0.3, ZOOM_MAX = 4;
+
 function phaseFromRoute(raw) {
   const u = String(raw || "").toUpperCase();
   return PHASES.indexOf(u) > -1 ? u : "BEFORE";
@@ -425,7 +430,12 @@ export async function frozenSnapshot(ctx) {
   if (initialTarget) targets.push(initialTarget);
   (state.focusTargets || []).forEach(function (t) { if (!targets.some(function (x) { return x.toLowerCase() === t.toLowerCase(); })) targets.push(t); });
   let selected = 0;
+  /* Multiplicative steps, and a range that goes below 1. The old control was
+     `Math.max(1, zoom - 0.35)` starting at 1, so the first Zoom - press could
+     never do anything — there was no way to pull back from the framing the
+     screen chose for you. */
   let zoom = 1;
+  let zoomAt = { atMin: false, atMax: false };
 
   const surface = cockpitSurface({ variant: variant, stageClass: "cockpit-focus" });
   const root = h("div", { class: "stack-12" });
@@ -435,13 +445,17 @@ export async function frozenSnapshot(ctx) {
     const regions = regionsFor(target ? [target] : [], phase, hitboxes);
     return regions[0] || null;
   }
-  function applyFocus() {
+  function applyFocus(then) {
     surface.ready.then(function () {
       surface.setVisualState(snapshotVisualState(state.snapshot, variant));
       surface.setScrim(phase);
       const region = currentRegion();
-      if (region) surface.renderer().focusRegion(region, zoom);
-    }).catch(function () { /* overlay */ });
+      const applied = region ? surface.renderer().focusRegion(region, zoom) : null;
+      zoomAt = applied
+        ? { atMin: applied.scale <= applied.min + 1e-6, atMax: applied.scale >= applied.max - 1e-6 }
+        : { atMin: false, atMax: false };
+      if (then) then();
+    }).catch(function () { if (then) then(); /* overlay */ });
   }
 
   function render() {
@@ -469,7 +483,7 @@ export async function frozenSnapshot(ctx) {
         h("div", { class: "t-title-s w-semi c-white", text: "Procedure focus" }),
         h("div", { class: "t-body-s c-ter mt-4", text: "Targets are derived from the active checklist lines for this drill." }),
         h("div", { class: "row gap-8 wrap mt-8 scroll-x" }, targets.map(function (t, i) {
-          return selectableChip(displayFocusTarget(t), i === selected, function () { selected = i; zoom = 1; applyFocus(); render(); });
+          return selectableChip(displayFocusTarget(t), i === selected, function () { selected = i; zoom = 1; applyFocus(render); render(); });
         }))
       ]) : null,
       blueCard([
@@ -477,17 +491,17 @@ export async function frozenSnapshot(ctx) {
         h("div", { class: "t-body-s c-ter mt-4", text: region ? region.label : "Selected focus area" }),
         h("div", { class: "mt-10" }, surface.root),
         h("div", { class: "row gap-8 equal-row mt-10" }, [
-          outlinedButton("Zoom -", function () { zoom = Math.max(1, zoom - 0.35); applyFocus(); }, { block: true }),
-          outlinedButton("Reset", function () { zoom = 1; applyFocus(); }, { block: true }),
-          primaryButton("Zoom +", function () { zoom = Math.min(6, zoom + 0.35); applyFocus(); }, { block: true })
+          outlinedButton("Zoom -", function () { zoom = Math.max(ZOOM_MIN, zoom / ZOOM_STEP); applyFocus(render); }, { block: true, disabled: zoomAt.atMin }),
+          outlinedButton("Reset", function () { zoom = 1; applyFocus(render); }, { block: true }),
+          primaryButton("Zoom +", function () { zoom = Math.min(ZOOM_MAX, zoom * ZOOM_STEP); applyFocus(render); }, { block: true, disabled: zoomAt.atMax })
         ])
       ]),
       h("div", { class: "snapshot-summary" }, [h("div", { class: "t-body-m w-semi c-white", text: phaseSummaryText(phase, state.snapshot) })]
         .concat(targets.length ? [h("div", { class: "t-body-s c-sec", text: "Focus target  " + displayFocusTarget(targets[selected]) })] : [])
         .concat(lines.map(function (l) { return h("div", { class: "t-body-s c-sec", text: l[0] + "  " + l[1] }); }))),
       h("div", { class: "row gap-8 equal-row" }, [
-        outlinedButton("Previous", function () { if (selected > 0) { selected -= 1; zoom = 1; applyFocus(); render(); } }, { block: true, disabled: selected <= 0 }),
-        outlinedButton("Next", function () { if (selected < targets.length - 1) { selected += 1; zoom = 1; applyFocus(); render(); } }, { block: true, disabled: selected >= targets.length - 1 })
+        outlinedButton("Previous", function () { if (selected > 0) { selected -= 1; zoom = 1; applyFocus(render); render(); } }, { block: true, disabled: selected <= 0 }),
+        outlinedButton("Next", function () { if (selected < targets.length - 1) { selected += 1; zoom = 1; applyFocus(render); render(); } }, { block: true, disabled: selected >= targets.length - 1 })
       ]),
       h("div", { class: "row gap-8 equal-row" }, [
         primaryButton("Open Cockpit", function () {
