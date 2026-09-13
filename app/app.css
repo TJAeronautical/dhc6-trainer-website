@@ -831,3 +831,62 @@ table.data th { color: var(--text-secondary); font-weight: 600; font-size: 12px;
 }
 .crm-crew.you { background: rgba(30, 95, 134, 0.3); }
 .crm-you-say { color: var(--cockpit-active-blue); }
+
+/* --------------------------------------------------- Debrief Logbook (list)
+   LogbookScreen.kt filter bar, rows and pills. */
+.logbook-filters { padding: 2px 0; }
+.logbook-selects { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 560px) { .logbook-selects { grid-template-columns: 1fr; } }
+.logbook-selects select { min-height: 44px; }
+.switch-input { width: 42px; height: 24px; accent-color: var(--cockpit-active-blue); cursor: pointer; }
+.log-entry-link { text-decoration: none; transition: background .15s ease, border-color .15s ease; }
+.log-entry-link:hover { background: var(--surface-hover, rgba(255,255,255,.07)); border-color: rgba(120, 209, 255, .35); }
+.log-entry-link:focus-visible { outline: 2px solid var(--accent-sky); outline-offset: 2px; }
+.pill.warn { background: var(--sem-caution-container); color: var(--sem-caution); border-color: rgba(245, 183, 64, .45); }
+
+/* ------------------------------------------------- Debrief Logbook (detail)
+   LogbookDetailScreen.kt cards. */
+.debrief-card {
+  background: var(--logbook-panel); border: 1px solid var(--hairline);
+  border-radius: var(--r-md); padding: 14px; display: flex; flex-direction: column; gap: 6px;
+}
+.metric-row { padding: 3px 0; border-bottom: 1px solid rgba(255, 255, 255, .05); }
+.metric-row:last-child { border-bottom: 0; }
+.score-pill-lg {
+  border-radius: var(--r-lg, 22px); padding: 8px 12px; font-weight: 800;
+  border: 1px solid rgba(255, 255, 255, .6); color: #fff;
+}
+.score-pill-lg.band-ready { background: rgba(52, 199, 123, .28); }
+.score-pill-lg.band-caution { background: rgba(245, 183, 64, .28); }
+.score-pill-lg.band-overdue { background: rgba(255, 90, 82, .28); }
+
+/* ------------------------------------------------- Debrief Logbook (export)
+   LogbookPdfExporter.kt as a printable document. On screen it keeps the app's
+   dark theme; in print it goes to black on white so it does not burn a
+   cartridge and stays readable when an instructor prints it. */
+.logbook-export { background: var(--logbook-panel); border: 1px solid var(--hairline); border-radius: var(--r-md); padding: 18px; }
+.export-title { font-size: 1.35rem; margin: 0 0 10px; color: #fff; }
+.export-heading { font-size: 1rem; margin: 14px 0 4px; color: #fff; }
+.export-body { margin: 0 0 3px; font-size: 13px; color: rgba(255, 255, 255, .85); }
+.export-note { font-style: italic; }
+.export-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12px; }
+.export-table th { text-align: left; padding: 6px 6px 6px 0; border-bottom: 1px solid rgba(255,255,255,.28); color: #fff; }
+.export-table td { padding: 5px 6px 5px 0; vertical-align: top; color: rgba(255, 255, 255, .85); }
+.export-table tr.export-entry td { border-top: 1px solid rgba(255, 255, 255, .07); }
+.export-table tr.export-remarks td { padding-top: 0; font-size: 11px; color: rgba(255, 255, 255, .6); }
+
+@media print {
+  /* Only the export document prints: no shell, no controls, no disclaimer bar. */
+  .app-rail, .app-bottomnav, .app-topbar, .app-disclaimer, .skip-link, .no-print,
+  .screen-header, .screen-title, .notice, .library-divider { display: none !important; }
+  html, body, .app-view, .screen { background: #fff !important; color: #000 !important; }
+  .logbook-export { background: #fff; border: 0; padding: 0; }
+  .export-title, .export-heading { color: #000; }
+  .export-body, .export-table td { color: #111; }
+  .export-table th { color: #000; border-bottom: 1px solid #999; }
+  .export-table tr.export-entry td { border-top: 1px solid #ddd; }
+  .export-table tr.export-remarks td { color: #444; }
+  /* Keep an entry and its remarks line on the same page. */
+  .export-table tr { break-inside: avoid; }
+  .export-table thead { display: table-header-group; }
+}
