@@ -658,7 +658,7 @@ function buildSystemsLab() {
 /*
   Knowledge -> Systems: the tile list, hints and overviews come out of the Kotlin
   screens; the AFM/FCTM detail comes out of core-res/assets/systems/*.json; the
-  reference imagery is resolved against whatever tools/build-posters.mjs actually
+  reference imagery is resolved against whatever tools/build-diagrams.mjs actually
   produced, so a reference Android declares but cannot load is reported rather
   than shown as a broken image.
 */
@@ -681,12 +681,12 @@ function buildSystems2d() {
     descriptions[entry.slug] = entry.data;
   });
 
-  const postersFile = path.resolve(arg("posters", "build/systems/posters.json"));
-  let posters = [];
-  if (fs.existsSync(postersFile)) {
-    posters = (JSON.parse(fs.readFileSync(postersFile, "utf8")).posters || []).map((p) => p.mediaPath);
+  const diagramsFile = path.resolve(arg("diagrams", arg("posters", "build/systems/diagrams.json")));
+  let diagrams = [];
+  if (fs.existsSync(diagramsFile)) {
+    diagrams = JSON.parse(fs.readFileSync(diagramsFile, "utf8")).diagrams || [];
   } else {
-    console.warn("  (systems-2d: " + postersFile + " not found — run `node tools/build-posters.mjs --android <repo>` so reference images resolve)");
+    console.warn("  (systems-2d: " + diagramsFile + " not found — run `node tools/build-diagrams.mjs --android <repo>` so reference images resolve)");
   }
 
   return buildSystems2dPack({
@@ -696,7 +696,7 @@ function buildSystems2d() {
     diagramSource: fs.readFileSync(diagram, "utf8"),
     repositorySource: fs.readFileSync(repository, "utf8"),
     descriptions: descriptions,
-    posters: posters
+    diagrams: diagrams
   });
 }
 

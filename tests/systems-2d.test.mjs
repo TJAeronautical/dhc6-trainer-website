@@ -75,15 +75,19 @@ const DESCRIPTIONS = {
   }
 };
 
-const POSTERS = [
-  "systems/posters/fuel_system_flow_interactive.webp",
-  "systems/posters/fuel_heater.webp",
-  "systems/posters/electrical_system.webp",
-  "systems/posters/powerplant_engine_cutaway.webp"
+/* What tools/build-diagrams.mjs produced. Android declares these as .webp; the
+   repository holds .png, so the build normalises every published path to .webp.
+   The fixture's `models/systems_lab/fixture/Refs/Figure_*.png` are deliberately
+   absent, standing in for a reference that really was not produced. */
+const DIAGRAMS = [
+  { mediaPath: "systems/posters/fuel_system_flow_interactive.webp", androidPath: "systems/posters/fuel_system_flow_interactive.png", label: "fuel system flow interactive", group: "poster" },
+  { mediaPath: "systems/posters/fuel_heater.webp", androidPath: "systems/posters/fuel_heater.png", label: "fuel heater", group: "poster" },
+  { mediaPath: "systems/posters/electrical_system.webp", androidPath: "systems/posters/electrical_system.png", label: "electrical system", group: "poster" },
+  { mediaPath: "systems/posters/powerplant_engine_cutaway.webp", androidPath: "systems/posters/powerplant_engine_cutaway.png", label: "powerplant engine cutaway", group: "poster" }
 ];
 
 function fixturePack() {
-  return buildSystems2dPack(Object.assign({}, SOURCES, { descriptions: DESCRIPTIONS, posters: POSTERS }));
+  return buildSystems2dPack(Object.assign({}, SOURCES, { descriptions: DESCRIPTIONS, diagrams: DIAGRAMS }));
 }
 
 /* ------------------------------------------------------------ extraction */
@@ -164,7 +168,7 @@ test("the pack covers every enum member and keeps the home screen's tile order",
   assert.equal(pack.systems.ELECTRICAL.overview, "Fixture overview: electrical.");
 });
 
-test("a reference image that is not in the repository is reported, never substituted", () => {
+test("a reference image the diagram build did not produce is reported, never substituted", () => {
   const pack = fixturePack();
   const ata = pack.systems.ATA_100;
   assert.equal(ata.references.length, 1);
@@ -172,14 +176,21 @@ test("a reference image that is not in the repository is reported, never substit
   assert.equal(ata.references[0].androidPath, "models/systems_lab/fixture/Refs/Figure_0-0.png");
   const issue = pack.issues.find((i) => i.kind === "missing_reference_image" && i.system === "ATA_100");
   assert.ok(issue, "the gap is recorded in the pack");
-  assert.match(issue.detail, /do not exist in the Android repository/);
+  assert.match(issue.detail, /were not produced by the diagram build/);
 });
 
-test("a .webp reference resolves to the .webp actually published", () => {
+test("a reference declared with the wrong extension resolves to the file that exists", () => {
+  /* Android asks for systems/posters/electrical_system.webp; the repository
+     holds .png. The build publishes .webp, so the reference resolves and the
+     mismatch is flagged rather than treated as a missing image. */
   const pack = fixturePack();
-  assert.equal(pack.systems.ELECTRICAL.references[0].mediaPath, "systems/posters/electrical_system.webp");
+  const electrical = pack.systems.ELECTRICAL.references[0];
+  assert.equal(electrical.androidPath, "systems/posters/electrical_system.webp");
+  assert.equal(electrical.mediaPath, "systems/posters/electrical_system.webp");
+  assert.equal(electrical.extensionMismatch, true, "the source file is .png");
   assert.equal(pack.systems.FUEL.references.length, 2);
   assert.ok(pack.systems.FUEL.references.every((r) => r.mediaPath));
+  assert.equal(pack.issues.some((i) => i.kind === "missing_reference_image" && i.system === "ELECTRICAL"), false);
 });
 
 test("pins with no drawing behind them are flagged rather than dropped", () => {

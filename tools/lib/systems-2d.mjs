@@ -13,6 +13,9 @@
     feature-knowledge/.../Interactive2dDiagramViewer.kt   diagramPinsForSystem()
     data/.../systems/SystemContentRepository.kt           SYSTEM_TO_ASSET_BASENAME
     core-res/src/main/assets/systems/*.json               the authored AFM/FCTM packs
+    models/systems_lab/aircraft_variants/
+      dhc6_reference_sections_manifest.json               the Systems Lab reference
+                                                          figures (5 sections)
 
   Nothing here is retyped: every string, coordinate and count is read out of the
   Kotlin or the bundled JSON. Where the Android source is internally broken the
@@ -245,7 +248,14 @@ export function buildSystems2dPack(input) {
   const basenames = readAssetBasenames(input.repositorySource);
 
   const issues = [];
-  const availablePosters = new Set(input.posters || []);      // "systems/posters/x.webp"
+  /* Everything tools/build-diagrams.mjs actually produced, keyed by the Android
+     asset path it came from, so a reference resolves only if the file is real. */
+  const published = new Map();
+  (input.diagrams || []).forEach((d) => {
+    if (!d || !d.mediaPath) return;
+    published.set(String(d.mediaPath), d);
+    if (d.androidPath) published.set(String(d.androidPath), d);
+  });
   const descriptions = {};
   const usedBasenames = new Set();
 
@@ -263,15 +273,23 @@ export function buildSystems2dPack(input) {
     basenames[key] = basename;
   });
 
+  /*
+    Android asks for some references by an extension the file does not have —
+    systems/posters/*.webp where the repository holds .png. Everything published
+    is normalised to .webp by tools/build-diagrams.mjs, so the lookup tries the
+    declared path and its .webp form. A reference resolves only when a real file
+    was produced for it; nothing is ever substituted with a different drawing.
+  */
   function resolveReference(ref) {
-    const path = String(ref.assetPath || "");
-    const candidates = [path];
-    if (/\.webp$/i.test(path)) candidates.push(path.replace(/\.webp$/i, ".png"));
-    if (/\.png$/i.test(path)) candidates.push(path.replace(/\.png$/i, ".webp"));
-    // Everything published to R2 is normalised to .webp by tools/build-posters.mjs.
-    const normalised = candidates.map((c) => c.replace(/\.(png|jpe?g)$/i, ".webp"));
-    const hit = normalised.find((c) => availablePosters.has(c)) || null;
-    return { label: ref.label, androidPath: path, mediaPath: hit };
+    const declared = String(ref.assetPath || "");
+    const normalised = declared.replace(/\.(png|jpe?g|webp)$/i, ".webp");
+    const hit = published.get(normalised) || published.get(declared) || null;
+    return {
+      label: ref.label,
+      androidPath: declared,
+      mediaPath: hit ? hit.mediaPath : null,
+      extensionMismatch: Boolean(hit && hit.androidPath && hit.androidPath !== declared)
+    };
   }
 
   const systems = {};
@@ -282,7 +300,7 @@ export function buildSystems2dPack(input) {
       issues.push({
         kind: "missing_reference_image",
         system: key,
-        detail: missing.length + " of " + refs.length + " reference image(s) declared by systemDetailReferenceImages() do not exist in the Android repository: " +
+        detail: missing.length + " of " + refs.length + " reference image(s) declared by systemDetailReferenceImages() were not produced by the diagram build: " +
           missing.map((r) => r.androidPath).join(", ")
       });
     }

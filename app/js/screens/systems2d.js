@@ -8,8 +8,8 @@
                   → SystemDetailReferenceImagesCard (Bundled 2D references)
                   → Interactive2dDiagramViewer → lane row → knowledge units
 
-  Everything authored comes from the protected `systems-2d` pack; the posters
-  come from R2 through /api/media behind the subscriber/owner session.
+  Everything authored comes from the protected `systems-2d` pack; the reference
+  imagery comes from R2 through /api/media behind the subscriber/owner session.
 */
 import { h, Content, currentVariant, variantLabel, tileUrl } from "../core.js";
 import { screen, blueCard, bubble, libraryDivider, tile, statusPill, emptyState, contentUnavailable, searchField, selectableChip } from "../ui.js";
@@ -127,7 +127,7 @@ export async function systemDetail(ctx) {
       h("div", { class: "mt-8" }, statusPill("later"))
     ]) : null,
     studyNotesCard(pack, system, references[0] || null),
-    references.length ? referenceImagesCard(pack, system, s, references, S.diagramFor(system).mode === "interactive" ? references[0].mediaPath : null) : null,
+    references.length ? referenceImagesCard(pack, system, s, references, diagramImagePath(system)) : null,
     unresolved.length ? missingReferencesCard(system, unresolved) : null,
     diagramCard(pack, system, s),
     laneRow(),
@@ -248,6 +248,13 @@ function protectedImage(mediaPath, alt, onReady) {
   return { root: host, img: img };
 }
 
+/* The image the diagram card below will render full size, if any, so the
+   reference card does not show the same drawing a second time. */
+function diagramImagePath(system) {
+  const diagram = S.diagramFor(system);
+  return diagram.image && (diagram.mode === "interactive" || diagram.mode === "static") ? diagram.image.mediaPath : null;
+}
+
 function referenceImagesCard(pack, system, s, references, pinnedPath) {
   const body = h("div", { class: "stack-8 mt-8" });
 
@@ -264,7 +271,7 @@ function referenceImagesCard(pack, system, s, references, pinnedPath) {
         return selectableChip(ref.label, ref.mediaPath === focused.mediaPath, function () { s.referencePath = ref.mediaPath; render(); });
       })) : null,
       h("div", { class: "t-title-s w-bold c-white", text: focused.label }),
-      image ? image.root : h("p", { class: "t-body-s c-ter", text: "Shown with its component pins in the interactive diagram below." }),
+      image ? image.root : h("p", { class: "t-body-s c-ter", text: "Shown full size in the diagram card below." }),
       h("p", { class: "t-body-s c-white", text: "How to use it: " + ((note && note.howToUse) || "") })
     ].filter(Boolean));
   }

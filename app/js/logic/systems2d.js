@@ -7,8 +7,9 @@
   limit tables, diagram pins — arrives in the protected `systems-2d` pack built
   by tools/lib/systems-2d.mjs. Nothing here contains training or aviation data.
 
-  Reference posters are served from R2 through /api/media/<path> behind the
-  subscriber/owner session, never from the public repository.
+  Reference imagery — the system posters and the Systems Lab figures — is served
+  from R2 through /api/media/<path> behind the subscriber/owner session, never
+  from the public repository.
 */
 
 /* ------------------------------------------------------------ navigation */

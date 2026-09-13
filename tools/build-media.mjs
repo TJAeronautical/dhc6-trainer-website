@@ -42,7 +42,7 @@ const outDir = path.resolve(arg("out", "build/media"));
 const bucket = arg("bucket", "dhc6-web-media");
 const R2_PREFIX = "webmedia/";
 /* Generated media trees, comma-separated: the cockpit plate + sprite atlas from
-   tools/build-cockpit.mjs, and the system posters from tools/build-posters.mjs.
+   tools/build-cockpit.mjs, and the system posters and Systems Lab reference figures from tools/build-diagrams.mjs.
    Each tree publishes its files at their path relative to that tree's root. */
 const extraMediaDirs = String(arg("extra-media", "build/cockpit/media"))
   .split(",")
@@ -146,5 +146,5 @@ fs.writeFileSync(path.join(outDir, "media-report.txt"), report.join("\n") + "\n"
 console.log(report.join("\n"));
 if (missing) console.warn("\n" + missing + " model(s) missing — pass --reference and --android so every registry entry can be located.");
 if (mismatched) console.warn(mismatched + " model(s) differ from the registry hash — regenerate tools/data/systems-lab-models.json if the GLB files were re-exported.");
-if (!extraFiles.length) console.warn("No generated media found in " + extraMediaDirs.join(", ") + " — run `node tools/build-cockpit.mjs --android <repo>` and `node tools/build-posters.mjs --android <repo>` first.");
+if (!extraFiles.length) console.warn("No generated media found in " + extraMediaDirs.join(", ") + " — run `node tools/build-cockpit.mjs --android <repo>` and `node tools/build-diagrams.mjs --android <repo>` first.");
 console.log("\nOutput → " + outDir);
