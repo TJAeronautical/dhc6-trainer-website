@@ -127,6 +127,79 @@ function offlineImageryCard(ctx, rerender) {
   return card;
 }
 
+/* ------------------------------------------------------- Signed-in browsers */
+/*
+  One licence signs in from a limited number of browsers, and this is where a
+  subscriber sees which ones and takes one back. Without it the limit would be
+  a support ticket every time somebody changed laptops.
+
+  Owner sessions have no licence record behind them and so no seats; the API
+  answers `applies: false` and this renders nothing rather than an empty list
+  that would read as "you have no devices".
+*/
+function devicesCard(ctx, rerender) {
+  const card = blueCard([h("div", { class: "t-body-s c-sec", text: "Signed-in browsers: checking…" })]);
+  const paint = function (nodes) { card.replaceChildren.apply(card, [nodes].flat()); };
+
+  const seen = function (iso) {
+    const when = Date.parse(iso || "");
+    if (!isFinite(when)) return "";
+    const days = Math.floor((Date.now() - when) / 86400000);
+    if (days <= 0) return "today";
+    if (days === 1) return "yesterday";
+    return days + " days ago";
+  };
+
+  const show = async function () {
+    let data;
+    try {
+      const response = await fetch("/api/web-access/devices", { cache: "no-store", credentials: "same-origin" });
+      data = await response.json();
+      if (!response.ok || !data || !data.ok) throw new Error("unavailable");
+    } catch (error) {
+      paint([h("div", { class: "t-body-s c-sec", text: "Signed-in browsers" }),
+        h("div", { class: "t-body-s c-ter mt-4", text: "Cannot check this right now." })]);
+      return;
+    }
+    if (!data.applies) { card.hidden = true; return; }
+
+    const devices = Array.isArray(data.devices) ? data.devices : [];
+    const others = devices.filter(function (d) { return !d.current; }).length;
+
+    const rows = devices.map(function (device) {
+      const when = seen(device.lastSeenAt);
+      return h("div", { class: "t-body-s c-ter mt-4", text:
+        (device.label || "Unknown browser") +
+        (device.current ? " — this browser" : when ? " — last used " + when : "") });
+    });
+
+    const release = outlinedButton("Sign out other browsers", async function () {
+      release.disabled = true;
+      try {
+        const response = await fetch("/api/web-access/devices", {
+          method: "POST", cache: "no-store", credentials: "same-origin",
+          headers: { "Content-Type": "application/json" }, body: "{}"
+        });
+        const result = await response.json();
+        if (!response.ok || !result.ok) throw new Error("failed");
+        ctx.toast(result.signedOut === 1 ? "1 other browser signed out" : result.signedOut + " other browsers signed out");
+      } catch (error) {
+        ctx.toast("Could not sign the other browsers out");
+      }
+      rerender();
+    }, { small: true });
+    if (!others) release.hidden = true;
+
+    paint([
+      h("div", { class: "t-body-s c-sec", text: "Signed-in browsers" }),
+      h("div", { class: "t-body-s c-ter mt-4", text: devices.length + " of " + data.limit + " in use. Signing in from a new browser when all are in use will ask you to sign one out." })
+    ].concat(rows, [h("div", { class: "row gap-8 wrap mt-8" }, [release])]));
+  };
+
+  show();
+  return card;
+}
+
 /* ---------------------------------------------------------------- Settings */
 export async function settings(ctx) {
   ctx.setTopbar({ title: "Settings", subtitle: "Account · Plan · Display · Cockpit" });
@@ -154,6 +227,7 @@ export async function settings(ctx) {
         outlinedButton("Sign out", function () { if (window.DHC6Session) window.DHC6Session.signOut(); else window.location.href = "/web-app.html"; }, { small: true }),
         h("a", { class: "btn text", href: "/web-app.html", text: "Sign-in page" })
       ]),
+      devicesCard(ctx, render),
       settingsSection("Plan"),
       blueCard([h("div", { class: "t-title-m c-white", text: "Current Plan" }), h("div", { class: "t-body-m mt-4", style: "color:var(--white-secondary)", text: plan + (session.email ? " · " + session.email : "") }), h("div", { class: "t-body-s c-ter mt-6", text: "Web sessions last about 12 hours and are re-validated against your licence every few minutes." })]),
       settingsSection("Offline Access"),

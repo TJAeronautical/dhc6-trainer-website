@@ -19,6 +19,7 @@ import { onRequestPost as ownerWebAccessSession } from "./functions/api/web-acce
 import { onRequestPost as webAccessLogout } from "./functions/api/web-access/logout.js";
 import { onRequestPost as webAccessRequestLink } from "./functions/api/web-access/request-link.js";
 import { onRequestPost as webAccessLinkSession } from "./functions/api/web-access/link-session.js";
+import { onRequestGet as webAccessDevicesGet, onRequestPost as webAccessDevicesPost } from "./functions/api/web-access/devices.js";
 import { onRequestPost as ownerWatermark } from "./functions/api/owner/watermark.js";
 import { onRequestGet as protectedContent } from "./functions/api/content/index.js";
 import { onRequestGet as protectedMedia } from "./functions/api/media/index.js";
@@ -45,6 +46,7 @@ export const API_ROUTES = [
   "/api/web-access/logout",
   "/api/web-access/request-link",
   "/api/web-access/link-session",
+  "/api/web-access/devices",
   "/api/owner/watermark",
   "/api/content/manifest",
   "/api/content/pack/:id",
@@ -95,6 +97,8 @@ async function routeApi(context) {
   if (method === "POST" && path === "/api/web-access/logout") return webAccessLogout(context);
   if (method === "POST" && path === "/api/web-access/request-link") return webAccessRequestLink(context);
   if (method === "POST" && path === "/api/web-access/link-session") return webAccessLinkSession(context);
+  if (method === "GET" && path === "/api/web-access/devices") return webAccessDevicesGet(context);
+  if (method === "POST" && path === "/api/web-access/devices") return webAccessDevicesPost(context);
   if (method === "POST" && path === "/api/owner/watermark") return ownerWatermark(context);
   if (method === "GET" && (path === "/api/content/manifest" || path.startsWith("/api/content/pack/"))) return protectedContent(context);
   if ((method === "GET" || method === "HEAD") && (path === "/api/media" || path.startsWith("/api/media/"))) return protectedMedia(context);

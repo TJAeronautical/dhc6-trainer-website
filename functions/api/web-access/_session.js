@@ -50,6 +50,9 @@ async function signPayload(secret, payload) {
   return {
     token: encoded + "." + signature,
     sid: payload.sid,
+    /* Unix seconds, kept alongside the ISO string because the seat store needs
+       it to set a revocation marker that expires with the token. */
+    exp: payload.exp,
     expiresAt: new Date(payload.exp * 1000).toISOString()
   };
 }
