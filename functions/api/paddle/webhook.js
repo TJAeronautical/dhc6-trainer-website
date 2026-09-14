@@ -16,6 +16,7 @@
 import {
   json,
   generateLicenseKey,
+  licenseKeyFor,
   verifyPaddleSignature,
   getLicense,
   writeLicense,
@@ -233,7 +234,9 @@ export async function onRequestPost(context) {
     let record = await getLicense(env, key);
 
     if (!record) {
-      key = generateLicenseKey();
+      /* Derived from the subscription, so two events arriving at once cannot
+         mint two licences for it. See licenseKeyFor in _shared.js. */
+      key = await licenseKeyFor(env, subscriptionId);
       record = {
         key: key,
         email: email,
