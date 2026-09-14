@@ -10,6 +10,38 @@
   const HINT_KEY = "dhc6WebSessionHint";
   const LINK_EMAIL_KEY = "dhc6WebLinkEmail";
   const LEGACY_TOKEN_KEY = "dhc6WebAccessToken";
+  const DEVICE_KEY = "dhc6.webDevice.v1";
+
+  /*
+    A name for this browser, so signing in again from it reuses the seat it
+    already holds instead of spending another one. It identifies a browser and
+    nothing else: it is random, it is never sent anywhere but this site's own
+    sign-in, and losing it costs a seat rather than access - the server issues
+    a fresh one and, at the limit, recycles the least recently used seat.
+  */
+  function deviceId() {
+    let id = "";
+    try { id = window.localStorage.getItem(DEVICE_KEY) || ""; } catch (error) { id = ""; }
+    if (/^[0-9a-f]{32}$/.test(id)) return id;
+    id = "";
+    try {
+      const bytes = new Uint8Array(16);
+      window.crypto.getRandomValues(bytes);
+      for (let i = 0; i < bytes.length; i++) id += bytes[i].toString(16).padStart(2, "0");
+    } catch (error) {
+      /* No crypto, or storage refused: the server issues one per sign-in and
+         recycles rather than refusing, so this degrades to "works, but uses a
+         seat each time" instead of failing. */
+      return "";
+    }
+    try { window.localStorage.setItem(DEVICE_KEY, id); } catch (error) { /* private window */ }
+    return id;
+  }
+
+  function rememberDevice(data) {
+    if (!data || !/^[0-9a-f]{32}$/.test(String(data.deviceId || ""))) return;
+    try { window.localStorage.setItem(DEVICE_KEY, data.deviceId); } catch (error) { /* ignore */ }
+  }
 
   const form = document.getElementById("web-access-form");
   const message = document.getElementById("web-access-message");
@@ -104,8 +136,69 @@
       case "email_link_not_configured": return "Email sign-in links are not enabled in Firebase Authentication yet. Use your licence key instead.";
       case "subscription_inactive": return "This subscription is not active. Check the Manage licence page.";
       case "cross_site_request": return "Sign-in must be started from dhc6trainer.com.";
+      case "seat_limit": return "This licence is already signed in on the maximum number of browsers.";
       default: return fallback;
     }
+  }
+
+  function seenLabel(iso) {
+    const when = Date.parse(iso || "");
+    if (!isFinite(when)) return "";
+    const days = Math.floor((Date.now() - when) / 86400000);
+    if (days <= 0) return "last used today";
+    if (days === 1) return "last used yesterday";
+    return "last used " + days + " days ago";
+  }
+
+  /*
+    Refused at the limit, with a way through.
+
+    A limit a subscriber cannot clear themselves is a support ticket, so the
+    refusal lists what is holding the seats and offers to end those sessions.
+    The retry carries the same credentials the refused attempt already proved -
+    nothing is stored, and no second endpoint accepts a sign-out without them.
+  */
+  function offerSeatRelease(node, data, retry) {
+    if (!node) return;
+    node.replaceChildren();
+    node.style.color = "#ffb0b8";
+
+    const limit = Number(data && data.limit) || 0;
+    const heading = document.createElement("div");
+    heading.textContent = limit
+      ? "This licence is signed in on " + limit + " browsers already, which is its limit."
+      : "This licence is signed in on the maximum number of browsers.";
+    node.appendChild(heading);
+
+    const devices = (data && Array.isArray(data.devices)) ? data.devices : [];
+    if (devices.length) {
+      const list = document.createElement("ul");
+      list.style.margin = "8px 0";
+      list.style.paddingLeft = "20px";
+      devices.forEach(function (device) {
+        const item = document.createElement("li");
+        const seen = seenLabel(device.lastSeenAt);
+        item.textContent = (device.label || "Unknown browser") + (seen ? " — " + seen : "");
+        list.appendChild(item);
+      });
+      node.appendChild(list);
+    }
+
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "btn secondary";
+    button.textContent = "Sign out the other browsers and continue";
+    button.addEventListener("click", function () {
+      button.disabled = true;
+      setText(node, "Signing the other browsers out…", true);
+      retry();
+    });
+    node.appendChild(button);
+
+    const note = document.createElement("div");
+    note.style.marginTop = "8px";
+    note.textContent = "Anyone using this licence elsewhere will be signed out. Their saved drills stay on their own device.";
+    node.appendChild(note);
   }
 
   if (form) form.addEventListener("submit", async function (event) {
@@ -113,18 +206,36 @@
     const button = form.querySelector("button[type=submit]");
     const email = document.getElementById("webAccessEmail").value.trim();
     const licenseKey = document.getElementById("webAccessKey").value.trim().toUpperCase();
-    button.disabled = true;
-    setText(message, "Checking your active subscription…", true);
-    try {
-      const result = await postJson("/api/web-access/session", { email: email, licenseKey: licenseKey });
-      if (!result.ok || !result.data.ok) throw new Error(result.data.error || "access_denied");
-      rememberSession(result.data);
-      setText(message, "Subscription confirmed. Opening the web app…", true);
-      openApp();
-    } catch (error) {
-      setText(message, describeError(error.message, "Access could not be confirmed. Check your purchase email and licence key."), false);
-      button.disabled = false;
-    }
+
+    const attempt = async function (signOutOthers) {
+      button.disabled = true;
+      if (!signOutOthers) setText(message, "Checking your active subscription…", true);
+      try {
+        const result = await postJson("/api/web-access/session", {
+          email: email,
+          licenseKey: licenseKey,
+          deviceId: deviceId(),
+          signOutOthers: signOutOthers === true
+        });
+        /* Refused for seats, not for credentials: the way out is a button, not
+           a retyped licence key. */
+        if (result.status === 403 && result.data && result.data.error === "seat_limit") {
+          offerSeatRelease(message, result.data, function () { attempt(true); });
+          button.disabled = false;
+          return;
+        }
+        if (!result.ok || !result.data.ok) throw new Error(result.data.error || "access_denied");
+        rememberSession(result.data);
+        rememberDevice(result.data);
+        setText(message, "Subscription confirmed. Opening the web app…", true);
+        openApp();
+      } catch (error) {
+        setText(message, describeError(error.message, "Access could not be confirmed. Check your purchase email and licence key."), false);
+        button.disabled = false;
+      }
+    };
+
+    await attempt(false);
   });
 
   if (ownerForm) ownerForm.addEventListener("submit", async function (event) {
@@ -176,19 +287,40 @@
     linkButton.disabled = false;
   });
 
-  async function submitEmailLink(email) {
-    setText(linkMessage, "Verifying your sign-in link…", true);
-    const result = await postJson("/api/web-access/link-session", {
+  async function submitEmailLink(email, grant) {
+    if (!grant) setText(linkMessage, "Verifying your sign-in link…", true);
+    /*
+      The retry after a seat refusal sends the grant the server handed back,
+      not the code: verifying the code spent it, and resending a spent code
+      would report a broken link for a problem that is nothing to do with the
+      link.
+    */
+    const result = await postJson("/api/web-access/link-session", grant ? {
+      grant: grant,
+      deviceId: deviceId(),
+      signOutOthers: true
+    } : {
       email: email,
       intent: linkIntent,
-      oobCode: linkCode
+      oobCode: linkCode,
+      deviceId: deviceId()
     });
+    if (result.status === 403 && result.data && result.data.error === "seat_limit") {
+      const handle = result.data.grant;
+      if (!handle) {
+        setText(linkMessage, "This licence is signed in on too many browsers. Sign one out from Settings on that device, or use your licence key here.", false);
+        return "seat-limit";
+      }
+      offerSeatRelease(linkMessage, result.data, function () { submitEmailLink(email, handle); });
+      return "seat-limit";
+    }
     if (!result.ok || !result.data.ok) {
       setText(linkMessage, describeError(result.data.error, "This sign-in link did not work. Each link can only be opened once — request a fresh one below."), false);
       return "failed";
     }
     try { window.localStorage.removeItem(LINK_EMAIL_KEY); } catch (error) { /* ignore */ }
     rememberSession(result.data);
+    rememberDevice(result.data);
     setText(linkMessage, "Signed in. Opening the web app…", true);
     openApp();
     return "done";

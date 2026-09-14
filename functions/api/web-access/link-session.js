@@ -9,10 +9,10 @@
   Then a normal subscriber web session is issued (same shape as /session).
 */
 
-import { json, normalizeEmail, getLicenseByEmail, isExpired } from "../_shared.js";
-import { createWebSession, rateLimitAllows, sameOriginRequest } from "./_session.js";
+import { json, normalizeEmail, getLicense, getLicenseByEmail, isExpired } from "../_shared.js";
+import { rateLimitAllows, sameOriginRequest } from "./_session.js";
 import { resolveLinkIntent } from "./request-link.js";
-import { sessionResponse } from "./session.js";
+import { seatedSessionResponse } from "./session.js";
 
 const SIGN_IN_WITH_LINK_URL = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithEmailLink";
 const LOOKUP_URL = "https://identitytoolkit.googleapis.com/v1/accounts:lookup";
@@ -26,6 +26,49 @@ async function firebaseJson(url, apiKey, body) {
   let data = {};
   try { data = await response.json(); } catch (error) { data = {}; }
   return { ok: response.ok, data: data };
+}
+
+/*
+  A sign-in link's code works exactly once, and Firebase spends it the moment
+  this endpoint verifies it. That is fine until the seat limit refuses the
+  session afterwards: retrying with "sign the others out" would present a code
+  that is already spent, and the visitor would be told their link was broken
+  when it was nothing of the kind.
+
+  So a refusal at the limit hands back a short-lived, single-use grant that
+  stands in for the code on the retry. It is only ever issued AFTER a complete
+  Firebase verification, which is what keeps this from becoming an oracle:
+  checking seats before verifying the code would let anyone ask whether a
+  given address has a licence.
+*/
+const GRANT_PREFIX = "linkgrant:";
+const GRANT_TTL_SECONDS = 10 * 60;
+
+async function issueLinkGrant(env, licenseKey) {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  let id = "";
+  for (let i = 0; i < bytes.length; i++) id += bytes[i].toString(16).padStart(2, "0");
+  try {
+    await env.LICENSES.put(GRANT_PREFIX + id, licenseKey, { expirationTtl: GRANT_TTL_SECONDS });
+  } catch (error) {
+    return "";
+  }
+  return id;
+}
+
+async function consumeLinkGrant(env, id) {
+  const handle = String(id || "").trim();
+  if (!/^[0-9a-f]{32}$/.test(handle)) return "";
+  let key = "";
+  try {
+    key = (await env.LICENSES.get(GRANT_PREFIX + handle)) || "";
+  } catch (error) {
+    return "";
+  }
+  /* Single use: a grant that has served its retry must not serve another. */
+  if (key) { try { await env.LICENSES.delete(GRANT_PREFIX + handle); } catch (error) { /* best effort */ } }
+  return key;
 }
 
 export async function onRequestPost(context) {
@@ -42,6 +85,25 @@ export async function onRequestPost(context) {
   try { body = await request.json(); } catch (error) {
     return json({ ok: false, error: "bad_json" }, 400);
   }
+  /*
+    The retry after a seat refusal carries a grant instead of a code, because
+    the code it would otherwise resend has already been spent. Everything the
+    grant stands for was verified when it was issued, so this path re-reads the
+    licence and goes straight to the seat claim.
+  */
+  if (body.grant) {
+    const grantedKey = await consumeLinkGrant(env, body.grant);
+    const granted = grantedKey ? await getLicense(env, grantedKey) : null;
+    if (!granted || granted.status !== "active" || isExpired(granted)) {
+      console.warn("link-session refused: the seat-release grant has expired or its licence is no longer active");
+      return json({ ok: false, error: "invalid_credentials" }, 401);
+    }
+    return seatedSessionResponse(context, granted, {
+      deviceId: body.deviceId,
+      signOutOthers: body.signOutOthers === true
+    });
+  }
+
   const oobCode = String(body.oobCode || "").trim();
   if (!oobCode || oobCode.length > 512) {
     return json({ ok: false, error: "invalid_credentials" }, 401);
@@ -120,6 +182,20 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: "subscription_inactive" }, 403);
   }
 
-  const session = await createWebSession(env.LICENSE_SIGNING_SECRET, record);
-  return sessionResponse(session, record.plan || "desktop", "subscriber");
+  /* The same seat limit as the key path. A magic link proves the address, not
+     that the licence has a browser free. */
+  const seated = await seatedSessionResponse(context, record, {
+    deviceId: body.deviceId,
+    signOutOthers: body.signOutOthers === true
+  });
+
+  if (seated.status === 403) {
+    /* Attach the grant so the retry does not need the spent code. */
+    const refusal = await seated.clone().json();
+    if (refusal && refusal.error === "seat_limit") {
+      refusal.grant = await issueLinkGrant(env, record.key);
+      return json(refusal, 403);
+    }
+  }
+  return seated;
 }
