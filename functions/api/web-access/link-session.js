@@ -11,6 +11,7 @@
 
 import { json, normalizeEmail, getLicenseByEmail, isExpired } from "../_shared.js";
 import { createWebSession, rateLimitAllows, sameOriginRequest } from "./_session.js";
+import { resolveLinkIntent } from "./request-link.js";
 import { sessionResponse } from "./session.js";
 
 const SIGN_IN_WITH_LINK_URL = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithEmailLink";
@@ -41,9 +42,22 @@ export async function onRequestPost(context) {
   try { body = await request.json(); } catch (error) {
     return json({ ok: false, error: "bad_json" }, 400);
   }
-  const email = normalizeEmail(body.email);
   const oobCode = String(body.oobCode || "").trim();
-  if (!email || !oobCode || oobCode.length > 512) {
+  if (!oobCode || oobCode.length > 512) {
+    return json({ ok: false, error: "invalid_credentials" }, 401);
+  }
+
+  /*
+    The address comes from the handle the server put in the link, and only
+    falls back to what the page submitted - which is all there was before, and
+    is still the path for a link issued by an older deploy. When both are
+    present they must agree: a handle names one address, and a request that
+    pairs it with another is not a mistake worth guessing about.
+  */
+  const intentEmail = await resolveLinkIntent(env, body.intent);
+  const typedEmail = normalizeEmail(body.email);
+  const email = intentEmail || typedEmail;
+  if (!email) {
     return json({ ok: false, error: "invalid_credentials" }, 401);
   }
 
@@ -58,6 +72,16 @@ export async function onRequestPost(context) {
   const why = function (reason, detail) {
     console.warn("link-session refused: " + reason + (detail ? " (" + detail + ")" : ""));
   };
+
+  if (intentEmail && typedEmail && intentEmail !== typedEmail) {
+    why("the link was issued for a different address than the page submitted");
+    return json({ ok: false, error: "invalid_credentials" }, 401);
+  }
+  if (!intentEmail && body.intent) {
+    /* Not fatal - the typed address carries it - but worth naming, because a
+       handle that no longer resolves means the link is over 30 minutes old. */
+    why("the link handle has expired or was never issued", "falling back to the submitted address");
+  }
 
   const signIn = await firebaseJson(SIGN_IN_WITH_LINK_URL, env.FIREBASE_WEB_API_KEY, { email: email, oobCode: oobCode });
   if (!signIn.ok || !signIn.data.idToken) {

@@ -210,7 +210,12 @@ test("request-link is enumeration-safe and only emails active subscribers", asyn
       const body = JSON.parse(init.body);
       assert.equal(body.requestType, "EMAIL_SIGNIN");
       assert.equal(body.email, "pilot@example.com");
-      assert.equal(body.continueUrl, "https://dhc6trainer.com/web-app.html?mode=link");
+      /* The link lands on our own sign-in page in link mode. It also carries
+         the handle that lets a phone finish a sign-in the desktop started -
+         see link-intent.test.mjs, which is where that is pinned down. */
+      const landing = new URL(body.continueUrl);
+      assert.equal(landing.origin + landing.pathname, "https://dhc6trainer.com/web-app.html");
+      assert.equal(landing.searchParams.get("mode"), "link");
       return jsonResponse({ email: "pilot@example.com" });
     }
     return jsonResponse({ data: [] });
