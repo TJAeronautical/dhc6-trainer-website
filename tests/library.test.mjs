@@ -421,6 +421,34 @@ test("documents an instructor shares appear in the source index, not on a separa
     "Sources lists the shared documents and the account's own together");
 });
 
+test("a later screen shows one explanation, not two", () => {
+  // laterScreen used to render feature(id).desc AND its `extra` card, so the
+  // Import screen said the same thing twice — once under the pill and again in
+  // the card below it.
+  const misc = read("app/js/screens/misc.js");
+  const fn = misc.slice(misc.indexOf("export function laterScreen"), misc.indexOf("/* ---------------------------------------------------------------- Settings */"));
+  assert.match(fn, /text: extra \|\| f\.desc/, "the screen picks one of the two");
+  const pillRow = fn.slice(fn.indexOf('statusPill(f.status)'), fn.indexOf("blueCard("));
+  assert.ok(!pillRow.includes("f.desc"), "the description must not also sit beside the pill");
+
+  // The training-side twin has the same shape and the same rule.
+  const training = read("app/js/screens/training.js");
+  const later = training.slice(training.indexOf("export function laterTraining"));
+  const row = later.slice(later.indexOf("statusPill(f.status)"), later.indexOf("blueCard("));
+  assert.ok(!row.includes("f.desc"), "laterTraining repeats the description beside the pill");
+  assert.match(later, /LATER_TRAINING_DETAIL\[id\] \|\| f\.desc/);
+});
+
+test("no later screen describes a feature that has since shipped", () => {
+  // laterTraining carried a CRM branch saying the standalone drill screen was
+  // "scheduled for the CRM phase" long after it shipped and went Available.
+  const training = read("app/js/screens/training.js");
+  const later = training.slice(training.indexOf("export function laterTraining"));
+  assert.ok(!/scheduled for the CRM phase/.test(later), "the stale CRM branch is back");
+  const core = read("app/js/core.js");
+  assert.match(core, /id: "crm"[^}]*status: "available"/, "and CRM is Available, which is why");
+});
+
 test("the Library client never caches a document and never guesses a path", () => {
   const src = read("app/js/screens/library.js");
   assert.match(src, /cache: "no-store"/);

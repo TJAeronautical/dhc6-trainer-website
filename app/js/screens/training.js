@@ -478,15 +478,27 @@ function overdueSection(overdue) {
 }
 
 /* --------------------------------------------- Later training features */
+/*
+  Only the Oral Exam reaches this now. It used to also serve the CRM drill,
+  whose branch said the standalone screen was "scheduled for the CRM phase" —
+  it was built and went live in that phase, so the string had become dead code
+  stating something untrue.
+
+  One explanation, not two: the registry `desc` is the short line tiles show,
+  and the card carries the detail. Rendering both put the same sentence on the
+  screen twice.
+*/
+const LATER_TRAINING_DETAIL = {
+  "oral-exam": "The Android app calls /api/ai/oral-exam with a Firebase token. The web version needs a subscriber-session-gated proxy in front of it, the upstream endpoint confirmed, and an API key set in Cloudflare before it can be enabled. Each question would be a paid call."
+};
+
 export function laterTraining(id) {
   return async function (ctx) {
     const f = feature(id);
     ctx.setTopbar({ title: f.title, subtitle: "Coming later", back: "#/dashboard" });
-    const extra = id === "oral-exam" ? "The Android app calls /api/ai/oral-exam with a Firebase token. The web version needs a subscriber-session-gated proxy variant before it can be enabled; this is scheduled for the AI phase."
-      : "The CRM drill runs the challenge–response flow with role timing. The step data is already in every procedure (PF / PM flow); the standalone drill screen is scheduled for the CRM phase.";
     return screen({ title: f.title, library: true, header: [backBubble("#/dashboard")] }, [
-      h("div", { class: "row wrap gap-8" }, [statusPill(f.status), h("span", { class: "t-body-s c-sec", text: f.desc })]),
-      blueCard([h("div", { class: "t-body-m", text: extra })]),
+      h("div", { class: "row wrap gap-8" }, [statusPill(f.status)]),
+      blueCard([h("div", { class: "t-body-m", text: LATER_TRAINING_DETAIL[id] || f.desc })]),
       navCard("Open a procedure drill instead", "Procedure drills (memory + flow) are fully available in PROCS.", { href: "#/systems" })
     ]);
   };

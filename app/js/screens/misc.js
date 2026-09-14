@@ -11,9 +11,12 @@ export function laterScreen(id, extra) {
   return async function (ctx) {
     const f = feature(id);
     ctx.setTopbar({ title: f.title, subtitle: "Coming later", back: "#/dashboard" });
+    /* One explanation, never two. The registry `desc` is the short line tiles
+       show; `extra` is the full one for this screen. Rendering both put the
+       same sentence on the Import screen twice, which reads as a bug. */
     return screen({ title: f.title, library: true, header: [backBubble("#/dashboard")] }, [
-      h("div", { class: "row wrap gap-8" }, [statusPill(f.status), h("span", { class: "t-body-s c-sec", text: f.desc })]),
-      extra ? blueCard([h("div", { class: "t-body-m", text: extra })]) : null
+      h("div", { class: "row wrap gap-8" }, [statusPill(f.status)]),
+      blueCard([h("div", { class: "t-body-m", text: extra || f.desc })])
     ]);
   };
 }
