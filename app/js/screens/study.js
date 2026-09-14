@@ -2,13 +2,14 @@
   Study / Knowledge screens — ports of feature-knowledge/ui/screens:
     StudyHomeScreen, GlossaryScreen (Definitions), SrsStudyScreen (Flashcard Study),
     LimitationsScreen, MelReferenceScreen, MaldivesStripsScreen (Aerodromes & Waterways),
-    KnowledgeSearchScreen (partial), plus the web-only CAS library and deck browser.
+    KnowledgeSearchScreen, plus the web-only CAS library and deck browser.
 */
 import { h, Store, Content, currentVariant, variantLabel, nextVariant, feature } from "../core.js";
 import { screen, blueCard, libraryDivider, featureTile, bubble, backBubble, backText, searchField, notice, contentUnavailable, statusPill, matButton, withSearchFocus } from "../ui.js";
 import { knowledgePool, allProcedures } from "../data.js";
 import * as SRS from "../logic/srs.js";
 import { formatProcedureDisplayTitle } from "../logic/procedures.js";
+import { docHref, decodeHeaderText } from "./library.js";
 
 function variantHeader(ctx) {
   const v = currentVariant();
@@ -354,10 +355,39 @@ export async function casLibrary(ctx) {
 
 /* ----------------------------------------------------------------- Search */
 const searchState = { query: "" };
+/*
+  KnowledgeSearchScreen. Searches the bundled knowledge units, every procedure
+  step, the Definitions list — and, since the Library shipped, the documents on
+  this account's source index. A source you uploaded is study material; leaving
+  it out of search was the last thing keeping this screen Partial.
+*/
+async function libraryDocuments() {
+  /* Best effort: the Library may not be configured on this deployment, and a
+     search screen must never fail because of it. */
+  try {
+    const response = await fetch("/api/library", { credentials: "same-origin", cache: "no-store", headers: { Accept: "application/json" } });
+    if (!response.ok) return [];
+    const data = await response.json();
+    if (!data || data.ok !== true || !data.configured) return [];
+    const own = (data.privateShelf && data.privateShelf.items) || [];
+    const shared = (data.publishedShelf && data.publishedShelf.items) || [];
+    return shared.map(function (d) { return { doc: d, shelf: "published" }; })
+      .concat(own.map(function (d) { return { doc: d, shelf: "private" }; }));
+  } catch (error) { return []; }
+}
+
+export function documentMatches(entry, query) {
+  const d = entry && entry.doc;
+  if (!d) return false;
+  const haystack = [d.title, d.fileName, d.note, d.docType].filter(Boolean).join(" ").toLowerCase();
+  return haystack.includes(query);
+}
+
 export async function knowledgeSearch(ctx) {
-  ctx.setTopbar({ title: "Search", subtitle: "Knowledge, procedures, definitions", back: "#/knowledge/home" });
-  let units = [], procedures = [], glossary = [];
+  ctx.setTopbar({ title: "Search", subtitle: "Knowledge, procedures, definitions, sources", back: "#/knowledge/home" });
+  let units = [], procedures = [], glossary = [], documents = [];
   try { units = await knowledgePool(); procedures = await allProcedures(); glossary = (await Content.pack("glossary")).entries || []; } catch (error) { if (error && (error.status === 401 || error.status === 403)) throw error; }
+  documents = await libraryDocuments();
   const root = h("div", { class: "stack-12" });
   function render() {
     const q = searchState.query.trim().toLowerCase();
@@ -365,23 +395,38 @@ export async function knowledgeSearch(ctx) {
     if (q.length >= 2) {
       glossary.filter(function (g) { return (g.acronym + " " + g.definition + " " + g.note).toLowerCase().includes(q); }).slice(0, 10).forEach(function (g) { results.push({ kind: "Definition", title: g.acronym + " — " + g.definition, body: g.note, href: "#/knowledge/definitions" }); });
       procedures.filter(function (p) { return (p.displayTitle + " " + p.memory.concat(p.flow).map(function (s) { return s.action; }).join(" ")).toLowerCase().includes(q); }).slice(0, 15).forEach(function (p) { results.push({ kind: p.category + " procedure", title: p.displayTitle, body: p.memory.concat(p.flow).map(function (s) { return s.action; }).find(function (a) { return a.toLowerCase().includes(q); }) || "", href: "#/procedures/detail/" + encodeURIComponent(p.compiledId) + "?variant=" + p.aircraftVariant }); });
+      /* Documents rank above raw knowledge units: a manual you added yourself is
+         usually what you meant when its title matches. */
+      documents.filter(function (entry) { return documentMatches(entry, q); }).slice(0, 10).forEach(function (entry) {
+        results.push({
+          kind: "Source · " + entry.doc.docType + (entry.shelf === "published" ? " · shared" : ""),
+          title: decodeHeaderText(entry.doc.title),
+          body: decodeHeaderText(entry.doc.note) || decodeHeaderText(entry.doc.fileName),
+          href: docHref(entry.shelf, entry.doc.docId),
+          external: true
+        });
+      });
       units.filter(function (u) { return (u.title + " " + u.content).toLowerCase().includes(q); }).slice(0, 25).forEach(function (u) { results.push({ kind: String(u.system).replace(/_/g, " ") + " · " + u.aircraftVariant, title: u.title, body: u.content, href: null }); });
     }
     withSearchFocus(root, function () {
       root.replaceChildren(
         searchField("Search study items", searchState.query, function (v) { searchState.query = v; render(); }),
-        q.length < 2 ? h("p", { class: "t-body-s c-sec", text: "Type at least two characters. Searches the bundled knowledge units, all procedure steps and the Definitions list." }) : h("p", { class: "t-body-s c-sec", text: results.length + " results" }),
+        q.length < 2
+          ? h("p", { class: "t-body-s c-sec", text: "Type at least two characters. Searches the bundled knowledge units, all procedure steps, the Definitions list and your Library sources." })
+          : h("p", { class: "t-body-s c-sec", text: results.length + " results" }),
         h("div", { class: "stack-10" }, results.map(function (r) {
-          return blueCard([h("div", { class: "t-label-s c-accent", text: r.kind }), h("div", { class: "t-title-s w-semi mt-4", text: r.title }), r.body ? h("div", { class: "t-body-s c-sec clamp-3 mt-4", text: r.body }) : null], r.href ? { href: r.href } : null);
+          const opts = r.href ? (r.external ? { href: r.href, target: "_blank" } : { href: r.href }) : null;
+          return blueCard([
+            h("div", { class: "t-label-s c-accent", text: r.kind }),
+            h("div", { class: "t-title-s w-semi mt-4", text: r.title }),
+            r.body ? h("div", { class: "t-body-s c-sec clamp-3 mt-4", text: r.body }) : null
+          ], opts);
         }))
       );
     });
   }
   render();
-  return screen({ title: "Search", library: true, header: [backBubble("#/knowledge/home")] }, [
-    h("div", { class: "row wrap gap-8" }, [statusPill("partial"), h("span", { class: "t-body-s c-sec", text: "Published-library and imported-source search arrive with the Library phase." })]),
-    root
-  ]);
+  return screen({ title: "Search", library: true, header: [backBubble("#/knowledge/home")] }, [root]);
 }
 
 export { formatProcedureDisplayTitle };
