@@ -479,18 +479,25 @@ function overdueSection(overdue) {
 
 /* --------------------------------------------- Later training features */
 /*
-  Only the Oral Exam reaches this now. It used to also serve the CRM drill,
-  whose branch said the standalone screen was "scheduled for the CRM phase" —
-  it was built and went live in that phase, so the string had become dead code
-  stating something untrue.
+  Nothing reaches this now, and it is kept only because the next feature to be
+  ported will want it.
+
+  It has twice held a string that outlived its own truth. First the CRM drill,
+  whose branch said the standalone screen was "scheduled for the CRM phase"
+  long after it shipped. Then the Oral Exam, whose branch named three missing
+  things — a subscriber-session-gated proxy, a confirmed upstream, an API key
+  in Cloudflare — every one of which phase 36 delivered, leaving the screen
+  telling subscribers a feature was unbuildable while its endpoint sat there
+  finished.
+
+  That is the failure mode of a hand-written status: it is written once, when
+  it is true, and nothing makes it false again. The test below walks it.
 
   One explanation, not two: the registry `desc` is the short line tiles show,
   and the card carries the detail. Rendering both put the same sentence on the
   screen twice.
 */
-const LATER_TRAINING_DETAIL = {
-  "oral-exam": "The Android app calls /api/ai/oral-exam with a Firebase token. The web version needs a subscriber-session-gated proxy in front of it, the upstream endpoint confirmed, and an API key set in Cloudflare before it can be enabled. Each question would be a paid call."
-};
+const LATER_TRAINING_DETAIL = {};
 
 export function laterTraining(id) {
   return async function (ctx) {

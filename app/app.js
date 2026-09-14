@@ -12,12 +12,13 @@ import { dashboard } from "./js/screens/dashboard.js";
 import { procedureLibrary, procedureDetail, qrhHub, qrhList } from "./js/screens/procedures.js";
 import { qrhManualEdit } from "./js/screens/qrhmanualedit.js";
 import { studyHome, definitions, srsStudy, deckBrowser, limitations, melReference, aerodromes, casLibrary, knowledgeSearch } from "./js/screens/study.js";
-import { quizHome, quizRun, performanceCalc, fuelPlan, weightBalance, competencyDashboard, laterTraining } from "./js/screens/training.js";
+import { quizHome, quizRun, performanceCalc, fuelPlan, weightBalance, competencyDashboard } from "./js/screens/training.js";
 import { logbook, logbookDetail, logbookExport } from "./js/screens/logbook.js";
 import { crmDrill } from "./js/screens/crmdrill.js";
 import { laterScreen, settings } from "./js/screens/misc.js";
 import { importScreen } from "./js/screens/import.js";
 import { tutorial } from "./js/screens/tutorial.js";
+import { oralExam } from "./js/screens/oralexam.js";
 import { libraryHub, librarySources, libraryPublished, libraryQrhDrafts } from "./js/screens/library.js";
 import { systemsLabHome, systemsLabDetail } from "./js/screens/systemslab.js";
 import { systemsHome, systemDetail } from "./js/screens/systems2d.js";
@@ -87,7 +88,7 @@ route("/training/logbook", logbook);
 route("/training/logbook/entry/:key", logbookDetail);
 route("/training/logbook/export", logbookExport);
 route("/training/competency-dashboard", competencyDashboard);
-route("/training/oral-exam", laterTraining("oral-exam"));
+route("/training/oral-exam", oralExam);
 route("/training/crm-drill", crmDrill);
 
 /* Phase-1 routes → Android routes (keeps bookmarks working) */
