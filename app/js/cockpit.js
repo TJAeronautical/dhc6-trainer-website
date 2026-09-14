@@ -23,6 +23,21 @@ import { C } from "./logic/cockpit/engine.js";
 
 /* ------------------------------------------------------------- constants */
 const USER_SCALE_MIN = 0.35, USER_SCALE_MAX = 20, TAP_SLOP_PX = 28;
+/* The framing scale a focus region gets at zoom 1, before the user's multiplier.
+   Capped well below USER_SCALE_MAX so the multiplier always has somewhere to go:
+   the original clamped base * multiplier together at 10, which meant that for any
+   region tight enough to frame at 10 or more — a lever slot, a single switch —
+   every Zoom + press recomputed the same 10 and nothing moved. */
+const FOCUS_BASE_MIN = 1.35, FOCUS_BASE_MAX = 8;
+
+/* Pure, so the zoom behaviour can be tested across region sizes without a canvas. */
+export function focusScaleFor(region, zoomMultiplier) {
+  if (!region) return USER_SCALE_MIN;
+  const w = Math.max(0.0001, region.width), hgt = Math.max(0.0001, region.height);
+  const base = clamp(Math.max(1 / w, 1 / hgt) * 0.72, FOCUS_BASE_MIN, FOCUS_BASE_MAX);
+  return clamp(base * (zoomMultiplier > 0 ? zoomMultiplier : 1), USER_SCALE_MIN, USER_SCALE_MAX);
+}
+export const FOCUS_SCALE_LIMITS = { min: USER_SCALE_MIN, max: USER_SCALE_MAX, baseMax: FOCUS_BASE_MAX };
 const NEEDLE_PROFILES = {
   TORQUE_GAUGE_L: [-88, 240, 0.355], TORQUE_GAUGE_R: [-88, 240, 0.355],
   NG_GAUGE_L: [180, 272, 0.352], NG_GAUGE_R: [180, 272, 0.352],
@@ -693,18 +708,17 @@ export function createCockpitRenderer(container, options) {
     },
     /* Centre and zoom on a normalized region (Focus Snapshot). */
     focusRegion: function (region, zoomMultiplier) {
-      if (!region) return;
-      const fit = fitFrame(state.cssW, state.cssH, refW, refH);
-      const base = Math.max(1 / Math.max(0.0001, region.width), 1 / Math.max(0.0001, region.height)) * 0.72;
-      const wanted = clamp(base * (zoomMultiplier || 1), 1.35, 10);
-      state.userScale = clamp(wanted, USER_SCALE_MIN, USER_SCALE_MAX);
-      const t = transform();
+      if (!region) return null;
+      state.userScale = focusScaleFor(region, zoomMultiplier);
       const centerX = (region.left + region.width / 2) * refW, centerY = (region.top + region.height / 2) * refH;
       state.offsetX = 0; state.offsetY = 0;
       const t2 = transform();
       state.offsetX = state.cssW / 2 - (centerX * t2.scale + t2.x);
       state.offsetY = state.cssH / 2 - (centerY * t2.scale + t2.y);
       requestRender(); if (onView) onView(viewState());
+      /* Returned so the caller can tell a saturated zoom from a working one and
+         disable the button rather than leaving it silently inert. */
+      return { scale: state.userScale, min: USER_SCALE_MIN, max: USER_SCALE_MAX };
     },
     centerOn: function (hitboxId) {
       const hb = hitboxes.find(function (h) { return h.id === hitboxId; });
