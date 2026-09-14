@@ -356,10 +356,69 @@ test("the Library routes open the real screens, not a placeholder", () => {
   assert.match(app, /route\("\/library\/home", libraryHub\)/);
   assert.match(app, /route\("\/library\/sources", librarySources\)/);
   assert.match(app, /route\("\/library\/published", libraryPublished\)/);
+  assert.match(app, /route\("\/library\/qrh-drafts", libraryQrhDrafts\)/);
   assert.match(app, /route\("\/library\/import", laterScreen\("import"/, "Import stays a documented later screen");
   const core = read("app/js/core.js");
   assert.match(core, /id: "library"[^}]*status: "available"/);
   assert.match(core, /id: "import"[^}]*status: "later"/);
+});
+
+/* ------------------------------------------------- fidelity to the Kotlin */
+
+test("the hub keeps LibraryHubScreen's card order and its two intro strings", () => {
+  const src = read("app/js/screens/library.js");
+  const hub = src.slice(src.indexOf("export async function libraryHub"), src.indexOf("export async function librarySources"));
+  const order = ["Import", "Sources", "QRH Drafts", "Published"].map((t) => hub.indexOf('card("' + t + '"'));
+  assert.ok(order.every((i) => i > -1), "a hub card is missing: " + JSON.stringify(order));
+  assert.deepEqual(order.slice().sort((a, b) => a - b), order, "the Kotlin order is Import, Sources, QRH Drafts, Published");
+
+  // Verbatim from LibraryHubScreen.kt.
+  assert.ok(hub.includes("One place for protected knowledge imports, source documents, extracted QRH procedures, and published training content."));
+  assert.ok(hub.includes("Read-only source index and published training content. Knowledge import is visible here, but opens only for authorised accounts."));
+  assert.ok(hub.includes("Imported PDFs, source documents, and promoted content in the shared source index."));
+  assert.ok(hub.includes("Trusted runtime-ready content only."));
+  assert.ok(hub.includes("Review extracted QRH procedures in the shared QRH edit screen."));
+  assert.ok(hub.includes("Open Import") && hub.includes("Unlock Import"), "the Import button title follows allowAuthoringTools");
+});
+
+test("QRH Drafts is shown only to accounts with authoring tools", () => {
+  // LibraryHubScreen gates the compile-queue card on allowCompileTools.
+  const src = read("app/js/screens/library.js");
+  const hub = src.slice(src.indexOf("export async function libraryHub"), src.indexOf("export async function librarySources"));
+  const gate = hub.slice(hub.indexOf("if (authoring)"));
+  assert.ok(gate.indexOf('card("QRH Drafts"') > -1 && gate.indexOf('card("QRH Drafts"') < gate.indexOf('card("Published"'),
+    "the QRH Drafts card must sit inside the authoring gate");
+});
+
+test("Sources is titled and structured like SourcesScreen", () => {
+  const src = read("app/js/screens/library.js");
+  const sources = src.slice(src.indexOf("export async function librarySources"), src.indexOf("export function uploadErrorText"));
+  assert.ok(sources.includes('title: "Library Sources"'), "the Kotlin titles it Library Sources, not Sources");
+  assert.match(sources, /bubble\("light", "Sources", \{ count:/, "the header carries the source count, as the Kotlin does");
+  assert.ok(sources.includes("No sources yet."), "EmptySourcesCard's title");
+  assert.ok(sources.includes("No source documents are installed. Runtime study content can still be available from Systems, QRH, and Flashcards."),
+    "the read-only empty body, verbatim");
+  assert.ok(sources.includes("Delete source?") && sources.includes("Published QRH drills are not removed here."),
+    "the delete confirmation follows the Kotlin");
+});
+
+test("Published lists compiled procedures, not documents", () => {
+  // PublishedContentScreen filters CompiledDrillProcedure by reviewStatus ==
+  // PUBLISHED and renders title / CATEGORY - VARIANT / Status. It is not a
+  // document shelf, which is what an earlier pass had assumed.
+  const src = read("app/js/screens/library.js");
+  const published = src.slice(src.indexOf("export async function libraryPublished"), src.indexOf("export async function libraryQrhDrafts"));
+  assert.match(published, /allProcedures\(\)/, "it reads the procedure packs");
+  assert.ok(published.includes("Status: PUBLISHED"));
+  assert.ok(published.includes("No published content yet."), "the Kotlin's empty string");
+  assert.ok(!/\/api\/library\/doc\//.test(published), "Published must not serve uploaded documents");
+});
+
+test("documents an instructor shares appear in the source index, not on a separate shelf", () => {
+  const src = read("app/js/screens/library.js");
+  const sources = src.slice(src.indexOf("export async function librarySources"), src.indexOf("export function uploadErrorText"));
+  assert.match(sources, /publishedShelf\.items[\s\S]{0,200}privateShelf\.items/,
+    "Sources lists the shared documents and the account's own together");
 });
 
 test("the Library client never caches a document and never guesses a path", () => {
