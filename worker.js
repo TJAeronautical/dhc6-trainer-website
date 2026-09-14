@@ -22,6 +22,7 @@ import { onRequestPost as webAccessLinkSession } from "./functions/api/web-acces
 import { onRequestGet as protectedContent } from "./functions/api/content/index.js";
 import { onRequestGet as protectedMedia } from "./functions/api/media/index.js";
 import { onRequestGet as qrhEditsGet, onRequestPut as qrhEditsPut, onRequestDelete as qrhEditsDelete } from "./functions/api/qrh-edits/index.js";
+import { onRequestGet as logbookGet, onRequestPut as logbookPut, onRequestDelete as logbookDelete } from "./functions/api/logbook/index.js";
 import { authorizeWebRequest } from "./functions/api/web-access/_session.js";
 
 export const API_ROUTES = [
@@ -47,7 +48,8 @@ export const API_ROUTES = [
   "/api/media/index",
   "/api/media/:path",
   "/api/qrh-edits",
-  "/api/qrh-edits/:procedureId"
+  "/api/qrh-edits/:procedureId",
+  "/api/logbook"
 ];
 
 function json(body, status) {
@@ -93,6 +95,12 @@ async function routeApi(context) {
     if (method === "GET") return qrhEditsGet(context);
     if (method === "PUT") return qrhEditsPut(context);
     if (method === "DELETE") return qrhEditsDelete(context);
+    return json({ ok: false, error: "method_not_allowed" }, 405);
+  }
+  if (path === "/api/logbook") {
+    if (method === "GET") return logbookGet(context);
+    if (method === "PUT") return logbookPut(context);
+    if (method === "DELETE") return logbookDelete(context);
     return json({ ok: false, error: "method_not_allowed" }, 405);
   }
 

@@ -14,6 +14,7 @@ import { h, Store, relativeTime } from "../core.js";
 import { screen, blueCard, libraryDivider, backBubble, notice, statusPill, searchField, selectableChip } from "../ui.js";
 import { compiledProcedureId } from "../logic/procedures.js";
 import * as LB from "../logic/logbook.js";
+import { syncState, onSyncChange, pull as pullLogbook } from "../logbooksync.js";
 
 /* Module-level so the export screen sees the same filters the list is showing —
    the Kotlin exports filteredEntries, not everything. */
@@ -38,7 +39,7 @@ function timestampText(ms) {
 
 /* ------------------------------------------------------------------- list */
 export async function logbook(ctx) {
-  ctx.setTopbar({ title: "Debrief Logbook", subtitle: "Local attempts in this browser", back: "#/dashboard" });
+  ctx.setTopbar({ title: "Debrief Logbook", subtitle: "Attempts on this account", back: "#/dashboard" });
 
   const root = screen({
     title: "Debrief Logbook",
@@ -53,10 +54,7 @@ export async function logbook(ctx) {
     const all = entriesNow();
     const visible = LB.visibleEntries(all, filters);
 
-    body.appendChild(h("div", { class: "row wrap gap-8" }, [
-      statusPill("partial"),
-      h("span", { class: "t-body-s c-sec", text: "Drills and quizzes you complete here are stored in this browser only. Cloud sync with the Android logbook is a later phase." })
-    ]));
+    body.appendChild(syncBanner());
 
     /* No filter bar over zero rows. Search, five sort chips, three selects and
        the overrides toggle filter nothing when the logbook is empty, and on a
@@ -89,6 +87,31 @@ export async function logbook(ctx) {
         h("a", { class: "btn outlined small", href: "#/live", text: "Fly a scenario drill" })
       ]),
       h("p", { class: "t-body-s c-ter mt-10", text: "In a procedure the drill sits below the checklist — use Start Procedure Drill at the top of the page to jump to it." })
+    ]);
+  }
+
+  /* Says what is actually true right now rather than a fixed caveat: entries
+     sync to the account, and when they cannot, the reader is told which it is. */
+  function syncBanner() {
+    const sync = syncState();
+    if (sync.status === "signed-out" || sync.status === "unavailable") {
+      return h("div", { class: "row wrap gap-8" }, [
+        statusPill("partial"),
+        h("span", { class: "t-body-s c-sec", text: "Attempts are being kept in this browser only — they are not reaching your account. They will sync once the connection is restored." })
+      ]);
+    }
+    if (sync.status === "offline") {
+      return h("div", { class: "row wrap gap-8" }, [
+        statusPill("partial"),
+        h("span", { class: "t-body-s c-sec", text: "Offline — new attempts are saved here and will sync to your account when you are back online." }),
+        h("button", { class: "btn text", type: "button", onclick: function () { pullLogbook(); } }, [document.createTextNode("Retry now")])
+      ]);
+    }
+    return h("div", { class: "row wrap gap-8" }, [
+      statusPill("available"),
+      h("span", { class: "t-body-s c-sec", text: sync.status === "syncing"
+        ? "Syncing with your account…"
+        : "Drills and quizzes you complete are saved to your account, so they follow you to any browser you sign in from." })
     ]);
   }
 
@@ -166,6 +189,10 @@ export async function logbook(ctx) {
   }
 
   render();
+  /* Entries arriving from the account mid-view redraw the list, and the banner
+     follows the sync state. Released when the screen goes away. */
+  const unsubscribe = onSyncChange(function () { render(); });
+  document.addEventListener("dhc6:view-unmount", unsubscribe, { once: true });
   return root;
 }
 

@@ -20,6 +20,7 @@ import { systemsLabHome, systemsLabDetail } from "./js/screens/systemslab.js";
 import { systemsHome, systemDetail } from "./js/screens/systems2d.js";
 import { cockpitHome, scenarioProcedures, scenarioSelector, scenarioState, frozenSnapshot } from "./js/screens/aircraftstate.js";
 import { freePlayCockpit, scenarioRun, drillRun } from "./js/screens/cockpitscreens.js";
+import { start as startLogbookSync } from "./js/logbooksync.js";
 
 const view = document.getElementById("view");
 const topbarTitle = document.getElementById("topbar-title");
@@ -244,6 +245,9 @@ Content.loadManifest().catch(function (error) {
   if (!window.location.hash) navigate(Store.get("lastRoute") || "/dashboard", true);
   render();
   Content.loadMediaIndex().catch(function () {});
+  /* After the first screen is up: the logbook renders from the local copy, and
+     the pull only ever adds to it. */
+  startLogbookSync();
 });
 
 window.addEventListener("hashchange", render);

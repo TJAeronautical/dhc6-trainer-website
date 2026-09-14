@@ -287,10 +287,22 @@ test("the export is the browser's own print, with no bundled PDF library", () =>
   }
 });
 
-test("the logbook still says its entries are local to this browser", () => {
+/*
+  Phase 8 asserted the opposite of this: that the screen said entries were local
+  to this browser and the tile stayed Partial. Sync landed, so the honest
+  statement changed — but the screen must still tell the truth about which of
+  the two situations the reader is in, rather than always claiming one.
+*/
+test("the logbook states its real sync state, and says so when it is local only", () => {
   const screen = fs.readFileSync(path.join(root, "app", "js", "screens", "logbook.js"), "utf8");
-  assert.match(screen, /stored in this browser only/);
+  assert.match(screen, /function syncBanner/);
+  assert.match(screen, /saved to your account/, "the synced case is stated");
+  assert.match(screen, /kept in this browser only|will sync to your account when you are back online/,
+    "and so is the case where it is not reaching the account");
+  assert.doesNotMatch(screen, /Cloud sync with the Android logbook is a later phase/,
+    "that caveat is no longer true");
+
   const core = fs.readFileSync(path.join(root, "app", "js", "core.js"), "utf8");
-  assert.match(core, /id: "logbook"[^}]*status: "partial"/,
-    "cloud sync is still missing, so the tile stays Partial rather than claiming Available");
+  assert.match(core, /id: "logbook"[^}]*status: "available"/,
+    "entries sync to the account, so the tile is Available");
 });
