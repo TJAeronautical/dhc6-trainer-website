@@ -498,14 +498,22 @@ test("Search no longer claims the Library is missing from it", () => {
   assert.match(core, /id: "search"[^}]*status: "available"/);
 });
 
-test("Knowledge names the one reason it is still Partial", () => {
+test("a hub's status describes the hub, not the worst of its tiles", () => {
   const core = read("app/js/core.js");
   const entry = core.slice(core.indexOf('id: "study"'), core.indexOf('id: "search"'));
-  assert.match(entry, /status: "partial"/);
-  assert.match(entry, /Flashcards/, "the remaining reason is named");
-  assert.ok(!/Search \(does not yet cover/.test(entry), "and the closed one is not still listed");
-  // study-cards is what keeps it Partial, so that had better still be Partial.
-  assert.match(core, /id: "study-cards"[^}]*status: "partial"/);
+
+  assert.match(entry, /status: "available"/, "the Knowledge hub is complete: every tile is present and reachable");
+  assert.ok(!/Flashcards/.test(entry),
+    "and it must not borrow a tile's status as its own reason for being incomplete");
+  assert.ok(!/Search \(does not yet cover/.test(entry), "the closed reason is not still listed");
+
+  // The honesty moved down a level rather than disappearing: Study Card Review is
+  // still Partial, and the tile is still what renders that badge. If either half
+  // of this goes, the hub going Available would have quietly erased a real caveat.
+  assert.match(core, /id: "study-cards"[^}]*status: "partial"/,
+    "Study Card Review is still Partial - browse works, the authoring lanes stay app-only");
+  assert.match(read("app/js/screens/study.js"), /title: "Flashcards"[^)]*status: feature\("study-cards"\)\.status/,
+    "and the Flashcards tile still renders its own status rather than a hardcoded one");
 });
 
 test("the Library screen keeps the training-support-only statement", () => {
