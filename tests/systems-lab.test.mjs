@@ -77,7 +77,7 @@ test("every registry selector is well formed and every model has a media path, h
     }
   }
   const files = registry.models.map((m) => m.file);
-  for (const expected of ["PT6A27_ENGINE_REPLICA.glb", "DHC6_PT6A27_WOODWARD_CSU_REPLICA.glb", "DHC6_PT6A27_WOODWARD_OSG_REPLICA.glb", "THREE_BLADE_HARTZELL.glb", "FUEL_SYSTEM.glb", "DHC6_STARTER_GENERATOR_REPLICA.glb", "HYDRAULIC_SYSTEM_PACK_REPLICA.glb", "DHC6_FLAP_SYSTEM_REPLICA.glb", "DHC6_TRIM_REPLICA.glb", "AIR-CONDITIONNG.glb", "DHC6_PT6A27_BLEED_VALVE_REPLICA.glb", "DHC6_PTA27_OIL_TO_FUEL_HEATER_MASTER.glb", "DHC6_PT6A27_FUEL_PUMP_MASTER.glb", "DHC6_PT6A27_FCU_REPLICA.glb", "DHC6WHEELS.glb", "DHC6SKIS.glb", "DHC6FLOATS.glb", "DHC6_LANDPLANE_UNDERCARRIAGE_REPLICA.glb"]) {
+  for (const expected of ["PT6A27_ENGINE_REPLICA.glb", "DHC6_PT6A27_WOODWARD_CSU_REPLICA.glb", "DHC6_PT6A27_WOODWARD_OSG_REPLICA.glb", "THREE_BLADE_HARTZELL.glb", "FUEL_SYSTEM.glb", "DHC6_STARTER_GENERATOR_REPLICA.glb", "HYDRAULIC_SYSTEM_PACK_REPLICA.glb", "DHC6_FLAP_SYSTEM_REPLICA.glb", "DHC6_TRIM_REPLICA.glb", "DHC6_AIR_CONDITIONING_SYSTEM_REPLICA.glb", "DHC6_PT6A27_BLEED_VALVE_REPLICA.glb", "DHC6_PTA27_OIL_TO_FUEL_HEATER_MASTER.glb", "DHC6_PT6A27_FUEL_PUMP_MASTER.glb", "DHC6_PT6A27_FCU_REPLICA.glb", "DHC6WHEELS.glb", "DHC6SKIS.glb", "DHC6FLOATS.glb", "DHC6_LANDPLANE_UNDERCARRIAGE_REPLICA.glb"]) {
     assert.ok(files.includes(expected), "reference-library model missing from registry: " + expected);
   }
   const bigOnes = registry.models.filter((m) => m.bytes > 25 * 1024 * 1024).map((m) => m.file);

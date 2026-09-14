@@ -1229,7 +1229,7 @@
     },
     {
       "id": "air-conditioning",
-      "file": "AIR-CONDITIONNG.glb",
+      "file": "DHC6_AIR_CONDITIONING_SYSTEM_REPLICA.glb",
       "source": "reference-library",
       "title": "Air-conditioning installation (vapour-cycle)",
       "shortTitle": "Air conditioning",
@@ -1248,24 +1248,62 @@
         "AC_GRP_StationReferences",
         "AC_GRP_Structure"
       ],
-      "mediaPath": "models/systems-lab/AIR-CONDITIONNG.glb",
-      "bytes": 1600120,
-      "sha256": "22146e6333130fb63a3f69bd1c169c47a7c834b21592ef1eedceabac558257ba",
-      "nodes": 54,
-      "meshes": 41,
-      "triangles": 21324,
-      "animations": [],
+      "mediaPath": "models/systems-lab/DHC6_AIR_CONDITIONING_SYSTEM_REPLICA.glb",
+      "bytes": 1584892,
+      "sha256": "0aa1eec766d0fda1a309e2c9502a180d5d0949d7c9eba89778d8f6ad21d1c554",
+      "nodes": 140,
+      "meshes": 128,
+      "triangles": 42778,
+      "animations": [
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | CONDENSER_FAN_ROTOR",
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | EVAPORATOR_FAN_ROTOR",
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | FLOW | CONDENSING | 01",
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | FLOW | CONDENSING | 02",
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | FLOW | CONDENSING | 03",
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | FLOW | CONDENSING | 04",
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | FLOW | CONDENSING | 05",
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | FLOW | DISCHARGE | 01",
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | FLOW | DISCHARGE | 02",
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | FLOW | DISCHARGE | 03",
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | FLOW | DISCHARGE | 04",
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | FLOW | EVAPORATING | 01",
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | FLOW | EVAPORATING | 02",
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | FLOW | EVAPORATING | 03",
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | FLOW | EVAPORATING | 04",
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | FLOW | EVAPORATING | 05",
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | FLOW | LIQUID | 01",
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | FLOW | LIQUID | 02",
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | FLOW | LIQUID | 03",
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | FLOW | LIQUID | 04",
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | FLOW | LIQUID | 05",
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | FLOW | LIQUID | 06",
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | FLOW | METERED_MIXTURE | 01",
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | FLOW | METERED_MIXTURE | 02",
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | FLOW | METERED_MIXTURE | 03",
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | FLOW | SUCTION | 01",
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | FLOW | SUCTION | 02",
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | FLOW | SUCTION | 03",
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | FLOW | SUCTION | 04",
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | SIGHT_GLASS_BUBBLE_1",
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | SIGHT_GLASS_BUBBLE_2",
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | SIGHT_GLASS_BUBBLE_3",
+        "AIR_CONDITIONING_SYSTEM_DEMONSTRATION | AC_COMPRESSOR_DRIVE_COUPLING"
+      ],
       "extensionsUsed": [],
-      "clipGroups": {},
+      "clipGroups": {
+        "Air conditioning system demonstration": [
+          "~^AIR_CONDITIONING_SYSTEM_DEMONSTRATION"
+        ]
+      },
       "parts": {
         "structure": [
-          "AC_GRP_Structure",
-          "AC_Aft_Frame",
-          "AC_Compartment_Floor",
-          "AC_Forward_Bulkhead",
-          "AC_Fuselage_Skin",
-          "AC_GRP_StationReferences",
-          "AC_REF_Station"
+          "AC_AFT_FRAME",
+          "AC_COMPARTMENT_FLOOR",
+          "~^AC_REF_STATION_",
+          "COMPRESSOR_MOUNTRAIL_BOLTS",
+          "EVAPORATOR_MOUNT_BOLTS",
+          "~^MAIN_DUCT_SUPPORT_CLAMP",
+          "~^CONDENSER_AIR_INTAKE"
         ],
         "ducting": [
           "AC_Main_Duct",
@@ -1300,11 +1338,10 @@
         "electrical_controls": [
           "AC_CircuitBreaker_Relay_Panel",
           "AC_Wiring_Harness",
-          "AC_GRP_Electrical"
+          "THERMOSTAT_CAPILLARY"
         ],
         "refrigerant_lines": [
-          "AC_Line",
-          "AC_GRP_RefrigerantLines"
+          "AC_Line"
         ]
       },
       "extraParts": []
