@@ -31,6 +31,9 @@ export const CORPORATE_REPORTS = "CORPORATE_REPORTS";
 export const INSTRUCTOR_TOOLS = "INSTRUCTOR_TOOLS";
 export const ORGANIZATION_MANAGEMENT = "ORGANIZATION_MANAGEMENT";
 export const QRH_MANUAL_EDIT = "QRH_MANUAL_EDIT";
+/* The 3D Technical Lab. PRO and up - it is not in FREE_ENTITLEMENTS, and the
+   protected media store is gated on it for Android callers. */
+export const SYSTEMS_LAB_3D = "SYSTEMS_LAB_3D";
 
 /* ------------------------------------------------------------------- Tiers */
 export const FREE = "FREE";
@@ -123,10 +126,34 @@ export function tierForPlan(plan) {
 export function tierFor(auth) {
   if (!auth || !auth.ok) return FREE;
   if (auth.role === "owner") return ENTERPRISE;
+  /*
+    An Android caller's tier is the one Google Play validation wrote, read as
+    written. tierForPlan() must not see it: that function resolves anything
+    unrecognised to PRO so a typo in a Paddle plan name never costs a paying
+    web subscriber their training content - and an Android FREE account's plan
+    string is literally "free", which tierForPlan would read as PRO. Right
+    default, wrong caller. An unknown tier here falls to FREE, which is the
+    direction a caller with no purchase should fail.
+  */
+  if (auth.client === "android") {
+    const named = String(auth.tier || "").toUpperCase();
+    return TIER_RANK[named] === undefined ? FREE : named;
+  }
   return tierForPlan(auth.plan);
 }
 
+/*
+  What this request is actually entitled to.
+
+  For the browser the tier is the answer: entitlements are derived from the
+  licence record's plan. For Android the entitlement list IS the record - Play
+  validation wrote it per purchase - so it is used directly rather than being
+  round-tripped through a tier that could only lose information.
+*/
 export function entitlementsFor(auth) {
+  if (auth && auth.ok && auth.client === "android" && Array.isArray(auth.entitlements)) {
+    return auth.entitlements;
+  }
   return entitlementsForTier(tierFor(auth));
 }
 

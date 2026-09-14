@@ -26,6 +26,7 @@
     node tools/normalise-system-packs.mjs --android "C:\\path\\to\\DHC-6-Trainer"
     node tools/normalise-system-packs.mjs --android "..." --write
     node tools/normalise-system-packs.mjs --android "..." --check-kotlin
+    node tools/normalise-system-packs.mjs --android "..." --relax-schema
 
   Dry run by default: it prints what it would change and writes nothing. Add
   --write to apply, which also leaves a .bak beside every file it rewrites.
@@ -33,6 +34,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { readAssetBasenames, readSystemTaxonomy } from "./lib/systems-2d.mjs";
 
 function arg(name, fallback) {
@@ -168,6 +170,317 @@ export function normalisePack(pack) {
   return { pack: out, changed: changed, notes: notes, gaps: gaps };
 }
 
+/* ------------------------------------------------------------- the schema
+
+   The question the first run could not answer.
+
+   Every gap the renames leave behind is `rationale` or `regulatoryStatus`.
+   Whether that matters depends entirely on one thing: does
+   assets/schema/system_description.schema.json REQUIRE them? If they are
+   optional, the renames finish the job and the gap list is a note for later.
+   If they are required, each one genuinely blocks the pack from parsing and
+   there is authoring to do.
+
+   Guessing either way would be useless, so this reads the real schema. It is
+   not a full JSON Schema validator - it extracts the `required` arrays and the
+   regulatoryStatus enum, which is what decides the question.
+*/
+export function findSchema(assetsRoot) {
+  const candidates = [
+    path.join(assetsRoot, "schema", "system_description.schema.json"),
+    path.join(assetsRoot, "schemas", "system_description.schema.json"),
+    path.join(assetsRoot, "system_description.schema.json")
+  ];
+  return candidates.find(function (file) { return fs.existsSync(file); }) || null;
+}
+
+/*
+  Walk a schema for the object that describes an array member, wherever the
+  author nested it. Schemas get restructured; hunting for the shape rather than
+  a fixed path means a moved definition is found instead of silently reported
+  as "no requirements".
+*/
+/*
+  Follow a local $ref.
+
+  A schema of any quality puts its definitions in $defs (or `definitions`, on
+  draft-07) and references them, so `limits.items` is a pointer rather than the
+  object. The first version of this walker only looked for an inline
+  `items.properties`, found nothing, and reported the schema as unreadable -
+  which is how a real schema that was sitting right there got treated as absent.
+*/
+export function resolveRef(root, node, depth) {
+  let current = node;
+  let hops = depth || 0;
+  while (current && typeof current === "object" && typeof current.$ref === "string" && hops < 20) {
+    const pointer = current.$ref;
+    if (pointer.charAt(0) !== "#") return current;
+    let target = root;
+    pointer.slice(1).split("/").filter(Boolean).forEach(function (raw) {
+      const key = raw.replace(/~1/g, "/").replace(/~0/g, "~");
+      target = target && typeof target === "object" ? target[key] : undefined;
+    });
+    if (!target) return current;
+    current = target;
+    hops++;
+  }
+  return current;
+}
+
+export function requirementsFor(schema, arrayKey, marker) {
+  let found = null;
+  const seen = new Set();
+  const walk = function (node) {
+    if (found || !node || typeof node !== "object" || seen.has(node)) return;
+    seen.add(node);
+    if (Array.isArray(node)) { node.forEach(walk); return; }
+
+    const array = resolveRef(schema, node[arrayKey]);
+    const items = array && typeof array === "object" ? resolveRef(schema, array.items) : null;
+    /* allOf/oneOf composition: the required list may live in a branch. */
+    const branches = items ? [items].concat(items.allOf || [], items.anyOf || [], items.oneOf || []) : [];
+    const merged = branches.reduce(function (out, raw) {
+      const branch = resolveRef(schema, raw);
+      if (!branch || typeof branch !== "object") return out;
+      Object.assign(out.properties, branch.properties || {});
+      if (Array.isArray(branch.required)) out.required = out.required.concat(branch.required);
+      return out;
+    }, { properties: {}, required: [] });
+
+    if (marker.some(function (key) { return Object.prototype.hasOwnProperty.call(merged.properties, key); })) {
+      found = merged;
+      return;
+    }
+    Object.keys(node).forEach(function (key) { walk(node[key]); });
+  };
+  walk(schema);
+  if (!found) return null;
+  return {
+    required: Array.from(new Set(found.required)),
+    properties: Object.keys(found.properties),
+    enums: Object.keys(found.properties).reduce(function (out, key) {
+      const prop = resolveRef(schema, found.properties[key]);
+      const values = prop && prop.enum;
+      if (Array.isArray(values)) out[key] = values.slice();
+      return out;
+    }, {})
+  };
+}
+
+export function readSchemaRules(schema) {
+  return {
+    controls: requirementsFor(schema, "controls", ["label", "name"]),
+    limits: requirementsFor(schema, "limits", ["name", "parameter", "value"])
+  };
+}
+
+/* Split the gap list by whether the schema actually demands the field. */
+export function classifyGaps(gaps, rules) {
+  const required = function (group) {
+    const set = rules && rules[group];
+    return set && set.required ? set.required : null;
+  };
+  return (gaps || []).map(function (gap) {
+    const group = gap.path.indexOf("limits[") === 0 ? "limits" : "controls";
+    const field = gap.path.slice(gap.path.lastIndexOf(".") + 1);
+    const list = required(group);
+    /* Unknown is not the same as optional, and must not read as reassurance. */
+    const blocking = list === null ? null : list.indexOf(field) >= 0;
+    if (blocking === true) return Object.assign({}, gap, { field: field, blocking: true });
+    return Object.assign({}, gap, { field: field, blocking: blocking });
+  });
+}
+
+/* ------------------------------------------- what the schema really demands
+
+   The defect this fixes, and it was mine: the gap check looked for a hardcoded
+   pair - rationale and regulatoryStatus - and nothing else. So when the real
+   schema turned out to require `id`, `references` and `description` too, the
+   tool reported "NONE OF THEM BLOCK PARSING" while saying in the same breath
+   that a limit requires four fields it had never once looked for.
+
+   A confident all-clear that checked two fields out of four is worse than no
+   check at all. Every required field the schema names is now checked for
+   presence, whatever it is called.
+*/
+export function missingRequired(entity, required) {
+  if (!required || !required.length) return [];
+  const object = entity && typeof entity === "object" ? entity : {};
+  return required.filter(function (field) {
+    const value = object[field];
+    if (value === undefined || value === null) return true;
+    if (typeof value === "string" && !value.trim()) return true;
+    if (Array.isArray(value) && !value.length) return true;
+    return false;
+  });
+}
+
+/*
+  Every required field absent from a normalised pack, as gaps. Runs AFTER the
+  renames, so a limit whose `name` arrived as `parameter` is not reported.
+*/
+export function requiredGaps(pack, rules) {
+  const out = [];
+  const check = function (list, group, required) {
+    if (!Array.isArray(list) || !required || !required.length) return;
+    list.forEach(function (entity, index) {
+      missingRequired(entity, required).forEach(function (field) {
+        out.push({
+          path: group + "[" + index + "]." + field,
+          field: field,
+          why: "required by the schema and absent from the pack"
+        });
+      });
+    });
+  };
+  check(pack && pack.controls, "controls", rules && rules.controls && rules.controls.required);
+  check(pack && pack.limits, "limits", rules && rules.limits && rules.limits.required);
+  return out;
+}
+
+/* ------------------------------------------------- relaxing the schema
+
+   The finding that made this worth building: of 154 leftover fields, 77 block
+   parsing and every one is `rationale` - a prose field the web app never
+   renders anywhere. Meanwhile `regulatoryStatus`, which separates an
+   AFM-approved number from operator guidance and IS displayed, is optional.
+   The safety-critical field is optional and the explanatory one is mandatory.
+
+   So this removes a field from the schema's `required` lists. It is the one
+   edit of this kind that is safe to automate, because it REMOVES a constraint
+   rather than writing a value - the opposite of the thing this tool refuses to
+   do everywhere else.
+
+   Every removal is reported with its location, and the result is verified: the
+   rewritten schema is re-parsed and compared against the original with exactly
+   those entries dropped. If anything else changed, it is not written.
+*/
+export const DEFAULT_RELAXED_FIELDS = ["rationale"];
+
+export function relaxRequired(schema, fields) {
+  const wanted = (fields && fields.length ? fields : DEFAULT_RELAXED_FIELDS);
+  const removed = [];
+  const seen = new Set();
+
+  const walk = function (node, trail) {
+    if (!node || typeof node !== "object" || seen.has(node)) return node;
+    seen.add(node);
+    if (Array.isArray(node)) return node.map(function (item, i) { return walk(item, trail + "/" + i); });
+
+    const out = {};
+    Object.keys(node).forEach(function (key) {
+      const value = node[key];
+      if (key === "required" && Array.isArray(value)) {
+        const kept = value.filter(function (entry) { return wanted.indexOf(entry) === -1; });
+        value.forEach(function (entry) {
+          if (wanted.indexOf(entry) >= 0) removed.push({ at: (trail || "#") + "/required", field: entry });
+        });
+        out[key] = kept;
+        return;
+      }
+      out[key] = walk(value, trail + "/" + key);
+    });
+    return out;
+  };
+
+  return { schema: walk(schema, ""), removed: removed };
+}
+
+/*
+  Confirm the rewrite changed nothing but the entries it claimed to remove.
+  Comparing the re-parsed output against the input-with-those-entries-dropped
+  is the only check that actually proves it, and this file is somebody's
+  authored schema.
+*/
+export function relaxIsFaithful(before, after, fields) {
+  const expected = relaxRequired(before, fields).schema;
+  return JSON.stringify(expected) === JSON.stringify(after);
+}
+
+function reportRelax(assetsRoot, kotlinRoot, write) {
+  console.log("\n--- Relax schema ---");
+  relaxSchemaFile(assetsRoot, write);
+  /* The Kotlin property is a separate concern and must be reported even when
+     the schema cannot be found - gating it behind the schema meant a repo with
+     the schema elsewhere got no Kotlin advice at all. */
+  relaxKotlinReport(kotlinRoot || assetsRoot);
+}
+
+function relaxSchemaFile(assetsRoot, write) {
+  const schemaPath = findSchema(assetsRoot);
+  if (!schemaPath) {
+    console.log("  no system_description.schema.json under " + assetsRoot);
+    return;
+  }
+  const raw = fs.readFileSync(schemaPath, "utf8").replace(/^\uFEFF/, "");
+  let schema;
+  try { schema = JSON.parse(raw); } catch (error) {
+    console.log("  " + schemaPath + " is not valid JSON (" + error.message + ")");
+    return;
+  }
+
+  const result = relaxRequired(schema, DEFAULT_RELAXED_FIELDS);
+  if (!result.removed.length) {
+    console.log("  " + DEFAULT_RELAXED_FIELDS.join(", ") + " is not in any required list. Nothing to do.");
+  } else {
+    result.removed.forEach(function (entry) {
+      console.log("  remove \"" + entry.field + "\" from " + entry.at);
+    });
+    const text = JSON.stringify(result.schema, null, 2) + "\n";
+    if (!relaxIsFaithful(schema, JSON.parse(text), DEFAULT_RELAXED_FIELDS)) {
+      console.log("  REFUSED: the rewrite would have changed something else. Nothing written.");
+      return;
+    }
+    if (write) {
+      fs.writeFileSync(schemaPath + ".bak", raw);
+      fs.writeFileSync(schemaPath, text);
+      console.log("  written; original kept at " + path.basename(schemaPath) + ".bak");
+    } else {
+      console.log("  (dry run - add --write to apply)");
+    }
+  }
+
+}
+
+/* The Kotlin half, read-only as always. */
+function relaxKotlinReport(root) {
+  const found = (function find(dir, depth) {
+    if (depth > 8) return null;
+    let entries;
+    try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch (error) { return null; }
+    for (const entry of entries) {
+      const full = path.join(dir, entry.name);
+      if (entry.name === "SystemDescription.kt") return full;
+      if (entry.isDirectory()) { const hit = find(full, depth + 1); if (hit) return hit; }
+    }
+    return null;
+  })(root, 0);
+
+  if (!found) {
+    console.log("  SystemDescription.kt not found under " + root + " - pass --kotlin <path> to check it.");
+    return;
+  }
+  const kt = fs.readFileSync(found, "utf8");
+  DEFAULT_RELAXED_FIELDS.forEach(function (field) {
+    /* The type stops at a comma, a newline, an `=` AND a closing paren. Without
+       the paren it captured "String)" out of
+       `data class SystemLimit(val rationale: String)` and emitted
+       `SystemLimit(val rationale: String)? = null` - a line that would not
+       compile, offered as the line to paste. */
+    const line = new RegExp("^.*\\b(val|var)\\s+" + field + "\\s*:\\s*([^,\\n=)]+)(.*)$", "m").exec(kt);
+    if (!line) { console.log("  " + found + ": no `" + field + "` property found."); return; }
+    const type = line[2].trim();
+    if (/\?$/.test(type)) {
+      console.log("  " + found + ": `" + field + "` is already nullable (" + type + ") - nothing to change.");
+      return;
+    }
+    console.log("  " + found);
+    console.log("      now:      " + line[0].trim());
+    console.log("      make it:  " + line[0].trim().replace(type, type + "? = null"));
+    console.log("      (Kotlin - apply and build it in Android Studio; nothing here was changed.)");
+  });
+}
+
 /* ------------------------------------------------------ the Android side
 
    Two of the phase-5 findings are not in the JSON at all - they are in Kotlin,
@@ -179,14 +492,24 @@ export function normalisePack(pack) {
    to compile or run that here. Treat the output as a list to apply and test in
    Android Studio, not as a change that has been made.
 */
-export function basenameGaps(repositorySource, aircraftSystemSource) {
+export function basenameGaps(repositorySource, aircraftSystemSource, existingBasenames) {
   const basenames = readAssetBasenames(repositorySource);
   const taxonomy = readSystemTaxonomy(aircraftSystemSource);
+  /*
+    Only a mapping whose target FILE EXISTS is a gap. Without this the tool
+    reported nineteen, including deliberate aliases - ENGINE, IGNITION and
+    STARTING all point at "powerplant" because there is one powerplant pack,
+    not three. Telling somebody to map ENGINE to "engine" when systems/engine.json
+    does not exist would take that system's content away entirely: an
+    over-report that does real harm if acted on.
+  */
+  const exists = existingBasenames ? new Set(existingBasenames) : null;
   const out = [];
   (taxonomy.members || []).forEach(function (member) {
     const expected = member.toLowerCase();
     const mapped = basenames[member];
     if (mapped === expected) return;
+    if (exists && !exists.has(expected)) return;
     out.push({
       system: member,
       mapped: mapped || null,
@@ -200,7 +523,7 @@ export function basenameGaps(repositorySource, aircraftSystemSource) {
   return out;
 }
 
-function reportKotlin(kotlinRoot) {
+function reportKotlin(kotlinRoot, existingBasenames) {
   const find = function (name) {
     const stack = [kotlinRoot];
     while (stack.length) {
@@ -226,7 +549,7 @@ function reportKotlin(kotlinRoot) {
 
   let gaps;
   try {
-    gaps = basenameGaps(fs.readFileSync(repo, "utf8"), fs.readFileSync(system, "utf8"));
+    gaps = basenameGaps(fs.readFileSync(repo, "utf8"), fs.readFileSync(system, "utf8"), existingBasenames);
   } catch (error) {
     console.log("\n--- Android map check failed: " + error.message + " ---");
     return;
@@ -234,7 +557,9 @@ function reportKotlin(kotlinRoot) {
 
   console.log("\n--- SYSTEM_TO_ASSET_BASENAME ---");
   if (!gaps.length) {
-    console.log("  Every system maps to its own file. Nothing to do.");
+    console.log("  Every system with a pack file of its own maps to it. Nothing to do.");
+    console.log("  (A system mapped to a shared pack - ENGINE to \"powerplant\" - is an alias,");
+    console.log("   not a gap, and is only reported when a file of its own name exists.)");
     return;
   }
   console.log("  " + gaps.length + " system" + (gaps.length === 1 ? " does" : "s do") + " not map to their own pack file.");
@@ -287,6 +612,33 @@ function main() {
     : found.files;
 
   const write = has("write");
+
+  /* The schema decides whether the leftover gaps matter at all. */
+  let rules = null;
+  let schemaWhy = "";
+  let schemaShape = null;
+  const schemaPath = findSchema(assetsRoot);
+  if (!schemaPath) {
+    schemaWhy = "no system_description.schema.json under " + assetsRoot;
+  } else {
+    let parsed = null;
+    try { parsed = JSON.parse(fs.readFileSync(schemaPath, "utf8").replace(/^\uFEFF/, "")); }
+    catch (error) { schemaWhy = "it is not valid JSON (" + error.message + ")"; }
+    if (parsed) {
+      rules = readSchemaRules(parsed);
+      if (!rules.limits) {
+        /* The file is fine; this tool could not find the limits definition in
+           it. Printing the shape is what makes that fixable rather than a
+           shrug. */
+        schemaWhy = "the limits definition was not found in it";
+        schemaShape = Object.keys(parsed).concat(
+          parsed.$defs ? Object.keys(parsed.$defs).map(function (k) { return "$defs." + k; }) : [],
+          parsed.definitions ? Object.keys(parsed.definitions).map(function (k) { return "definitions." + k; }) : []
+        );
+      }
+    }
+  }
+
   let changedCount = 0;
   let gapCount = 0;
   const stillIncomplete = [];
@@ -317,34 +669,116 @@ function main() {
       }
     }
 
-    if (result.gaps.length) {
-      gapCount += result.gaps.length;
-      stillIncomplete.push({ name: name, gaps: result.gaps });
+    /* Every field the schema names, checked against the NORMALISED pack - not
+       just the hardcoded pair this once looked for. */
+    const gaps = result.gaps.concat(requiredGaps(result.pack, rules));
+    if (gaps.length) {
+      gapCount += gaps.length;
+      stillIncomplete.push({ name: name, gaps: gaps });
     }
   });
 
   console.log("\n" + changedCount + " pack" + (changedCount === 1 ? "" : "s") + " " + (write ? "rewritten" : "would be rewritten"));
 
   if (stillIncomplete.length) {
-    console.log("\n--- Still incomplete after renaming: " + gapCount + " field" + (gapCount === 1 ? "" : "s") + " in " + stillIncomplete.length + " pack" + (stillIncomplete.length === 1 ? "" : "s") + " ---");
-    console.log("No rename can produce these. They need authoring, or the schema needs to");
-    console.log("make them optional. Nothing here has been guessed.\n");
-    stillIncomplete.forEach(function (entry) {
-      console.log("  " + entry.name);
-      entry.gaps.forEach(function (gap) { console.log("      " + gap.path + "  -  " + gap.why); });
+    const classified = stillIncomplete.map(function (entry) {
+      return { name: entry.name, gaps: classifyGaps(entry.gaps, rules) };
     });
+    const blocking = classified.reduce(function (n, e) {
+      return n + e.gaps.filter(function (g) { return g.blocking === true; }).length;
+    }, 0);
+    const unknown = rules === null || !rules.limits;
+
+    console.log("\n--- Fields no rename can produce: " + gapCount + " in " + stillIncomplete.length + " pack" + (stillIncomplete.length === 1 ? "" : "s") + " ---");
+
+    if (unknown) {
+      console.log("  Could not read the schema, so whether these block parsing is unknown.");
+      console.log("  Not assuming they are optional.");
+      if (schemaPath) console.log("    file:   " + schemaPath);
+      if (schemaWhy) console.log("    reason: " + schemaWhy);
+      if (schemaShape) console.log("    it contains: " + schemaShape.join(", "));
+    } else if (blocking === 0) {
+      /* Only sayable because every required field the schema names has now been
+         checked for presence, not just the two this used to look for. */
+      console.log("  NONE OF THEM BLOCK PARSING. The schema at");
+      console.log("  " + schemaPath);
+      console.log("  requires only: " + rules.limits.required.join(", ") + " on a limit" +
+        (rules.controls ? ", " + rules.controls.required.join(", ") + " on a control" : "") + ".");
+      console.log("  So --write finishes the job and these are a note for later, not a blocker.");
+    } else {
+      console.log("  " + blocking + " of them are REQUIRED by the schema and genuinely block parsing.");
+      console.log("  The rest are optional and can wait.");
+    }
+    console.log("  Nothing here has been guessed.\n");
+
+    classified.forEach(function (entry) {
+      const show = unknown ? entry.gaps : entry.gaps.filter(function (g) { return g.blocking !== false; });
+      if (!show.length) return;
+      console.log("  " + entry.name);
+      show.forEach(function (gap) {
+        console.log("      " + (gap.blocking === true ? "BLOCKING  " : "") + gap.path + "  -  " + gap.why);
+      });
+    });
+
+    if (!unknown && blocking === 0) {
+      console.log("  (every gap is optional, so none are listed individually)");
+    }
   }
 
   const kotlinRoot = arg("kotlin", process.env.DHC6_ANDROID_KOTLIN || "");
-  if (kotlinRoot) reportKotlin(kotlinRoot);
-  else if (has("check-kotlin")) reportKotlin(androidRoot);
+  /* Which pack files actually exist, so an alias is not reported as a gap. */
+  const existingBasenames = files.map(function (file) { return path.basename(file, ".json"); });
+  /* Search the whole repo, not the assets folder - SystemDescription.kt is
+     Kotlin and does not live under assets, which is why it was never found. */
+  if (has("relax-schema")) reportRelax(assetsRoot, kotlinRoot || androidRoot, write);
+  if (kotlinRoot) reportKotlin(kotlinRoot, existingBasenames);
+  else if (has("check-kotlin")) reportKotlin(androidRoot, existingBasenames);
 
   if (!write && changedCount) {
     console.log("\nRe-run with --write to apply. Each rewritten file keeps a .bak beside it.");
   }
 }
 
-/* Importable for the tests; runs only when invoked directly. */
-if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname)) {
+/*
+  Do two spellings name the same file?
+
+  This is the part that was broken, so it is the part worth testing. The entry
+  guard compared process.argv[1] against `new URL(import.meta.url).pathname`,
+  which on Windows is "/C:/Android%20Studio/..." - a leading slash, forward
+  slashes and a percent-encoded space - against argv's
+  "C:\Android Studio\...". They never matched, main() never ran, and node exited
+  0: three commands, no output, no error, no packs normalised. On Linux the two
+  spellings happen to agree, which is exactly why every test passed.
+
+  Normalising all four differences means the guard now holds whichever spelling
+  it is handed, rather than depending on one call being written correctly. And
+  it can be tested with Windows inputs from any platform, which a regex over
+  this file's own source could not do honestly.
+*/
+export function samePath(a, b) {
+  const norm = function (value) {
+    let text = String(value == null ? "" : value);
+    try { text = decodeURIComponent(text); } catch (error) { /* leave as-is */ }
+    return text
+      .replace(/\\/g, "/")
+      .replace(/^\/(?=[A-Za-z]:)/, "")
+      .replace(/\/+$/, "")
+      .toLowerCase();
+  };
+  const left = norm(a);
+  return Boolean(left) && left === norm(b);
+}
+
+export function isDirectRun(argv1, metaUrl) {
+  if (!argv1) return false;
+  let here;
+  try { here = fileURLToPath(metaUrl); } catch (error) { here = String(metaUrl).replace(/^file:\/\//, ""); }
+  /* Resolve only a relative argv - `node tools/x.mjs` - since path.resolve
+     cannot normalise a foreign platform's absolute path. */
+  const invoked = path.isAbsolute(argv1) || /^[A-Za-z]:[\\/]/.test(argv1) ? argv1 : path.resolve(argv1);
+  return samePath(invoked, here);
+}
+
+if (isDirectRun(process.argv[1], import.meta.url)) {
   main();
 }

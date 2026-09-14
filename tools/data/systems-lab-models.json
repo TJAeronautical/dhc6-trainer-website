@@ -1,2791 +1,2814 @@
 {
- "version": 1,
- "generatedFrom": "DHC6_REFERENCE_LIBRARY/System-Lab + core-res/src/main/assets/models/systems_lab/models",
- "mediaRoot": "models/systems-lab",
- "models": [
-  {
-   "id": "pt6a27-engine",
-   "file": "PT6A27_ENGINE_REPLICA.glb",
-   "source": "reference-library",
-   "title": "PT6A-27 engine replica",
-   "shortTitle": "PT6A-27 engine",
-   "description": "Full PT6A-27 replica: accessory gearbox, gas-generator section (compressor, combustion liner, compressor turbine), power section and reduction gearbox, with a translucent external-envelope ghost.",
-   "primaryFor": [
-    "POWERPLANT"
-   ],
-   "alternateFor": [],
-   "hidden": [
-    "=PT6A27_EXTERNAL_ENVELOPE_GHOST_ROOT"
-   ],
-   "clips": {
-    "PT6A27_ENGINE_START_SEQUENCE": "Engine start sequence",
-    "PT6A27_ENGINE_RUNNING": "Engine running"
-   },
-   "groups": [
-    "PT6A27_ACCESSORY_GEARBOX",
-    "PT6A27_REDUCTION_GEARBOX",
-    "PT6A27_GAS_GENERATOR_SECTION",
-    "PT6A27_POWER_SECTION",
-    "PT6A27_FIXED_STRUCTURE",
-    "PT6A27_EXTERNAL_ENVELOPE_GHOST_ROOT"
-   ],
-   "mediaPath": "models/systems-lab/PT6A27_ENGINE_REPLICA.glb",
-   "bytes": 75108224,
-   "sha256": "23ac0a533e4bd470517ac66bf3598db97465272113c823303e73a7725ed24564",
-   "nodes": 532,
-   "meshes": 487,
-   "triangles": 895152,
-   "animations": [
-    "PT6A27_ENGINE_START_SEQUENCE",
-    "PT6A27_ENGINE_RUNNING"
-   ],
-   "extensionsUsed": [],
-   "clipGroups": {},
-   "parts": {
-    "air_inlet_case": [
-     "PT6A27_ENGINE_EXTERNAL_CASE_GEOMETRY",
-     "PT6A27_FLANGE_G",
-     "PT6A27_FLANGE_F"
-    ],
-    "compressor_case": [
-     "PT6A27_ENGINE_EXTERNAL_CASE_GEOMETRY",
-     "PT6A27_FLANGE_A",
-     "PT6A27_FLANGE_B",
-     "PT6A27_FLANGE_C",
-     "PT6A27_FLANGE_D",
-     "PT6A27_FLANGE_E",
-     "PT6A27_FLANGE_F",
-     "PT6A27_FLANGE_G"
-    ],
-    "compressor_rotor_stack": [
-     "PT6A27_COMPRESSOR_ROTOR_ASSY",
-     "PT6A27_AXIAL_COMPRESSOR",
-     "PT6A27_CENTRIFUGAL_IMPELLER",
-     "R3_COMPRESSOR_STATOR",
-     "PT6A27_COMPRESSOR_STATOR_ASSY",
-     "R3_COMPRESSOR_TIE",
-     "R3_DIFFUSER"
-    ],
-    "combustion_section": [
-     "R3_LINER",
-     "R3_COMBUSTION",
-     "PT6A27_COMBUSTION_CHAMBER_LINER",
-     "R3_FUEL_NOZZLE",
-     "R3_IGNITER"
-    ],
-    "compressor_turbine_section": [
-     "R3_CT",
-     "PT6A27_COMPRESSOR_TURBINE_VANE_ASSY",
-     "PT6A27_COMPRESSOR_TURBINE_VANE_GEOMETRY",
-     "R3_COMPRESSOR_TURBINE",
-     "PT6A27_GG_SHAFT",
-     "PT6A27_GAS_GENERATOR_ROTATING_ASSEMBLY"
-    ],
-    "power_turbine_section": [
-     "R3_PT",
-     "PT6A27_POWER_TURBINE",
-     "R3_POWER_TURBINE",
-     "PT6A27_PT_SHAFT_AXIS_FRAME",
-     "PT6A27_T5_THERMOCOUPLE_GEOMETRY"
-    ],
-    "exhaust_duct": [],
-    "reduction_gearbox": [
-     "PT6A27_RGB",
-     "PT6A27_REDUCTION_GEARBOX",
-     "PT6A27_PROPELLER_SHAFT",
-     "PT6A27_BEARING_05",
-     "PT6A27_BEARING_06"
-    ],
-    "accessory_gearbox": [
-     "PT6A27_AGB",
-     "PT6A27_ACCESSORY_GEARBOX"
-    ],
-    "fuel_control_and_lines": [
-     "R3_FUEL_NOZZLE",
-     "PT6A27_AGB_FUEL_PUMP_FCU"
-    ],
-    "oil_system_fittings": [
-     "PT6A27_AGB_OIL",
-     "PT6A27_AGB_PRESSURE_OIL",
-     "PT6A27_AGB_INTERNAL_SCAVENGE",
-     "PT6A27_AGB_EXTERNAL_SCAVENGE",
-     "PT6A27_AGB_NO3",
-     "PT6A27_AGB_NO4",
-     "PT6A27_RGB_CHIP",
-     "PT6A27_BEARING_01",
-     "PT6A27_BEARING_02",
-     "PT6A27_BEARING_03",
-     "PT6A27_BEARING_04",
-     "PT6A27_MECHANICAL_SEAL_GEOMETRY"
-    ]
-   },
-   "extraParts": []
-  },
-  {
-   "id": "woodward-csu",
-   "file": "DHC6_PT6A27_WOODWARD_CSU_REPLICA.glb",
-   "source": "reference-library",
-   "title": "Woodward 8210 propeller governor (CSU) replica",
-   "shortTitle": "Propeller governor (CSU)",
-   "description": "Woodward 8210-004 constant-speed unit on the PT6A-27 base: flyweight head, pilot valve, governor oil pump, speed-adjusting lever, beta valve, feathering, lock-pitch solenoid, Nf air-bleed and reset-arm sections.",
-   "primaryFor": [
-    "PROPELLER",
-    "ENGINE_CONTROLS"
-   ],
-   "alternateFor": [],
-   "hidden": [
-    "=CSU_ARCHIVE_R4",
-    "~ARCHIVE",
-    "~NOT_IN_SOURCE",
-    "~REPLACED_BY",
-    "~DONOR",
-    "~INSTALL_REF",
-    "~REVIEW_LABELS",
-    "~_HEADING$"
-   ],
-   "clips": {
-    "ANIM_PIVOT_WW_FLYWEIGHT_01ACTION": "Flyweights",
-    "ANIM_PIVOT_WW_FLYWEIGHT_02ACTION": "Flyweights",
-    "ANIM_PIVOT_WW_PILOT_VALVEACTION": "Pilot valve",
-    "ANIM_PIVOT_WW_PUMP_DRIVE_GEARACTION": "Governor oil pump",
-    "ANIM_PIVOT_WW_PUMP_IDLER_GEARACTION": "Governor oil pump",
-    "ANIM_PIVOT_WW_SPEED_ADJUSTING_LEVERACTION": "Speed-adjusting lever",
-    "PT6A27_BASE_CSU_BETA_VALVE_SPOOLACTION": "Beta valve spool",
-    "PT6A27_BASE_FEATHERING_DUMP_VALVE_POPPETACTION": "Feathering dump valve",
-    "ANIM_PIVOT_AIRBLEED_LEVERACTION": "Nf air-bleed lever",
-    "ANIM_PIVOT_RESET_ARMACTION": "Nf reset arm",
-    "PT6A27_BASE_CSU_PILOT_VALVE_STEMACTION": "Pilot valve stem"
-   },
-   "groups": [
-    "ANIM_PIVOT_WW_FLYWEIGHT_HEAD",
-    "ANIM_PIVOT_WW_PILOT_VALVE",
-    "ANIM_PIVOT_WW_PUMP_DRIVE_GEAR",
-    "ANIM_PIVOT_WW_PUMP_IDLER_GEAR",
-    "ANIM_PIVOT_WW_SPEED_ADJUSTING_LEVER",
-    "CSU_R4_CONSOLIDATED_SECTIONS",
-    "CSU_R5_EXTERIOR_CASTING",
-    "NEW_CASE_CSU_ROOT",
-    "CSU_ARCHIVE_R4"
-   ],
-   "mediaPath": "models/systems-lab/DHC6_PT6A27_WOODWARD_CSU_REPLICA.glb",
-   "bytes": 13314684,
-   "sha256": "4b034a4b2eb9d437901c625b7db7a400a7cfeda28c2e320fbc80818463eda7ba",
-   "nodes": 1463,
-   "meshes": 1418,
-   "triangles": 229996,
-   "animations": [
-    "ANIM_PIVOT_WW_FLYWEIGHT_01ACTION",
-    "ANIM_PIVOT_WW_FLYWEIGHT_02ACTION",
-    "ANIM_PIVOT_WW_PILOT_VALVEACTION",
-    "ANIM_PIVOT_WW_PUMP_DRIVE_GEARACTION",
-    "ANIM_PIVOT_WW_PUMP_IDLER_GEARACTION",
-    "ANIM_PIVOT_WW_SPEED_ADJUSTING_LEVERACTION",
-    "PT6A27_BASE_CSU_BETA_VALVE_SPOOLACTION",
-    "PT6A27_BASE_FEATHERING_DUMP_VALVE_POPPETACTION",
-    "ANIM_PIVOT_AIRBLEED_LEVERACTION",
-    "ANIM_PIVOT_RESET_ARMACTION",
-    "ANIM_PIVOT_FLYWEIGHT_01ACTION",
-    "ANIM_PIVOT_FLYWEIGHT_02ACTION",
-    "ANIM_PIVOT_FLYWEIGHT_03ACTION",
-    "ANIM_PIVOT_GEAR_01ACTION",
-    "ANIM_PIVOT_GEAR_02ACTION",
-    "ANIM_PIVOT_GEAR_03ACTION",
-    "ANIM_PIVOT_GEAR_04ACTION",
-    "ANIM_PIVOT_GEAR_05ACTION",
-    "PT6A27_BASE_CSU_PILOT_VALVE_STEMACTION"
-   ],
-   "extensionsUsed": [],
-   "clipGroups": {
-    "Governor operation": [
-     "ANIM_PIVOT_WW_FLYWEIGHT_01ACTION",
-     "ANIM_PIVOT_WW_FLYWEIGHT_02ACTION",
-     "ANIM_PIVOT_WW_PILOT_VALVEACTION",
-     "ANIM_PIVOT_WW_PUMP_DRIVE_GEARACTION",
-     "ANIM_PIVOT_WW_PUMP_IDLER_GEARACTION",
-     "ANIM_PIVOT_WW_SPEED_ADJUSTING_LEVERACTION",
-     "PT6A27_BASE_CSU_PILOT_VALVE_STEMACTION"
-    ],
-    "Beta / feather": [
-     "PT6A27_BASE_CSU_BETA_VALVE_SPOOLACTION",
-     "PT6A27_BASE_FEATHERING_DUMP_VALVE_POPPETACTION"
-    ],
-    "Nf air-bleed and reset": [
-     "ANIM_PIVOT_AIRBLEED_LEVERACTION",
-     "ANIM_PIVOT_RESET_ARMACTION"
-    ]
-   },
-   "parts": {
-    "governor_housing": [
-     "CSU_R5_EXTERIOR_CASTING",
-     "WOODWARD_8210_HEAD",
-     "WOODWARD_8210_BASE",
-     "WOODWARD_8210_MOUNTING",
-     "WOODWARD_8210_DATA",
-     "CSU_R4_SECTION_DATA_PLATES",
-     "NEW_CASE_CSU"
-    ],
-    "governor_oil_pump": [
-     "ANIM_PIVOT_WW_PUMP_DRIVE_GEAR",
-     "ANIM_PIVOT_WW_PUMP_IDLER_GEAR",
-     "WOODWARD_8210_GOVERNOR_PUMP",
-     "WOODWARD_8210_PUMP",
-     "WOODWARD_8210_RELIEF"
-    ],
-    "pilot_valve": [
-     "ANIM_PIVOT_WW_PILOT_VALVE",
-     "WOODWARD_8210_PILOT_VALVE",
-     "WOODWARD_8210_ITEM_115"
-    ],
-    "overspeed_governor": [],
-    "autofeather_valve": [
-     "CSU_R4_SECTION_FEATHERING_ADJUSTER",
-     "PT6A27_BASE_FEATHERING"
-    ],
-    "beta_backup_valve": [
-     "CSU_R4_SECTION_LOCK_PITCH_SOLENOID",
-     "PT6A27_BASE_LOCK_PITCH",
-     "PT6A27_LOCK_PITCH"
-    ],
-    "beta_reverse_valve": [
-     "CSU_R4_SECTION_BETA_VALVE",
-     "PT6A27_BASE_CSU_BETA"
-    ],
-    "power_lever_linkage": [
-     "CSU_R4_SECTION_NF_RESET_ARM",
-     "ANIM_PIVOT_RESET_ARM",
-     "CSU_R4_SECTION_RESET_ECCENTRIC",
-     "PT6A27_BASE_RESET",
-     "CSU_R4_SECTION_MAX_SPEED_STOP",
-     "CSU_R4_SECTION_PNEUMATIC_MIN_ADJUSTER"
-    ],
-    "transfer_sleeve_output": [
-     "CONNECTION_POINT_PROPELLER_SERVO",
-     "CONNECTION_POINT_REDUCTION_GEARBOX_MOUNTING_PAD",
-     "CONNECTION_POINT_GOVERNOR_DRIVE_AXIS",
-     "WOODWARD_8210_DRIVE"
-    ],
-    "pressure_oil_circuit": [
-     "CONNECTION_POINT_ENGINE_OIL_SUPPLY",
-     "WOODWARD_8210_CHECK",
-     "WOODWARD_8210_INTERNAL"
-    ],
-    "drain_oil_circuit": [
-     "CONNECTION_POINT_SUMP_RETURN"
-    ],
-    "primary_governor": [
-     "WOODWARD_8210",
-     "ANIM_PIVOT_WW"
-    ],
-    "flyweight_head": [
-     "ANIM_PIVOT_WW_FLYWEIGHT",
-     "WOODWARD_8210_FLYWEIGHT",
-     "WOODWARD_8210_PROPELLER_GOVERNOR_FLYWEIGHT",
-     "WOODWARD_8210_ITEM_130"
-    ],
-    "speeder_spring": [
-     "WOODWARD_8210_SPEEDER",
-     "ANIM_PIVOT_WW_SPEED_ADJUSTING_LEVER",
-     "WOODWARD_8210_SPEED_ADJUSTING"
-    ],
-    "beta_valve": [
-     "CSU_R4_SECTION_BETA_VALVE",
-     "PT6A27_BASE_CSU_BETA"
-    ],
-    "overspeed_drain": [],
-    "test_solenoid": [],
-    "fcu_unit": [],
-    "fuel_topping_governor": [],
-    "beta_backup_slipring": [],
-    "beta_backup_solenoid": [
-     "CSU_R4_SECTION_LOCK_PITCH_SOLENOID",
-     "PT6A27_BASE_LOCK_PITCH",
-     "PT6A27_LOCK_PITCH"
-    ],
-    "oil_circuits": [
-     "CONNECTION_POINT_ENGINE_OIL_SUPPLY",
-     "CONNECTION_POINT_SUMP_RETURN",
-     "WOODWARD_8210_CHECK",
-     "WOODWARD_8210_INTERNAL",
-     "WOODWARD_8210_RELIEF"
-    ],
-    "air_fuel_signals": [
-     "CSU_R4_SECTION_NF_AIRBLEED",
-     "PT6A27_BASE_AIRBLEED",
-     "ANIM_PIVOT_AIRBLEED_LEVER",
-     "WOODWARD_8210_PY",
-     "CONNECTION_POINT_PY_AIRBLEED",
-     "WOODWARD_8210_AIRBLEED"
-    ]
-   },
-   "extraParts": []
-  },
-  {
-   "id": "woodward-osg",
-   "file": "DHC6_PT6A27_WOODWARD_OSG_REPLICA.glb",
-   "source": "reference-library",
-   "title": "Woodward overspeed governor (OSG) replica",
-   "shortTitle": "Overspeed governor",
-   "description": "Propeller overspeed governor with flyweights, speeder spring, pilot valve, autofeather solenoid, test solenoid and servo/sump dump ports.",
-   "primaryFor": [],
-   "alternateFor": [
-    "PROPELLER",
-    "ENGINE_CONTROLS"
-   ],
-   "hidden": [
-    "~ARCHIVE",
-    "~NOT_IN_SOURCE",
-    "~REPLACED_BY",
-    "~DONOR",
-    "~INSTALL_REF",
-    "~REVIEW_LABELS",
-    "~_HEADING$"
-   ],
-   "clips": {
-    "OSG_AUTOFEATHER_SOLENOID_DUMP": "Autofeather solenoid dump",
-    "OSG_FLYWEIGHT_LEFT_OVERSPEED": "Flyweights (overspeed)",
-    "OSG_FLYWEIGHT_RIGHT_OVERSPEED": "Flyweights (overspeed)",
-    "OSG_PILOT_VALVE_OVERSPEED": "Pilot valve (overspeed)",
-    "OSG_TEST_SOLENOID_OPERATION": "Test solenoid"
-   },
-   "groups": [
-    "ACTUAL_OSG_MASTER_NEW_CASE_ROOT",
-    "OSG_ARCHIVE_NOT_IN_SOURCE"
-   ],
-   "mediaPath": "models/systems-lab/DHC6_PT6A27_WOODWARD_OSG_REPLICA.glb",
-   "bytes": 1205804,
-   "sha256": "25b7afe3bebba3a26d0fe33f8ab7e3b19b5364abace47a9fe3e31da13de0bcdf",
-   "nodes": 87,
-   "meshes": 77,
-   "triangles": 35542,
-   "animations": [
-    "OSG_AUTOFEATHER_SOLENOID_DUMP",
-    "OSG_FLYWEIGHT_LEFT_OVERSPEED",
-    "OSG_FLYWEIGHT_RIGHT_OVERSPEED",
-    "OSG_PILOT_VALVE_OVERSPEED",
-    "OSG_TEST_SOLENOID_OPERATION"
-   ],
-   "extensionsUsed": [],
-   "clipGroups": {
-    "Overspeed response": [
-     "OSG_FLYWEIGHT_LEFT_OVERSPEED",
-     "OSG_FLYWEIGHT_RIGHT_OVERSPEED",
-     "OSG_PILOT_VALVE_OVERSPEED"
-    ],
-    "Autofeather dump": [
-     "OSG_AUTOFEATHER_SOLENOID_DUMP"
-    ],
-    "Test solenoid": [
-     "OSG_TEST_SOLENOID_OPERATION"
-    ]
-   },
-   "parts": {
-    "overspeed_governor": [
-     "OSG_FLYWEIGHT",
-     "OSG_SPEEDER",
-     "OSG_PILOT",
-     "OSG_MAIN_CAST",
-     "OSG_CASTING",
-     "OSG_ASSEMBLY",
-     "OSG_COVER",
-     "NEW_CASE_OSG",
-     "OSG_ADJUSTMENT",
-     "OSG_SERVO_DUMP_SPOOL_INTERNAL"
-    ],
-    "overspeed_drain": [
-     "OSG_SUMP_DUMP",
-     "OSG_SERVO_DUMP",
-     "OSG_SERVO_OIL"
-    ],
-    "test_solenoid": [
-     "OSG_TEST_SOLENOID",
-     "OSG_TEST_PORT",
-     "OSG_TEST_LEVER"
-    ],
-    "autofeather_valve": [
-     "OSG_AUTOFEATHER"
-    ],
-    "pilot_valve": [
-     "OSG_PILOT"
-    ],
-    "flyweight_head": [
-     "OSG_FLYWEIGHT"
-    ],
-    "speeder_spring": [
-     "OSG_SPEEDER"
-    ]
-   },
-   "extraParts": []
-  },
-  {
-   "id": "hartzell-propeller",
-   "file": "THREE_BLADE_HARTZELL.glb",
-   "source": "reference-library",
-   "title": "Hartzell HC-B3TN-3 three-blade propeller",
-   "shortTitle": "Propeller assembly",
-   "description": "Three-blade reversing, full-feathering propeller: blades on pitch axes, counterweights, beta ring and guide rods, piston/dome and link arms, feather and reverse-return springs, retention bearings and spinner bulkhead.",
-   "primaryFor": [],
-   "alternateFor": [
-    "PROPELLER"
-   ],
-   "hidden": [],
-   "clips": {
-    "FEATHER_PLUS_87_DEG": "Feather (+87\u00b0)",
-    "LOW_PITCH_PLUS_17_DEG": "Low pitch (+17\u00b0)",
-    "MAX_REVERSE_MINUS_15_DEG": "Max reverse (\u221215\u00b0)",
-    "PITCH_CYCLE_MINUS_15_TO_PLUS_87_DEG": "Pitch cycle (\u221215\u00b0 \u2192 +87\u00b0)"
-   },
-   "groups": [
-    "COMPLETE_HC_B3TN_3BY_PROPELLER_ASSEMBLY"
-   ],
-   "mediaPath": "models/systems-lab/THREE_BLADE_HARTZELL.glb",
-   "bytes": 1248960,
-   "sha256": "5e68e7b9865d9e8cbcafc19d5c70a1392eb0866b590a3867ab5c0b8851a36726",
-   "nodes": 195,
-   "meshes": 161,
-   "triangles": 65786,
-   "animations": [
-    "FEATHER_PLUS_87_DEG",
-    "LOW_PITCH_PLUS_17_DEG",
-    "MAX_REVERSE_MINUS_15_DEG",
-    "PITCH_CYCLE_MINUS_15_TO_PLUS_87_DEG",
-    "FEATHER_PLUS_87_DEG.001",
-    "LOW_PITCH_PLUS_17_DEG.001",
-    "MAX_REVERSE_MINUS_15_DEG.001",
-    "PITCH_CYCLE_MINUS_15_TO_PLUS_87_DEG.001",
-    "FEATHER_PLUS_87_DEG.002",
-    "LOW_PITCH_PLUS_17_DEG.002",
-    "MAX_REVERSE_MINUS_15_DEG.002",
-    "PITCH_CYCLE_MINUS_15_TO_PLUS_87_DEG.002",
-    "FEATHER_PLUS_87_DEG.003",
-    "LOW_PITCH_PLUS_17_DEG.003",
-    "MAX_REVERSE_MINUS_15_DEG.003",
-    "PITCH_CYCLE_MINUS_15_TO_PLUS_87_DEG.003",
-    "FEATHER_PLUS_87_DEG.004",
-    "LOW_PITCH_PLUS_17_DEG.004",
-    "MAX_REVERSE_MINUS_15_DEG.004",
-    "PITCH_CYCLE_MINUS_15_TO_PLUS_87_DEG.004",
-    "FEATHER_PLUS_87_DEG.005",
-    "LOW_PITCH_PLUS_17_DEG.005",
-    "MAX_REVERSE_MINUS_15_DEG.005",
-    "PITCH_CYCLE_MINUS_15_TO_PLUS_87_DEG.005",
-    "FEATHER_PLUS_87_DEG.006",
-    "LOW_PITCH_PLUS_17_DEG.006",
-    "MAX_REVERSE_MINUS_15_DEG.006",
-    "PITCH_CYCLE_MINUS_15_TO_PLUS_87_DEG.006",
-    "FEATHER_PLUS_87_DEG.007",
-    "LOW_PITCH_PLUS_17_DEG.007",
-    "MAX_REVERSE_MINUS_15_DEG.007",
-    "PITCH_CYCLE_MINUS_15_TO_PLUS_87_DEG.007"
-   ],
-   "extensionsUsed": [],
-   "clipGroups": {
-    "Feather (+87\u00b0)": [
-     "~^FEATHER_PLUS_87_DEG"
-    ],
-    "Low pitch (+17\u00b0)": [
-     "~^LOW_PITCH_PLUS_17_DEG"
-    ],
-    "Max reverse (\u221215\u00b0)": [
-     "~^MAX_REVERSE_MINUS_15_DEG"
-    ],
-    "Pitch cycle": [
-     "~^PITCH_CYCLE_MINUS_15_TO_PLUS_87_DEG"
-    ]
-   },
-   "parts": {},
-   "extraParts": [
+  "version": 2,
+  "generatedFrom": "DHC6_REFERENCE_LIBRARY/System-Lab + core-res/src/main/assets/models/systems_lab/models (v2: flap/trim/bleed re-pointed to the current System-Lab replicas)",
+  "mediaRoot": "models/systems-lab",
+  "models": [
     {
-     "id": "propeller_blades",
-     "label": "Propeller blades",
-     "selectors": [
-      "COMPLETE_BLADE_01_ROOT_SHANK",
-      "COMPLETE_BLADE_02_ROOT_SHANK",
-      "COMPLETE_BLADE_03_ROOT_SHANK",
-      "PROPELLER_BLADE",
-      "~^COMPLETE_BLADE_0\\d_PITCH_AXIS"
-     ]
+      "id": "pt6a27-engine",
+      "file": "PT6A27_ENGINE_REPLICA.glb",
+      "source": "reference-library",
+      "title": "PT6A-27 engine replica",
+      "shortTitle": "PT6A-27 engine",
+      "description": "Full PT6A-27 replica: accessory gearbox, gas-generator section (compressor, combustion liner, compressor turbine), power section and reduction gearbox, with a translucent external-envelope ghost.",
+      "primaryFor": [
+        "POWERPLANT"
+      ],
+      "alternateFor": [],
+      "hidden": [
+        "=PT6A27_EXTERNAL_ENVELOPE_GHOST_ROOT"
+      ],
+      "clips": {
+        "PT6A27_ENGINE_START_SEQUENCE": "Engine start sequence",
+        "PT6A27_ENGINE_RUNNING": "Engine running"
+      },
+      "groups": [
+        "PT6A27_ACCESSORY_GEARBOX",
+        "PT6A27_REDUCTION_GEARBOX",
+        "PT6A27_GAS_GENERATOR_SECTION",
+        "PT6A27_POWER_SECTION",
+        "PT6A27_FIXED_STRUCTURE",
+        "PT6A27_EXTERNAL_ENVELOPE_GHOST_ROOT"
+      ],
+      "mediaPath": "models/systems-lab/PT6A27_ENGINE_REPLICA.glb",
+      "bytes": 75108224,
+      "sha256": "23ac0a533e4bd470517ac66bf3598db97465272113c823303e73a7725ed24564",
+      "nodes": 532,
+      "meshes": 487,
+      "triangles": 895152,
+      "animations": [
+        "PT6A27_ENGINE_START_SEQUENCE",
+        "PT6A27_ENGINE_RUNNING"
+      ],
+      "extensionsUsed": [],
+      "clipGroups": {},
+      "parts": {
+        "air_inlet_case": [
+          "PT6A27_ENGINE_EXTERNAL_CASE_GEOMETRY",
+          "PT6A27_FLANGE_G",
+          "PT6A27_FLANGE_F"
+        ],
+        "compressor_case": [
+          "PT6A27_ENGINE_EXTERNAL_CASE_GEOMETRY",
+          "PT6A27_FLANGE_A",
+          "PT6A27_FLANGE_B",
+          "PT6A27_FLANGE_C",
+          "PT6A27_FLANGE_D",
+          "PT6A27_FLANGE_E",
+          "PT6A27_FLANGE_F",
+          "PT6A27_FLANGE_G"
+        ],
+        "compressor_rotor_stack": [
+          "PT6A27_COMPRESSOR_ROTOR_ASSY",
+          "PT6A27_AXIAL_COMPRESSOR",
+          "PT6A27_CENTRIFUGAL_IMPELLER",
+          "R3_COMPRESSOR_STATOR",
+          "PT6A27_COMPRESSOR_STATOR_ASSY",
+          "R3_COMPRESSOR_TIE",
+          "R3_DIFFUSER"
+        ],
+        "combustion_section": [
+          "R3_LINER",
+          "R3_COMBUSTION",
+          "PT6A27_COMBUSTION_CHAMBER_LINER",
+          "R3_FUEL_NOZZLE",
+          "R3_IGNITER"
+        ],
+        "compressor_turbine_section": [
+          "R3_CT",
+          "PT6A27_COMPRESSOR_TURBINE_VANE_ASSY",
+          "PT6A27_COMPRESSOR_TURBINE_VANE_GEOMETRY",
+          "R3_COMPRESSOR_TURBINE",
+          "PT6A27_GG_SHAFT",
+          "PT6A27_GAS_GENERATOR_ROTATING_ASSEMBLY"
+        ],
+        "power_turbine_section": [
+          "R3_PT",
+          "PT6A27_POWER_TURBINE",
+          "R3_POWER_TURBINE",
+          "PT6A27_PT_SHAFT_AXIS_FRAME",
+          "PT6A27_T5_THERMOCOUPLE_GEOMETRY"
+        ],
+        "exhaust_duct": [],
+        "reduction_gearbox": [
+          "PT6A27_RGB",
+          "PT6A27_REDUCTION_GEARBOX",
+          "PT6A27_PROPELLER_SHAFT",
+          "PT6A27_BEARING_05",
+          "PT6A27_BEARING_06"
+        ],
+        "accessory_gearbox": [
+          "PT6A27_AGB",
+          "PT6A27_ACCESSORY_GEARBOX"
+        ],
+        "fuel_control_and_lines": [
+          "R3_FUEL_NOZZLE",
+          "PT6A27_AGB_FUEL_PUMP_FCU"
+        ],
+        "oil_system_fittings": [
+          "PT6A27_AGB_OIL",
+          "PT6A27_AGB_PRESSURE_OIL",
+          "PT6A27_AGB_INTERNAL_SCAVENGE",
+          "PT6A27_AGB_EXTERNAL_SCAVENGE",
+          "PT6A27_AGB_NO3",
+          "PT6A27_AGB_NO4",
+          "PT6A27_RGB_CHIP",
+          "PT6A27_BEARING_01",
+          "PT6A27_BEARING_02",
+          "PT6A27_BEARING_03",
+          "PT6A27_BEARING_04",
+          "PT6A27_MECHANICAL_SEAL_GEOMETRY"
+        ]
+      },
+      "extraParts": []
     },
     {
-     "id": "blade_retention",
-     "label": "Blade clamps and retention bearings",
-     "selectors": [
-      "COMPLETE_RETENTION_BEARING",
-      "~^COMPLETE_BLADE_0\\d_CLAMP"
-     ]
+      "id": "woodward-csu",
+      "file": "DHC6_PT6A27_WOODWARD_CSU_REPLICA.glb",
+      "source": "reference-library",
+      "title": "Woodward 8210 propeller governor (CSU) replica",
+      "shortTitle": "Propeller governor (CSU)",
+      "description": "Woodward 8210-004 constant-speed unit on the PT6A-27 base: flyweight head, pilot valve, governor oil pump, speed-adjusting lever, beta valve, feathering, lock-pitch solenoid, Nf air-bleed and reset-arm sections.",
+      "primaryFor": [
+        "PROPELLER",
+        "ENGINE_CONTROLS"
+      ],
+      "alternateFor": [],
+      "hidden": [
+        "=CSU_ARCHIVE_R4",
+        "~ARCHIVE",
+        "~NOT_IN_SOURCE",
+        "~REPLACED_BY",
+        "~DONOR",
+        "~INSTALL_REF",
+        "~REVIEW_LABELS",
+        "~_HEADING$"
+      ],
+      "clips": {
+        "ANIM_PIVOT_WW_FLYWEIGHT_01ACTION": "Flyweights",
+        "ANIM_PIVOT_WW_FLYWEIGHT_02ACTION": "Flyweights",
+        "ANIM_PIVOT_WW_PILOT_VALVEACTION": "Pilot valve",
+        "ANIM_PIVOT_WW_PUMP_DRIVE_GEARACTION": "Governor oil pump",
+        "ANIM_PIVOT_WW_PUMP_IDLER_GEARACTION": "Governor oil pump",
+        "ANIM_PIVOT_WW_SPEED_ADJUSTING_LEVERACTION": "Speed-adjusting lever",
+        "PT6A27_BASE_CSU_BETA_VALVE_SPOOLACTION": "Beta valve spool",
+        "PT6A27_BASE_FEATHERING_DUMP_VALVE_POPPETACTION": "Feathering dump valve",
+        "ANIM_PIVOT_AIRBLEED_LEVERACTION": "Nf air-bleed lever",
+        "ANIM_PIVOT_RESET_ARMACTION": "Nf reset arm",
+        "PT6A27_BASE_CSU_PILOT_VALVE_STEMACTION": "Pilot valve stem"
+      },
+      "groups": [
+        "ANIM_PIVOT_WW_FLYWEIGHT_HEAD",
+        "ANIM_PIVOT_WW_PILOT_VALVE",
+        "ANIM_PIVOT_WW_PUMP_DRIVE_GEAR",
+        "ANIM_PIVOT_WW_PUMP_IDLER_GEAR",
+        "ANIM_PIVOT_WW_SPEED_ADJUSTING_LEVER",
+        "CSU_R4_CONSOLIDATED_SECTIONS",
+        "CSU_R5_EXTERIOR_CASTING",
+        "NEW_CASE_CSU_ROOT",
+        "CSU_ARCHIVE_R4"
+      ],
+      "mediaPath": "models/systems-lab/DHC6_PT6A27_WOODWARD_CSU_REPLICA.glb",
+      "bytes": 13314684,
+      "sha256": "4b034a4b2eb9d437901c625b7db7a400a7cfeda28c2e320fbc80818463eda7ba",
+      "nodes": 1463,
+      "meshes": 1418,
+      "triangles": 229996,
+      "animations": [
+        "ANIM_PIVOT_WW_FLYWEIGHT_01ACTION",
+        "ANIM_PIVOT_WW_FLYWEIGHT_02ACTION",
+        "ANIM_PIVOT_WW_PILOT_VALVEACTION",
+        "ANIM_PIVOT_WW_PUMP_DRIVE_GEARACTION",
+        "ANIM_PIVOT_WW_PUMP_IDLER_GEARACTION",
+        "ANIM_PIVOT_WW_SPEED_ADJUSTING_LEVERACTION",
+        "PT6A27_BASE_CSU_BETA_VALVE_SPOOLACTION",
+        "PT6A27_BASE_FEATHERING_DUMP_VALVE_POPPETACTION",
+        "ANIM_PIVOT_AIRBLEED_LEVERACTION",
+        "ANIM_PIVOT_RESET_ARMACTION",
+        "ANIM_PIVOT_FLYWEIGHT_01ACTION",
+        "ANIM_PIVOT_FLYWEIGHT_02ACTION",
+        "ANIM_PIVOT_FLYWEIGHT_03ACTION",
+        "ANIM_PIVOT_GEAR_01ACTION",
+        "ANIM_PIVOT_GEAR_02ACTION",
+        "ANIM_PIVOT_GEAR_03ACTION",
+        "ANIM_PIVOT_GEAR_04ACTION",
+        "ANIM_PIVOT_GEAR_05ACTION",
+        "PT6A27_BASE_CSU_PILOT_VALVE_STEMACTION"
+      ],
+      "extensionsUsed": [],
+      "clipGroups": {
+        "Governor operation": [
+          "ANIM_PIVOT_WW_FLYWEIGHT_01ACTION",
+          "ANIM_PIVOT_WW_FLYWEIGHT_02ACTION",
+          "ANIM_PIVOT_WW_PILOT_VALVEACTION",
+          "ANIM_PIVOT_WW_PUMP_DRIVE_GEARACTION",
+          "ANIM_PIVOT_WW_PUMP_IDLER_GEARACTION",
+          "ANIM_PIVOT_WW_SPEED_ADJUSTING_LEVERACTION",
+          "PT6A27_BASE_CSU_PILOT_VALVE_STEMACTION"
+        ],
+        "Beta / feather": [
+          "PT6A27_BASE_CSU_BETA_VALVE_SPOOLACTION",
+          "PT6A27_BASE_FEATHERING_DUMP_VALVE_POPPETACTION"
+        ],
+        "Nf air-bleed and reset": [
+          "ANIM_PIVOT_AIRBLEED_LEVERACTION",
+          "ANIM_PIVOT_RESET_ARMACTION"
+        ]
+      },
+      "parts": {
+        "governor_housing": [
+          "CSU_R5_EXTERIOR_CASTING",
+          "WOODWARD_8210_HEAD",
+          "WOODWARD_8210_BASE",
+          "WOODWARD_8210_MOUNTING",
+          "WOODWARD_8210_DATA",
+          "CSU_R4_SECTION_DATA_PLATES",
+          "NEW_CASE_CSU"
+        ],
+        "governor_oil_pump": [
+          "ANIM_PIVOT_WW_PUMP_DRIVE_GEAR",
+          "ANIM_PIVOT_WW_PUMP_IDLER_GEAR",
+          "WOODWARD_8210_GOVERNOR_PUMP",
+          "WOODWARD_8210_PUMP",
+          "WOODWARD_8210_RELIEF"
+        ],
+        "pilot_valve": [
+          "ANIM_PIVOT_WW_PILOT_VALVE",
+          "WOODWARD_8210_PILOT_VALVE",
+          "WOODWARD_8210_ITEM_115"
+        ],
+        "overspeed_governor": [],
+        "autofeather_valve": [
+          "CSU_R4_SECTION_FEATHERING_ADJUSTER",
+          "PT6A27_BASE_FEATHERING"
+        ],
+        "beta_backup_valve": [
+          "CSU_R4_SECTION_LOCK_PITCH_SOLENOID",
+          "PT6A27_BASE_LOCK_PITCH",
+          "PT6A27_LOCK_PITCH"
+        ],
+        "beta_reverse_valve": [
+          "CSU_R4_SECTION_BETA_VALVE",
+          "PT6A27_BASE_CSU_BETA"
+        ],
+        "power_lever_linkage": [
+          "CSU_R4_SECTION_NF_RESET_ARM",
+          "ANIM_PIVOT_RESET_ARM",
+          "CSU_R4_SECTION_RESET_ECCENTRIC",
+          "PT6A27_BASE_RESET",
+          "CSU_R4_SECTION_MAX_SPEED_STOP",
+          "CSU_R4_SECTION_PNEUMATIC_MIN_ADJUSTER"
+        ],
+        "transfer_sleeve_output": [
+          "CONNECTION_POINT_PROPELLER_SERVO",
+          "CONNECTION_POINT_REDUCTION_GEARBOX_MOUNTING_PAD",
+          "CONNECTION_POINT_GOVERNOR_DRIVE_AXIS",
+          "WOODWARD_8210_DRIVE"
+        ],
+        "pressure_oil_circuit": [
+          "CONNECTION_POINT_ENGINE_OIL_SUPPLY",
+          "WOODWARD_8210_CHECK",
+          "WOODWARD_8210_INTERNAL"
+        ],
+        "drain_oil_circuit": [
+          "CONNECTION_POINT_SUMP_RETURN"
+        ],
+        "primary_governor": [
+          "WOODWARD_8210",
+          "ANIM_PIVOT_WW"
+        ],
+        "flyweight_head": [
+          "ANIM_PIVOT_WW_FLYWEIGHT",
+          "WOODWARD_8210_FLYWEIGHT",
+          "WOODWARD_8210_PROPELLER_GOVERNOR_FLYWEIGHT",
+          "WOODWARD_8210_ITEM_130"
+        ],
+        "speeder_spring": [
+          "WOODWARD_8210_SPEEDER",
+          "ANIM_PIVOT_WW_SPEED_ADJUSTING_LEVER",
+          "WOODWARD_8210_SPEED_ADJUSTING"
+        ],
+        "beta_valve": [
+          "CSU_R4_SECTION_BETA_VALVE",
+          "PT6A27_BASE_CSU_BETA"
+        ],
+        "overspeed_drain": [],
+        "test_solenoid": [],
+        "fcu_unit": [],
+        "fuel_topping_governor": [],
+        "beta_backup_slipring": [],
+        "beta_backup_solenoid": [
+          "CSU_R4_SECTION_LOCK_PITCH_SOLENOID",
+          "PT6A27_BASE_LOCK_PITCH",
+          "PT6A27_LOCK_PITCH"
+        ],
+        "oil_circuits": [
+          "CONNECTION_POINT_ENGINE_OIL_SUPPLY",
+          "CONNECTION_POINT_SUMP_RETURN",
+          "WOODWARD_8210_CHECK",
+          "WOODWARD_8210_INTERNAL",
+          "WOODWARD_8210_RELIEF"
+        ],
+        "air_fuel_signals": [
+          "CSU_R4_SECTION_NF_AIRBLEED",
+          "PT6A27_BASE_AIRBLEED",
+          "ANIM_PIVOT_AIRBLEED_LEVER",
+          "WOODWARD_8210_PY",
+          "CONNECTION_POINT_PY_AIRBLEED",
+          "WOODWARD_8210_AIRBLEED"
+        ]
+      },
+      "extraParts": []
     },
     {
-     "id": "counterweights",
-     "label": "Counterweights",
-     "selectors": [
-      "~^COMPLETE_BLADE_0\\d_COUNTERWEIGHT"
-     ]
+      "id": "woodward-osg",
+      "file": "DHC6_PT6A27_WOODWARD_OSG_REPLICA.glb",
+      "source": "reference-library",
+      "title": "Woodward overspeed governor (OSG) replica",
+      "shortTitle": "Overspeed governor",
+      "description": "Propeller overspeed governor with flyweights, speeder spring, pilot valve, autofeather solenoid, test solenoid and servo/sump dump ports.",
+      "primaryFor": [],
+      "alternateFor": [
+        "PROPELLER",
+        "ENGINE_CONTROLS"
+      ],
+      "hidden": [
+        "~ARCHIVE",
+        "~NOT_IN_SOURCE",
+        "~REPLACED_BY",
+        "~DONOR",
+        "~INSTALL_REF",
+        "~REVIEW_LABELS",
+        "~_HEADING$"
+      ],
+      "clips": {
+        "OSG_AUTOFEATHER_SOLENOID_DUMP": "Autofeather solenoid dump",
+        "OSG_FLYWEIGHT_LEFT_OVERSPEED": "Flyweights (overspeed)",
+        "OSG_FLYWEIGHT_RIGHT_OVERSPEED": "Flyweights (overspeed)",
+        "OSG_PILOT_VALVE_OVERSPEED": "Pilot valve (overspeed)",
+        "OSG_TEST_SOLENOID_OPERATION": "Test solenoid"
+      },
+      "groups": [
+        "ACTUAL_OSG_MASTER_NEW_CASE_ROOT",
+        "OSG_ARCHIVE_NOT_IN_SOURCE"
+      ],
+      "mediaPath": "models/systems-lab/DHC6_PT6A27_WOODWARD_OSG_REPLICA.glb",
+      "bytes": 1205804,
+      "sha256": "25b7afe3bebba3a26d0fe33f8ab7e3b19b5364abace47a9fe3e31da13de0bcdf",
+      "nodes": 87,
+      "meshes": 77,
+      "triangles": 35542,
+      "animations": [
+        "OSG_AUTOFEATHER_SOLENOID_DUMP",
+        "OSG_FLYWEIGHT_LEFT_OVERSPEED",
+        "OSG_FLYWEIGHT_RIGHT_OVERSPEED",
+        "OSG_PILOT_VALVE_OVERSPEED",
+        "OSG_TEST_SOLENOID_OPERATION"
+      ],
+      "extensionsUsed": [],
+      "clipGroups": {
+        "Overspeed response": [
+          "OSG_FLYWEIGHT_LEFT_OVERSPEED",
+          "OSG_FLYWEIGHT_RIGHT_OVERSPEED",
+          "OSG_PILOT_VALVE_OVERSPEED"
+        ],
+        "Autofeather dump": [
+          "OSG_AUTOFEATHER_SOLENOID_DUMP"
+        ],
+        "Test solenoid": [
+          "OSG_TEST_SOLENOID_OPERATION"
+        ]
+      },
+      "parts": {
+        "overspeed_governor": [
+          "OSG_FLYWEIGHT",
+          "OSG_SPEEDER",
+          "OSG_PILOT",
+          "OSG_MAIN_CAST",
+          "OSG_CASTING",
+          "OSG_ASSEMBLY",
+          "OSG_COVER",
+          "NEW_CASE_OSG",
+          "OSG_ADJUSTMENT",
+          "OSG_SERVO_DUMP_SPOOL_INTERNAL"
+        ],
+        "overspeed_drain": [
+          "OSG_SUMP_DUMP",
+          "OSG_SERVO_DUMP",
+          "OSG_SERVO_OIL"
+        ],
+        "test_solenoid": [
+          "OSG_TEST_SOLENOID",
+          "OSG_TEST_PORT",
+          "OSG_TEST_LEVER"
+        ],
+        "autofeather_valve": [
+          "OSG_AUTOFEATHER"
+        ],
+        "pilot_valve": [
+          "OSG_PILOT"
+        ],
+        "flyweight_head": [
+          "OSG_FLYWEIGHT"
+        ],
+        "speeder_spring": [
+          "OSG_SPEEDER"
+        ]
+      },
+      "extraParts": []
     },
     {
-     "id": "pitch_change",
-     "label": "Pitch-change mechanism (piston, dome, links, beta ring)",
-     "selectors": [
-      "COMPLETE_PISTON",
-      "COMPLETE_DOME",
-      "COMPLETE_LINK",
-      "COMPLETE_BETA_RING",
-      "COMPLETE_GUIDE",
-      "COMPLETE_PITCH_SETTING",
-      "COMPLETE_ROD_END",
-      "COMPLETE_LOW_STOP",
-      "COMPLETE_SPRING_RETAINER",
-      "COMPLETE_PILOT_TUBE",
-      "COMPLETE_CARBON_BLOCK",
-      "COMPLETE_CENTRAL_CYLINDER"
-     ]
+      "id": "hartzell-propeller",
+      "file": "THREE_BLADE_HARTZELL.glb",
+      "source": "reference-library",
+      "title": "Hartzell HC-B3TN-3 three-blade propeller",
+      "shortTitle": "Propeller assembly",
+      "description": "Three-blade reversing, full-feathering propeller: blades on pitch axes, counterweights, beta ring and guide rods, piston/dome and link arms, feather and reverse-return springs, retention bearings and spinner bulkhead.",
+      "primaryFor": [],
+      "alternateFor": [
+        "PROPELLER"
+      ],
+      "hidden": [],
+      "clips": {
+        "FEATHER_PLUS_87_DEG": "Feather (+87°)",
+        "LOW_PITCH_PLUS_17_DEG": "Low pitch (+17°)",
+        "MAX_REVERSE_MINUS_15_DEG": "Max reverse (−15°)",
+        "PITCH_CYCLE_MINUS_15_TO_PLUS_87_DEG": "Pitch cycle (−15° → +87°)"
+      },
+      "groups": [
+        "COMPLETE_HC_B3TN_3BY_PROPELLER_ASSEMBLY"
+      ],
+      "mediaPath": "models/systems-lab/THREE_BLADE_HARTZELL.glb",
+      "bytes": 1248960,
+      "sha256": "5e68e7b9865d9e8cbcafc19d5c70a1392eb0866b590a3867ab5c0b8851a36726",
+      "nodes": 195,
+      "meshes": 161,
+      "triangles": 65786,
+      "animations": [
+        "FEATHER_PLUS_87_DEG",
+        "LOW_PITCH_PLUS_17_DEG",
+        "MAX_REVERSE_MINUS_15_DEG",
+        "PITCH_CYCLE_MINUS_15_TO_PLUS_87_DEG",
+        "FEATHER_PLUS_87_DEG.001",
+        "LOW_PITCH_PLUS_17_DEG.001",
+        "MAX_REVERSE_MINUS_15_DEG.001",
+        "PITCH_CYCLE_MINUS_15_TO_PLUS_87_DEG.001",
+        "FEATHER_PLUS_87_DEG.002",
+        "LOW_PITCH_PLUS_17_DEG.002",
+        "MAX_REVERSE_MINUS_15_DEG.002",
+        "PITCH_CYCLE_MINUS_15_TO_PLUS_87_DEG.002",
+        "FEATHER_PLUS_87_DEG.003",
+        "LOW_PITCH_PLUS_17_DEG.003",
+        "MAX_REVERSE_MINUS_15_DEG.003",
+        "PITCH_CYCLE_MINUS_15_TO_PLUS_87_DEG.003",
+        "FEATHER_PLUS_87_DEG.004",
+        "LOW_PITCH_PLUS_17_DEG.004",
+        "MAX_REVERSE_MINUS_15_DEG.004",
+        "PITCH_CYCLE_MINUS_15_TO_PLUS_87_DEG.004",
+        "FEATHER_PLUS_87_DEG.005",
+        "LOW_PITCH_PLUS_17_DEG.005",
+        "MAX_REVERSE_MINUS_15_DEG.005",
+        "PITCH_CYCLE_MINUS_15_TO_PLUS_87_DEG.005",
+        "FEATHER_PLUS_87_DEG.006",
+        "LOW_PITCH_PLUS_17_DEG.006",
+        "MAX_REVERSE_MINUS_15_DEG.006",
+        "PITCH_CYCLE_MINUS_15_TO_PLUS_87_DEG.006",
+        "FEATHER_PLUS_87_DEG.007",
+        "LOW_PITCH_PLUS_17_DEG.007",
+        "MAX_REVERSE_MINUS_15_DEG.007",
+        "PITCH_CYCLE_MINUS_15_TO_PLUS_87_DEG.007"
+      ],
+      "extensionsUsed": [],
+      "clipGroups": {
+        "Feather (+87°)": [
+          "~^FEATHER_PLUS_87_DEG"
+        ],
+        "Low pitch (+17°)": [
+          "~^LOW_PITCH_PLUS_17_DEG"
+        ],
+        "Max reverse (−15°)": [
+          "~^MAX_REVERSE_MINUS_15_DEG"
+        ],
+        "Pitch cycle": [
+          "~^PITCH_CYCLE_MINUS_15_TO_PLUS_87_DEG"
+        ]
+      },
+      "parts": {},
+      "extraParts": [
+        {
+          "id": "propeller_blades",
+          "label": "Propeller blades",
+          "selectors": [
+            "COMPLETE_BLADE_01_ROOT_SHANK",
+            "COMPLETE_BLADE_02_ROOT_SHANK",
+            "COMPLETE_BLADE_03_ROOT_SHANK",
+            "PROPELLER_BLADE",
+            "~^COMPLETE_BLADE_0\\d_PITCH_AXIS"
+          ]
+        },
+        {
+          "id": "blade_retention",
+          "label": "Blade clamps and retention bearings",
+          "selectors": [
+            "COMPLETE_RETENTION_BEARING",
+            "~^COMPLETE_BLADE_0\\d_CLAMP"
+          ]
+        },
+        {
+          "id": "counterweights",
+          "label": "Counterweights",
+          "selectors": [
+            "~^COMPLETE_BLADE_0\\d_COUNTERWEIGHT"
+          ]
+        },
+        {
+          "id": "pitch_change",
+          "label": "Pitch-change mechanism (piston, dome, links, beta ring)",
+          "selectors": [
+            "COMPLETE_PISTON",
+            "COMPLETE_DOME",
+            "COMPLETE_LINK",
+            "COMPLETE_BETA_RING",
+            "COMPLETE_GUIDE",
+            "COMPLETE_PITCH_SETTING",
+            "COMPLETE_ROD_END",
+            "COMPLETE_LOW_STOP",
+            "COMPLETE_SPRING_RETAINER",
+            "COMPLETE_PILOT_TUBE",
+            "COMPLETE_CARBON_BLOCK",
+            "COMPLETE_CENTRAL_CYLINDER"
+          ]
+        },
+        {
+          "id": "feather_springs",
+          "label": "Feather and reverse-return springs",
+          "selectors": [
+            "COMPLETE_FEATHER_SPRING",
+            "COMPLETE_REVERSE_RETURN"
+          ]
+        },
+        {
+          "id": "hub_body",
+          "label": "Hub, flange and engine shaft",
+          "selectors": [
+            "COMPLETE_HUB_ARM",
+            "COMPLETE_P_FLANGE",
+            "COMPLETE_ENGINE_SHAFT"
+          ]
+        },
+        {
+          "id": "spinner_assembly",
+          "label": "Spinner bulkhead",
+          "selectors": [
+            "COMPLETE_SPINNER"
+          ]
+        }
+      ]
     },
     {
-     "id": "feather_springs",
-     "label": "Feather and reverse-return springs",
-     "selectors": [
-      "COMPLETE_FEATHER_SPRING",
-      "COMPLETE_REVERSE_RETURN"
-     ]
+      "id": "fuel-system",
+      "file": "FUEL_SYSTEM.glb",
+      "source": "reference-library",
+      "title": "Twin Otter fuel system",
+      "shortTitle": "Fuel system",
+      "description": "Aircraft-context fuel system: forward and aft tanks with collector cells, boost pumps, ejectors, crossfeed, gascolators/filters, firewall shutoffs, flow transducers, engine-driven pumps, flow dividers and vent system.",
+      "primaryFor": [
+        "FUEL"
+      ],
+      "alternateFor": [],
+      "hidden": [],
+      "clips": {},
+      "groups": [
+        "world"
+      ],
+      "mediaPath": "models/systems-lab/FUEL_SYSTEM.glb",
+      "bytes": 18569432,
+      "sha256": "99d71dc3fd80bbfb00cc7b825a0f3fd655bfd15a643a27823909f9b3a1eba299",
+      "nodes": 418,
+      "meshes": 417,
+      "triangles": 243134,
+      "animations": [],
+      "extensionsUsed": [],
+      "clipGroups": {},
+      "parts": {
+        "fwd_tank": [
+          "FwdTank"
+        ],
+        "aft_tank": [
+          "AftTank"
+        ],
+        "fwd_collector": [
+          "FwdTank_CollectorCell",
+          "FwdTank_FlapperValve"
+        ],
+        "aft_collector": [
+          "AftTank_CollectorCell",
+          "AftTank_FlapperValve"
+        ],
+        "fwd_boost": [
+          "FwdTank_BoostPump"
+        ],
+        "aft_boost": [
+          "AftTank_BoostPump"
+        ],
+        "fuel_ejector": [
+          "FwdTank_Ejector",
+          "AftTank_Ejector"
+        ],
+        "crossfeed_valve": [
+          "Crossfeed"
+        ],
+        "fuel_filter": [
+          "FuelFilter"
+        ],
+        "fuel_sov": [
+          "FirewallShutoff"
+        ],
+        "fcu": [
+          "FCUStub",
+          "EngineDrivenPump"
+        ],
+        "flow_divider": [
+          "FlowDivider"
+        ]
+      },
+      "extraParts": [
+        {
+          "id": "fuel_plumbing",
+          "label": "Fuel lines",
+          "selectors": [
+            "Line",
+            "BNut"
+          ]
+        },
+        {
+          "id": "vent_system",
+          "label": "Vent system",
+          "selectors": [
+            "Vent",
+            "VentMast"
+          ]
+        },
+        {
+          "id": "fuel_flow_transducers",
+          "label": "Fuel-flow transducers",
+          "selectors": [
+            "FuelFlowTransducer"
+          ]
+        },
+        {
+          "id": "thermal_relief",
+          "label": "Thermal relief valves",
+          "selectors": [
+            "ThermalReliefValve"
+          ]
+        }
+      ]
     },
     {
-     "id": "hub_body",
-     "label": "Hub, flange and engine shaft",
-     "selectors": [
-      "COMPLETE_HUB_ARM",
-      "COMPLETE_P_FLANGE",
-      "COMPLETE_ENGINE_SHAFT"
-     ]
+      "id": "starter-generator",
+      "file": "DHC6_STARTER_GENERATOR_REPLICA.glb",
+      "source": "reference-library",
+      "title": "Starter-generator replica",
+      "shortTitle": "Starter-generator",
+      "description": "Starter-generator with rotating armature/commutator assembly, drive spline, bearings, brush holders, main field and poles, fan screen and quick-attach-detach (QAD) mounting.",
+      "primaryFor": [
+        "STARTING"
+      ],
+      "alternateFor": [
+        "ELECTRICAL"
+      ],
+      "hidden": [
+        "~^R1_ARCHIVE",
+        "~^R2E_ARCHIVE",
+        "~^R2C_ARCHIVE"
+      ],
+      "clips": {
+        "ROTATING_ASSEMBLY_CCW_DRIVE_ENDAction.001": "Armature rotation (CCW, drive end)"
+      },
+      "groups": [
+        "ROTATING_ASSEMBLY_CCW_DRIVE_END"
+      ],
+      "mediaPath": "models/systems-lab/DHC6_STARTER_GENERATOR_REPLICA.glb",
+      "bytes": 3910024,
+      "sha256": "24793a93826db312184723ad08d4194d3af711ae73a66bc2c1e7a268c0a7e043",
+      "nodes": 418,
+      "meshes": 411,
+      "triangles": 71928,
+      "animations": [
+        "ROTATING_ASSEMBLY_CCW_DRIVE_ENDAction.001"
+      ],
+      "extensionsUsed": [],
+      "clipGroups": {},
+      "parts": {
+        "starter_generators": [
+          "ROTATING_ASSEMBLY_CCW_DRIVE_END",
+          "DRIVE_END",
+          "ANTI_END",
+          "ANTI_DRIVE",
+          "BRUSH_HOLDER",
+          "MAIN_FIELD",
+          "MAIN_POLE",
+          "FAN_SCREEN",
+          "BEARING_1",
+          "BEARING_2",
+          "CMM",
+          "QAD",
+          "DHC6_IPC54B",
+          "DHC6_IPC54C",
+          "DHC6_IPC54L",
+          "DHC6_QAD",
+          "R2D_DRIVE",
+          "ARMATURE",
+          "DRIVE_SPLINE_12T"
+        ],
+        "starter_gen": [
+          "ROTATING_ASSEMBLY_CCW_DRIVE_END",
+          "DRIVE_END",
+          "ANTI_END",
+          "ANTI_DRIVE",
+          "BRUSH_HOLDER",
+          "MAIN_FIELD",
+          "MAIN_POLE",
+          "FAN_SCREEN",
+          "BEARING_1",
+          "BEARING_2",
+          "CMM",
+          "QAD",
+          "DHC6_IPC54B",
+          "DHC6_IPC54C",
+          "DHC6_IPC54L",
+          "DHC6_QAD",
+          "R2D_DRIVE",
+          "ARMATURE",
+          "DRIVE_SPLINE_12T"
+        ]
+      },
+      "extraParts": [
+        {
+          "id": "armature",
+          "label": "Armature and commutator (rotating)",
+          "selectors": [
+            "ROTATING_ASSEMBLY_CCW_DRIVE_END",
+            "ARMATURE"
+          ]
+        },
+        {
+          "id": "brushes",
+          "label": "Brush holders",
+          "selectors": [
+            "BRUSH_HOLDER",
+            "CMM_BRUSH",
+            "R2C_BRUSH"
+          ]
+        },
+        {
+          "id": "field",
+          "label": "Main field and poles",
+          "selectors": [
+            "MAIN_FIELD",
+            "MAIN_POLE"
+          ]
+        },
+        {
+          "id": "bearings",
+          "label": "Bearings",
+          "selectors": [
+            "BEARING_1",
+            "BEARING_2"
+          ]
+        },
+        {
+          "id": "drive_end",
+          "label": "Drive end and spline",
+          "selectors": [
+            "DRIVE_END",
+            "DRIVE_SPLINE_12T",
+            "R2D_DRIVE"
+          ]
+        },
+        {
+          "id": "qad_mount",
+          "label": "QAD mounting",
+          "selectors": [
+            "QAD",
+            "DHC6_QAD"
+          ]
+        },
+        {
+          "id": "fan_screen",
+          "label": "Cooling fan screen",
+          "selectors": [
+            "FAN_SCREEN"
+          ]
+        }
+      ]
     },
     {
-     "id": "spinner_assembly",
-     "label": "Spinner bulkhead",
-     "selectors": [
-      "COMPLETE_SPINNER"
-     ]
+      "id": "hydraulic-pack",
+      "file": "HYDRAULIC_SYSTEM_PACK_REPLICA.glb",
+      "source": "reference-library",
+      "title": "Hydraulic power package replica",
+      "shortTitle": "Hydraulic package",
+      "description": "Hydraulic power pack on its tray: reservoir, 28 V motor-driven pump, filter, system and brake accumulators, relief/check valves, gauges, pressure switch and the labelled pipe network with animated flow paths.",
+      "primaryFor": [
+        "HYDRAULICS"
+      ],
+      "alternateFor": [],
+      "hidden": [
+        "~DONOR"
+      ],
+      "clips": {},
+      "groups": [],
+      "mediaPath": "models/systems-lab/HYDRAULIC_SYSTEM_PACK_REPLICA.glb",
+      "bytes": 4990436,
+      "sha256": "7149445891e16d6e7910f5a1cd033499ba9f2310af005f9c5ff90539286f1c2b",
+      "nodes": 596,
+      "meshes": 465,
+      "triangles": 119795,
+      "animations": [
+        "FLOW | BRAKE_ACCUMULATOR_DISCHARGE | P10 | 1Action.002",
+        "FLOW | BRAKE_ACCUMULATOR_DISCHARGE | P10 | 2Action.002",
+        "FLOW | BRAKE_ACCUMULATOR_DISCHARGE | P18 | 1Action.002",
+        "FLOW | BRAKE_ACCUMULATOR_DISCHARGE | P18 | 2Action.002",
+        "FLOW | BRAKE_RELIEF_FLOW | P01 | 1Action.002",
+        "FLOW | BRAKE_RELIEF_FLOW | P01 | 2Action.002",
+        "FLOW | BRAKE_RELIEF_FLOW | P02 | 1Action.002",
+        "FLOW | BRAKE_RELIEF_FLOW | P02 | 2Action.002",
+        "FLOW | BRAKE_RELIEF_FLOW | P03 | 1Action.002",
+        "FLOW | BRAKE_RELIEF_FLOW | P03 | 2Action.002",
+        "FLOW | BRAKE_RELIEF_FLOW | P04 | 1Action.002",
+        "FLOW | BRAKE_RELIEF_FLOW | P04 | 2Action.002",
+        "FLOW | BRAKE_RELIEF_FLOW | P05 | 1Action.002",
+        "FLOW | BRAKE_RELIEF_FLOW | P05 | 2Action.002",
+        "FLOW | BRAKE_RELIEF_FLOW | P06 | 1Action.002",
+        "FLOW | BRAKE_RELIEF_FLOW | P06 | 2Action.002",
+        "FLOW | BRAKE_RELIEF_FLOW | P08 | 1Action.002",
+        "FLOW | BRAKE_RELIEF_FLOW | P08 | 2Action.002",
+        "FLOW | BRAKE_RELIEF_FLOW | P09 | 1Action.002",
+        "FLOW | BRAKE_RELIEF_FLOW | P09 | 2Action.002",
+        "FLOW | BRAKE_RELIEF_FLOW | P14 | 1Action.002",
+        "FLOW | BRAKE_RELIEF_FLOW | P14 | 2Action.002",
+        "FLOW | BRAKE_RELIEF_FLOW | P15 | 1Action.002",
+        "FLOW | BRAKE_RELIEF_FLOW | P15 | 2Action.002",
+        "FLOW | BRAKE_RELIEF_FLOW | P16 | 1Action.002",
+        "FLOW | BRAKE_RELIEF_FLOW | P16 | 2Action.002",
+        "FLOW | ELECTRIC_PUMP_CHARGE | P01 | 1Action.002",
+        "FLOW | ELECTRIC_PUMP_CHARGE | P01 | 2Action.002",
+        "FLOW | ELECTRIC_PUMP_CHARGE | P02 | 1Action.002",
+        "FLOW | ELECTRIC_PUMP_CHARGE | P02 | 2Action.002",
+        "FLOW | ELECTRIC_PUMP_CHARGE | P03 | 1Action.002",
+        "FLOW | ELECTRIC_PUMP_CHARGE | P03 | 2Action.002",
+        "FLOW | ELECTRIC_PUMP_CHARGE | P04 | 1Action.002",
+        "FLOW | ELECTRIC_PUMP_CHARGE | P04 | 2Action.002",
+        "FLOW | ELECTRIC_PUMP_CHARGE | P05 | 1Action.002",
+        "FLOW | ELECTRIC_PUMP_CHARGE | P05 | 2Action.002",
+        "FLOW | ELECTRIC_PUMP_CHARGE | P06 | 1Action.002",
+        "FLOW | ELECTRIC_PUMP_CHARGE | P06 | 2Action.002",
+        "FLOW | ELECTRIC_PUMP_CHARGE | P07 | 1Action.002",
+        "FLOW | ELECTRIC_PUMP_CHARGE | P07 | 2Action.002",
+        "FLOW | ELECTRIC_PUMP_CHARGE | P08 | 1Action.002",
+        "FLOW | ELECTRIC_PUMP_CHARGE | P08 | 2Action.002",
+        "FLOW | ELECTRIC_PUMP_CHARGE | P09 | 1Action.002",
+        "FLOW | ELECTRIC_PUMP_CHARGE | P09 | 2Action.002",
+        "FLOW | ELECTRIC_PUMP_CHARGE | P10 | 1Action.002",
+        "FLOW | ELECTRIC_PUMP_CHARGE | P10 | 2Action.002",
+        "FLOW | HANDPUMP_PRESSURIZATION | P07 | 1Action.002",
+        "FLOW | HANDPUMP_PRESSURIZATION | P07 | 2Action.002",
+        "FLOW | HANDPUMP_PRESSURIZATION | P08 | 1Action.002",
+        "FLOW | HANDPUMP_PRESSURIZATION | P08 | 2Action.002",
+        "FLOW | HANDPUMP_PRESSURIZATION | P09 | 1Action.002",
+        "FLOW | HANDPUMP_PRESSURIZATION | P09 | 2Action.002",
+        "FLOW | HANDPUMP_PRESSURIZATION | P10 | 1Action.002",
+        "FLOW | HANDPUMP_PRESSURIZATION | P10 | 2Action.002",
+        "FLOW | HANDPUMP_PRESSURIZATION | P17 | 1Action.002",
+        "FLOW | HANDPUMP_PRESSURIZATION | P17 | 2Action.002",
+        "FLOW | HANDPUMP_PRESSURIZATION | P18 | 1Action.002",
+        "FLOW | HANDPUMP_PRESSURIZATION | P18 | 2Action.002",
+        "FLOW | HANDPUMP_PRESSURIZATION | P19 | 1Action.002",
+        "FLOW | HANDPUMP_PRESSURIZATION | P19 | 2Action.002",
+        "FLOW | HANDPUMP_PRESSURIZATION | P20 | 1Action.002",
+        "FLOW | HANDPUMP_PRESSURIZATION | P20 | 2Action.002",
+        "FLOW | SYSTEM_ACCUMULATOR_CIRCULATION | P07 | 1Action.002",
+        "FLOW | SYSTEM_ACCUMULATOR_CIRCULATION | P07 | 2Action.002",
+        "FLOW | SYSTEM_ACCUMULATOR_CIRCULATION | P16 | 1Action.002",
+        "FLOW | SYSTEM_ACCUMULATOR_CIRCULATION | P16 | 2Action.002",
+        "FLOW | SYSTEM_ACCUMULATOR_CIRCULATION | P17 | 1Action.002",
+        "FLOW | SYSTEM_ACCUMULATOR_CIRCULATION | P17 | 2Action.002",
+        "FLOW | SYSTEM_ACCUMULATOR_CIRCULATION | P21 | 1Action.002",
+        "FLOW | SYSTEM_ACCUMULATOR_CIRCULATION | P21 | 2Action.002",
+        "FLOW | SYSTEM_RELIEF_FLOW | P01 | 1Action.002",
+        "FLOW | SYSTEM_RELIEF_FLOW | P01 | 2Action.002",
+        "FLOW | SYSTEM_RELIEF_FLOW | P02 | 1Action.002",
+        "FLOW | SYSTEM_RELIEF_FLOW | P02 | 2Action.002",
+        "FLOW | SYSTEM_RELIEF_FLOW | P03 | 1Action.002",
+        "FLOW | SYSTEM_RELIEF_FLOW | P03 | 2Action.002",
+        "FLOW | SYSTEM_RELIEF_FLOW | P12 | 1Action.002",
+        "FLOW | SYSTEM_RELIEF_FLOW | P12 | 2Action.002",
+        "FLOW | SYSTEM_RELIEF_FLOW | P13 | 1Action.002",
+        "FLOW | SYSTEM_RELIEF_FLOW | P13 | 2Action.002",
+        "FLOW | SYSTEM_RELIEF_FLOW | P16 | 1Action.002",
+        "FLOW | SYSTEM_RELIEF_FLOW | P16 | 2Action.002"
+      ],
+      "extensionsUsed": [
+        "KHR_materials_emissive_strength"
+      ],
+      "clipGroups": {
+        "Electric pump charge": [
+          "~ELECTRIC_PUMP_CHARGE"
+        ],
+        "System accumulator circulation": [
+          "~SYSTEM_ACCUMULATOR_CIRCULATION"
+        ],
+        "System relief flow": [
+          "~SYSTEM_RELIEF_FLOW"
+        ],
+        "Brake accumulator discharge": [
+          "~BRAKE_ACCUMULATOR_DISCHARGE"
+        ],
+        "Brake relief flow": [
+          "~BRAKE_RELIEF_FLOW"
+        ],
+        "Hand-pump pressurisation": [
+          "~HANDPUMP_PRESSURIZATION"
+        ]
+      },
+      "parts": {
+        "reservoir": [
+          "~RESERVOIR"
+        ],
+        "pressure_switch": [
+          "~Pressure switch",
+          "~PRESSURE_SWITCH"
+        ],
+        "dc_motor": [
+          "~MOTOR"
+        ],
+        "hydraulic_pump": [
+          "~PUMP"
+        ],
+        "relief_valves": [
+          "~RELIEF",
+          "~CHECK_VALVE",
+          "~NEEDLE",
+          "~N2 service valve",
+          "~VALVES_GAUGES"
+        ],
+        "flap_accumulator": [
+          "~SYSTEM_ACCUMULATOR",
+          "~DAMPING",
+          "~ACCUM_CLAMP_DAMPING"
+        ],
+        "brake_accumulator": [
+          "~BRAKE_ACCUM",
+          "~^BRAKE \\|",
+          "~ACCUM_CLAMP_BRAKE"
+        ],
+        "filter": [
+          "~FILTER",
+          "~Filter"
+        ],
+        "plumbing": [
+          "~^PORT",
+          "~^UNION",
+          "~^JUNCTION",
+          "~PIPE_NETWORK",
+          "~^P\\d\\d ",
+          "~^R8F_FIT"
+        ]
+      },
+      "extraParts": [
+        {
+          "id": "gauges",
+          "label": "Gauges and dials",
+          "selectors": [
+            "~GAUGE",
+            "~Gauge",
+            "~^DIAL"
+          ]
+        },
+        {
+          "id": "tray",
+          "label": "Mounting tray",
+          "selectors": [
+            "~TRAY"
+          ]
+        },
+        {
+          "id": "labels",
+          "label": "Port labels",
+          "selectors": [
+            "~^LABEL"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "flap-system",
+      "file": "DHC6_FLAP_SYSTEM_REPLICA.glb",
+      "source": "reference-library",
+      "title": "Flap actuator and selector valve (C6HF1020-5 / C6CF1502-1)",
+      "shortTitle": "Flap system",
+      "description": "Flap hydraulic actuator with piston rod travel and the installed selector valve: poppets, camshaft, hydraulic port face, and the 2:1 epicyclic follow-up mechanism with input and follow-up pulleys.",
+      "primaryFor": [
+        "FLIGHT_CONTROLS"
+      ],
+      "alternateFor": [],
+      "hidden": [
+        "~^SRCFOWLER__",
+        "~^(Head|Torso|Pelvis|Larm|Rarm|Lforearm|Rforearm|Lthigh|Rthigh|headset|glasses|MN|n1f|gmt|et|ModeSwitch)\\.\\d{3}$",
+        "~^(ctl22|ctl62|OP\\.ind|click-bug|lh-audio-breaker)"
+      ],
+      "clips": {
+        "FLAPS_DOWN_EXTENSION_AND_FOLLOW_UP_NEUTRAL": "Flaps down (extension, follow-up to neutral)",
+        "FLAPS_UP_RETRACTION_AND_FOLLOW_UP_NEUTRAL": "Flaps up (retraction, follow-up to neutral)",
+        "NEUTRAL_ALL_PORTS_BLOCKED.001": "Neutral — all ports blocked"
+      },
+      "groups": [
+        "ACTUATOR_ASSEMBLY_GROUP",
+        "C6CF1502_1_SELECTOR_VALVE_INSTALLED_GROUP"
+      ],
+      "mediaPath": "models/systems-lab/DHC6_FLAP_SYSTEM_REPLICA.glb",
+      "bytes": 6951408,
+      "sha256": "10a1e45f35488c87c1adc349e3152237d0d99d0ac245f2703e86f5dd7a0e0d60",
+      "nodes": 798,
+      "meshes": 608,
+      "triangles": 163542,
+      "animations": [
+        "ACTUATOR_FOLLOW_UP_CANCELS_INPUT_TO_NEUTRAL.001",
+        "FLAPS_DOWN_INPUT_P_TO_C1_C2_TO_R.001",
+        "FLAPS_UP_INPUT_P_TO_C2_C1_TO_R.001",
+        "NEUTRAL_ALL_PORTS_BLOCKED.003",
+        "FULL_STROKE_CYCLE_3_4_IN.001",
+        "FULLY_EXTENDED_3_4_IN.001",
+        "FULLY_RETRACTED.001",
+        "FLAPS_DOWN_EXTENSION_AND_FOLLOW_UP_NEUTRAL.001",
+        "FLAPS_UP_RETRACTION_AND_FOLLOW_UP_NEUTRAL.001",
+        "NEUTRAL_ALL_PORTS_BLOCKED.002",
+        "R6_ONLY_ACTIVE__ACTUATOR_PISTON_ROD_TRAVEL_3_4_IN.001",
+        "R6_ONLY_ACTIVE__POPPET_04_MOTION.002",
+        "R6_ONLY_ACTIVE__POPPET_13_MOTION.002",
+        "R6_ONLY_ACTIVE__POPPET_22_MOTION.002",
+        "R6_ONLY_ACTIVE__POPPET_32_MOTION.002",
+        "R6_ONLY_ACTIVE__C6CF1052_11_SPIDER_CARRIER_MOTION.002",
+        "R6_ONLY_ACTIVE__FOLLOW_UP_PULLEY_B_MOTION.002",
+        "R6_ONLY_ACTIVE__INPUT_PULLEY_A_MOTION.002",
+        "R6_ONLY_ACTIVE__SKD1440_1_CAMSHAFT_MOTION.002",
+        "R6_ONLY_ACTIVE_LEFT_FLAP_PIVOT",
+        "R6_ONLY_ACTIVE_RIGHT_FLAP_PIVOT"
+      ],
+      "extensionsUsed": [],
+      "clipGroups": {},
+      "parts": {
+        "surface_flap": [
+          "ACTUATOR_ASSEMBLY_GROUP",
+          "~^ACTUATOR_",
+          "~^JET_RESTRICTOR",
+          "~^END_FITTING"
+        ],
+        "control_column": [],
+        "control_pedals": [],
+        "control_interlink": [],
+        "cable_aileron_run": [],
+        "cable_elevator_run": [],
+        "cable_rudder_run": [],
+        "surface_aileron": [],
+        "surface_elevator": [],
+        "surface_rudder": [],
+        "tab_": []
+      },
+      "extraParts": [
+        {
+          "id": "selector_valve",
+          "label": "Selector valve body and port face",
+          "selectors": [
+            "C6CF1502_1_FIXED_VALVE_STRUCTURE",
+            "HYDRAULIC_PORT_FACE_ASSEMBLY",
+            "~^SFD1439",
+            "~^C1_FLAPS_DOWN",
+            "~^C2_FLAPS_UP",
+            "~^P_PRESSURE_PORT",
+            "~^R_RETURN_PORT",
+            "SELECTOR_VALVE_TO",
+            "~^SIDE_SERVICE_BOSS",
+            "~^CAMSHAFT_BORE",
+            "~^NASM20995"
+          ]
+        },
+        {
+          "id": "poppets",
+          "label": "Poppet valves",
+          "selectors": [
+            "~POPPET"
+          ]
+        },
+        {
+          "id": "camshaft",
+          "label": "Camshaft",
+          "selectors": [
+            "SKD1440_1_CAMSHAFT_MOTION",
+            "~CAMSHAFT",
+            "~TWO_LOBE_CAM"
+          ]
+        },
+        {
+          "id": "follow_up",
+          "label": "Epicyclic follow-up (2:1) and pulleys",
+          "selectors": [
+            "EPICYCLIC_GEAR_MECHANISM_2_TO_1",
+            "~PULLEY",
+            "~SPIDER",
+            "~PLANET",
+            "~C6CF1503_29_GEAR",
+            "~C6CF1503_31_GEAR",
+            "~^110_53"
+          ]
+        },
+        {
+          "id": "piston_rod",
+          "label": "Actuator piston rod (3/4 in travel)",
+          "selectors": [
+            "ACTUATOR_PISTON_ROD_TRAVEL_3_4_IN",
+            "~^ACTUATOR_PISTON",
+            "~^ACTUATOR_END_FITTING",
+            "~^END_FITTING_ITEM",
+            "~^ACTUATOR_HOLLOW_PISTON",
+            "~^ACTUATOR_HIDDEN_PISTON",
+            "~^ACTUATOR_LOCKRING"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "trim-control",
+      "file": "DHC6_TRIM_REPLICA.glb",
+      "source": "reference-library",
+      "title": "Elevator and rudder trim control",
+      "shortTitle": "Trim control",
+      "description": "Cockpit trim control assembly: elevator and rudder trim handwheels, spiral drums, cable windings, pointers and the fixed frame.",
+      "primaryFor": [],
+      "alternateFor": [
+        "FLIGHT_CONTROLS"
+      ],
+      "hidden": [],
+      "clips": {
+        "ELEVATOR_TRIM_MINIMUM_TWO_TURNS_EACH_DIRECTION": "Elevator trim (two turns each way)",
+        "RUDDER_TRIM_MINIMUM_TWO_TURNS_EACH_DIRECTION": "Rudder trim (two turns each way)"
+      },
+      "groups": [
+        "COMPLETE_TRIM_CONTROL_ASSEMBLY"
+      ],
+      "mediaPath": "models/systems-lab/DHC6_TRIM_REPLICA.glb",
+      "bytes": 1659004,
+      "sha256": "411cc1c55c47ac014cbd04e733124dfb6a364c3ce7abb1e51299a0dbb55466b8",
+      "nodes": 537,
+      "meshes": 516,
+      "triangles": 28590,
+      "animations": [
+        "ELEVATOR_TRIM_MINIMUM_TWO_TURNS_EACH_DIRECTION.001",
+        "TRIM_QA_BOTH_SYSTEMS_DEFAULT.001",
+        "RUDDER_TRIM_MINIMUM_TWO_TURNS_EACH_DIRECTION.001"
+      ],
+      "extensionsUsed": [],
+      "clipGroups": {},
+      "parts": {
+        "tab_": [
+          "COMPLETE_ELEVATOR_POINTER_MOTION",
+          "COMPLETE_RUDDER_POINTER_MOTION",
+          "~^COMPLETE_ELEVATOR_POINTER",
+          "~^COMPLETE_RUDDER_POINTER"
+        ],
+        "cable_elevator_run": [
+          "~^COMPLETE_ELEVATOR_CABLE"
+        ],
+        "cable_rudder_run": [
+          "~^COMPLETE_RUDDER_CABLE"
+        ],
+        "control_interlink": [
+          "COMPLETE_FIXED_FRAME"
+        ],
+        "surface_elevator": [
+          "COMPLETE_ELEVATOR_ROTATING_ASSEMBLY",
+          "~^COMPLETE_ELEVATOR_HANDWHEEL",
+          "~^COMPLETE_ELEVATOR_SPIRAL",
+          "~^COMPLETE_ELEVATOR_SHAFT",
+          "~^COMPLETE_ELEVATOR_ROLL"
+        ],
+        "surface_rudder": [
+          "COMPLETE_RUDDER_ROTATING_ASSEMBLY",
+          "~^COMPLETE_RUDDER_HANDWHEEL",
+          "~^COMPLETE_RUDDER_SPIRAL",
+          "~^COMPLETE_RUDDER_SHAFT",
+          "~^COMPLETE_RUDDER_ROLL"
+        ]
+      },
+      "extraParts": [
+        {
+          "id": "elevator_trim",
+          "label": "Elevator trim wheel, drum and cables",
+          "selectors": [
+            "~^COMPLETE_ELEVATOR"
+          ]
+        },
+        {
+          "id": "rudder_trim",
+          "label": "Rudder trim wheel, drum and cables",
+          "selectors": [
+            "~^COMPLETE_RUDDER"
+          ]
+        },
+        {
+          "id": "trim_frame",
+          "label": "Fixed frame and mounts",
+          "selectors": [
+            "COMPLETE_FIXED_FRAME",
+            "~^COMPLETE_FRAME",
+            "~^COMPLETE_LEFT_",
+            "~^COMPLETE_RIGHT_"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "air-conditioning",
+      "file": "AIR-CONDITIONNG.glb",
+      "source": "reference-library",
+      "title": "Air-conditioning installation (vapour-cycle)",
+      "shortTitle": "Air conditioning",
+      "description": "Vapour-cycle air-conditioning installation grouped by air handling, electrical, refrigerant lines, refrigeration components, structure and fuselage station references.",
+      "primaryFor": [
+        "AIR_CONDITIONING"
+      ],
+      "alternateFor": [],
+      "hidden": [],
+      "clips": {},
+      "groups": [
+        "AC_GRP_AirHandling",
+        "AC_GRP_Electrical",
+        "AC_GRP_RefrigerantLines",
+        "AC_GRP_Refrigeration",
+        "AC_GRP_StationReferences",
+        "AC_GRP_Structure"
+      ],
+      "mediaPath": "models/systems-lab/AIR-CONDITIONNG.glb",
+      "bytes": 1600120,
+      "sha256": "22146e6333130fb63a3f69bd1c169c47a7c834b21592ef1eedceabac558257ba",
+      "nodes": 54,
+      "meshes": 41,
+      "triangles": 21324,
+      "animations": [],
+      "extensionsUsed": [],
+      "clipGroups": {},
+      "parts": {
+        "structure": [
+          "AC_GRP_Structure",
+          "AC_Aft_Frame",
+          "AC_Compartment_Floor",
+          "AC_Forward_Bulkhead",
+          "AC_Fuselage_Skin",
+          "AC_GRP_StationReferences",
+          "AC_REF_Station"
+        ],
+        "ducting": [
+          "AC_Main_Duct",
+          "AC_Air_Exhaust_Duct",
+          "AC_Return_Air_Grille"
+        ],
+        "evaporator": [
+          "AC_Evaporator"
+        ],
+        "condenser": [
+          "AC_Condenser"
+        ],
+        "compressor": [
+          "=AC_Compressor",
+          "AC_Compressor_Drive_Coupling",
+          "AC_Compressor_MountRail"
+        ],
+        "compressor_motor": [
+          "AC_Compressor_Motor"
+        ],
+        "receiver_dryer": [
+          "AC_Receiver_Dryer"
+        ],
+        "expansion_valve": [
+          "AC_ExpansionValve_TXV"
+        ],
+        "controls_service": [
+          "AC_Pressure_Switch",
+          "AC_Thermostat_Switch",
+          "AC_Service_Connections"
+        ],
+        "electrical_controls": [
+          "AC_CircuitBreaker_Relay_Panel",
+          "AC_Wiring_Harness",
+          "AC_GRP_Electrical"
+        ],
+        "refrigerant_lines": [
+          "AC_Line",
+          "AC_GRP_RefrigerantLines"
+        ]
+      },
+      "extraParts": []
+    },
+    {
+      "id": "bleed-valve",
+      "file": "DHC6_PT6A27_BLEED_VALVE_REPLICA.glb",
+      "source": "reference-library",
+      "title": "PT6A-27 compressor bleed valve",
+      "shortTitle": "Compressor bleed valve",
+      "description": "Compressor bleed valve master: fixed valve structure with cover, metering/convergent/divergent orifice displays, P3 guide tube, moving piston-diaphragm assembly and the P2.5 / P3 / ambient connection points.",
+      "primaryFor": [
+        "AIR_SYSTEMS"
+      ],
+      "alternateFor": [],
+      "hidden": [],
+      "clips": {
+        "BLEED_VALVE_NORMALIZED_OPERATION.001": "Bleed valve operation (normalised)"
+      },
+      "groups": [
+        "CONNECTION_POINTS",
+        "FIXED_VALVE_STRUCTURE",
+        "MOVING_PISTON_DIAPHRAGM_ASSEMBLY"
+      ],
+      "mediaPath": "models/systems-lab/DHC6_PT6A27_BLEED_VALVE_REPLICA.glb",
+      "bytes": 1068252,
+      "sha256": "d8401f6b35d7c74cdaaffb8b8ada82c228e1b6d471d5dda847bf776401f0bfde",
+      "nodes": 67,
+      "meshes": 51,
+      "triangles": 22996,
+      "animations": [
+        "BLEED_VALVE_NORMALIZED_OPERATION"
+      ],
+      "extensionsUsed": [],
+      "clipGroups": {},
+      "parts": {
+        "valve_housing": [
+          "FIXED_VALVE_STRUCTURE",
+          "HOUSING_SHELL_SOURCE_PROPORTION_DERIVED",
+          "COVER",
+          "COVER_RIM",
+          "MOUNTING_FLANGE",
+          "ATMOSPHERIC_DISCHARGE_BOSS"
+        ],
+        "piston_assembly": [
+          "MOVING_PISTON_DIAPHRAGM_ASSEMBLY",
+          "PISTON",
+          "PISTON_SUPPORT_PLATE",
+          "ROLLING_DIAPHRAGM_MOVING",
+          "GUIDE_SLEEVE",
+          "MECHANISM_AXIS_PISTON_GUIDE"
+        ],
+        "main_spring": [],
+        "lower_spring": [],
+        "guide_and_seats": [
+          "GUIDE_PIN",
+          "P3_GUIDE_TUBE",
+          "GUIDE_SLEEVE",
+          "MECHANISM_AXIS_PISTON_GUIDE"
+        ],
+        "backing_disc": [
+          "ROLLING_DIAPHRAGM_FIXED",
+          "~DIAPHRAGM"
+        ],
+        "pressure_paths": [
+          "CONNECTION_POINTS",
+          "~CONNECTION_POINT",
+          "~ORIFICE",
+          "P3_ALIGNMENT_SPRING_PIN",
+          "P3_PRIMARY_METERING_BOSS",
+          "PRIMARY_METERING_PLUG",
+          "PRESSURE_CHECK_PLUG",
+          "ALIGNMENT_POINT_HOLLOW_SPRING_PIN_P3_PASSAGE",
+          "~^P3_",
+          "~^PX_"
+        ]
+      },
+      "extraParts": []
+    },
+    {
+      "id": "fuel-heater",
+      "file": "DHC6_PTA27_OIL_TO_FUEL_HEATER_MASTER.glb",
+      "source": "reference-library",
+      "title": "Oil-to-fuel heater (10544 series)",
+      "shortTitle": "Fuel heater",
+      "description": "Oil-to-fuel heater with the internal heat-exchange matrix, thermal bypass control (capsule, piston, return spring), three-point mounting, oil transfer tubes and heater-to-fuel-pump transfer assembly.",
+      "primaryFor": [
+        "ENGINE_FUEL_CONTROL"
+      ],
+      "alternateFor": [],
+      "hidden": [],
+      "clips": {
+        "Animation.001": "Thermal bypass operation"
+      },
+      "groups": [
+        "HEATER_ITEM_70_COMPLETE_ASSEMBLY",
+        "ITEM_10_3016175_TWO_HOLE_ELBOW_ASSEMBLY",
+        "ITEM_50_3014897_HEATER_TO_FUEL_PUMP_TRANSFER_ASSEMBLY",
+        "ITEM_100_3014909_OIL_TRANSFER_TUBES_ASSEMBLY",
+        "NONPHYSICAL_OPERATION_VISUALIZATION_GROUP"
+      ],
+      "mediaPath": "models/systems-lab/DHC6_PTA27_OIL_TO_FUEL_HEATER_MASTER.glb",
+      "bytes": 5461340,
+      "sha256": "6edfb51d56f6c5a6bae3b306455b55ed535d61a3778b94ba2f38b1ab7129113a",
+      "nodes": 293,
+      "meshes": 255,
+      "triangles": 86200,
+      "animations": [
+        "Animation.001"
+      ],
+      "extensionsUsed": [],
+      "clipGroups": {},
+      "parts": {
+        "housing_cutaway": [
+          "HEATER_MAIN_BODY_SOURCE_PROPORTION_DERIVED",
+          "HEATER_BODY_SERVICE_SEAM",
+          "HEATER_ITEM_70_COMPLETE_ASSEMBLY",
+          "HEAT_EXCHANGE_MATRIX_CYLINDRICAL_SUPPORT"
+        ],
+        "mounting_service": [
+          "HEATER_THREE_POINT_ATTACHMENT",
+          "HEATER_MOUNTING_CRADLE_SOURCE_PROPORTION_DERIVED",
+          "~^ITEM_80_",
+          "~^ITEM_90_",
+          "LARGE_EXTERNAL_HEX_PORT_FUNCTION_SOURCE_BLOCKED",
+          "~^LARGE_EXTERNAL_PORT"
+        ],
+        "fuel_inlet": [
+          "FUEL_PUMP_INTERFACE_REFERENCE",
+          "ITEM_50_3014897_HEATER_TO_FUEL_PUMP_TRANSFER_ASSEMBLY",
+          "~^ITEM_50_",
+          "~^ITEM_60_"
+        ],
+        "fuel_coil": [
+          "INTERNAL_HEAT_EXCHANGE_MATRIX_ASSEMBLY",
+          "~^HEAT_EXCHANGE_MATRIX"
+        ],
+        "fuel_outlet": [
+          "FUEL_FLOW_HEATER_TO_PUMP_CONTROL",
+          "FUEL_TRANSFER_CONNECTION_TO_PUMP",
+          "~^FUEL_TRANSFER_PORT",
+          "~^FUEL_FLOW_HEATER"
+        ],
+        "oil_inlet": [
+          "~^ENGINE_OIL_INTERFACE",
+          "~^OIL_TRANSFER",
+          "ITEM_100_3014909_OIL_TRANSFER_TUBES_ASSEMBLY",
+          "~^ITEM_100_",
+          "~^ITEM_110_",
+          "ITEM_10_3016175_TWO_HOLE_ELBOW_ASSEMBLY",
+          "~^ITEM_10_",
+          "~^ITEM_20_",
+          "~^ITEM_30_",
+          "~^ITEM_40_"
+        ],
+        "oil_tube_bundle": [
+          "OIL_FLOW_THROUGH_HEAT_EXCHANGE_CORE_CONTROL",
+          "~^OIL_FLOW_CORE"
+        ],
+        "bypass_spool": [
+          "THERMAL_BYPASS_CONTROL_ASSEMBLY",
+          "~^THERMAL_BYPASS",
+          "~^BYPASS_CONTROL",
+          "~^BYPASS_RETURN_SPRING",
+          "~^THERMAL_CAPSULE",
+          "OIL_BYPASS_FLOW_CONTROL",
+          "~^OIL_FLOW_BYPASS"
+        ],
+        "drain_valve": []
+      },
+      "extraParts": []
+    },
+    {
+      "id": "engine-fuel-pump",
+      "file": "DHC6_PT6A27_FUEL_PUMP_MASTER.glb",
+      "source": "reference-library",
+      "title": "PT6A-27 engine-driven fuel pump",
+      "shortTitle": "Engine fuel pump",
+      "description": "Engine-driven gear-type fuel pump: inlet strainer, gear train, 10-micron outlet filter with bypass, regulating valve, bearings and the FCU/accessory-gearbox mounting, with fuel-flow overlay animations.",
+      "primaryFor": [],
+      "alternateFor": [
+        "ENGINE_FUEL_CONTROL"
+      ],
+      "hidden": [],
+      "clips": {},
+      "groups": [
+        "NONPHYSICAL_TRAINING_VISUALIZATION_GROUP",
+        "ROTATING_GEAR_TRAIN"
+      ],
+      "mediaPath": "models/systems-lab/DHC6_PT6A27_FUEL_PUMP_MASTER.glb",
+      "bytes": 1265376,
+      "sha256": "1a9722e1d3e1cea29c2cd381e931498962ce4125affcbd2b3759d3ee2dd8b8ff",
+      "nodes": 276,
+      "meshes": 252,
+      "triangles": 42504,
+      "animations": [
+        "FUEL_PUMP_OPERATION__FUEL_FLOW_OVERLAY_01_SCREENED_INLET_FROM_HEATER_CONTROL",
+        "FUEL_PUMP_OPERATION__FUEL_FLOW_OVERLAY_02_SCREEN_TO_GEAR_INLET_CONTROL",
+        "FUEL_PUMP_OPERATION__FUEL_FLOW_OVERLAY_03_GEAR_DISCHARGE_TO_10_MICRON_FILTER_CONTROL",
+        "FUEL_PUMP_OPERATION__FUEL_FLOW_OVERLAY_04_FILTERED_OUTLET_TO_FCU_CONTROL",
+        "FUEL_PUMP_OPERATION__FUEL_FLOW_OVERLAY_05_FCU_BYPASS_RETURN_TO_GEAR_INLET_CONTROL",
+        "FUEL_PUMP_OPERATION__FUEL_FLOW_OVERLAY_06_FILTER_BYPASS_TO_FCU_CONTROL",
+        "FUEL_PUMP_OPERATION__FUEL_FLOW_OVERLAY_07_REGULATING_VALVE_SUPPLY_CONTROL",
+        "FUEL_PUMP_OPERATION__FUEL_FLOW_OVERLAY_08_REGULATING_RETURN_DOWNSTREAM_OF_SCREEN_CONTROL",
+        "FUEL_PUMP_OPERATION__FUEL_FLOW_OVERLAY_09_DRIVE_BEARING_PRESSURE_FEED_CONTROL",
+        "FUEL_PUMP_OPERATION__FUEL_FLOW_OVERLAY_10_DRIVEN_BEARING_PRESSURE_FEED_CONTROL",
+        "FUEL_PUMP_OPERATION__INLET_SCREEN_BYPASS_1_5_PSID_CONDITION_CONTROL",
+        "FUEL_PUMP_OPERATION__OUTLET_FILTER_BYPASS_20_PSID_CONDITION_CONTROL",
+        "FUEL_PUMP_OPERATION__FUEL_PUMP_DRIVE_GEAR_SPIN",
+        "FUEL_PUMP_OPERATION__FUEL_PUMP_DRIVEN_GEAR_SPIN"
+      ],
+      "extensionsUsed": [],
+      "clipGroups": {
+        "Fuel flow overlays": [
+          "~^FUEL_PUMP_OPERATION__FUEL_FLOW_OVERLAY"
+        ],
+        "Inlet screen bypass (1.5 psid)": [
+          "~INLET_SCREEN_BYPASS"
+        ],
+        "Outlet filter bypass (20 psid)": [
+          "~OUTLET_FILTER_BYPASS"
+        ],
+        "Gear train": [
+          "~GEAR_SPIN$"
+        ]
+      },
+      "parts": {
+        "housing_cutaway": [
+          "COMPLETE_FIXED_CASTING",
+          "~^CAST_STIFFENING_RIB",
+          "COMPLETE_ASSEMBLY"
+        ],
+        "mounting_service": [
+          "ACCESSORY_GEARBOX_MOUNT_FLANGE",
+          "~^FCU_MOUNT_STUD",
+          "FCU_MATING_FACE",
+          "~^CARBON_SEAL"
+        ],
+        "fuel_inlet": [
+          "~^INLET_STRAINER",
+          "~FUEL_FLOW_OVERLAY_01",
+          "~FUEL_FLOW_OVERLAY_02",
+          "~INLET_SCREEN_BYPASS"
+        ],
+        "fuel_coil": [],
+        "fuel_outlet": [
+          "~^TEN_MICRON_OUTLET",
+          "~FUEL_FLOW_OVERLAY_03",
+          "~FUEL_FLOW_OVERLAY_04",
+          "~OUTLET_FILTER_BYPASS",
+          "~^UPPER_FILTER_GALLERY",
+          "~^LOWER_FILTER_COVER",
+          "~^FILTER_BYPASS"
+        ],
+        "oil_inlet": [],
+        "oil_tube_bundle": [],
+        "bypass_spool": [
+          "~^BYPASS_REGULATING_VALVE",
+          "BYPASS_VALVE_GALLERY",
+          "~^REGULATING_SPRING",
+          "~FUEL_FLOW_OVERLAY_05",
+          "~FUEL_FLOW_OVERLAY_06",
+          "~FUEL_FLOW_OVERLAY_07",
+          "~FUEL_FLOW_OVERLAY_08"
+        ],
+        "drain_valve": []
+      },
+      "extraParts": [
+        {
+          "id": "gear_train",
+          "label": "Rotating gear train",
+          "selectors": [
+            "ROTATING_GEAR_TRAIN",
+            "~GEAR_SPIN",
+            "~^PUMP_DRIVE",
+            "~^PUMP_DRIVEN",
+            "~^DRIVEN_",
+            "~^INPUT_"
+          ]
+        },
+        {
+          "id": "bearings",
+          "label": "Pressure-loaded bushings and springs",
+          "selectors": [
+            "~BUSHING",
+            "~FUEL_FLOW_OVERLAY_09",
+            "~FUEL_FLOW_OVERLAY_10"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fcu",
+      "file": "DHC6_PT6A27_FCU_REPLICA.glb",
+      "source": "reference-library",
+      "title": "PT6A-27 fuel control unit (FCU) replica",
+      "shortTitle": "Fuel control unit",
+      "description": "Bendix-type FCU with exterior casting, bellows computing section, hydraulic section (metering, bypass and high-pressure relief valves), Ng governor section, pneumatic pressure section and the power-arm installation.",
+      "primaryFor": [],
+      "alternateFor": [
+        "ENGINE_CONTROLS",
+        "ENGINE_FUEL_CONTROL"
+      ],
+      "hidden": [
+        "=FCU_ARCHIVE_R5",
+        "=FCU_ARCHIVE_USER_PARTS_NOT_FITTED",
+        "~ARCHIVE",
+        "~NOT_IN_SOURCE",
+        "~REPLACED_BY",
+        "~DONOR",
+        "~INSTALL_REF",
+        "~REVIEW_LABELS",
+        "~_HEADING$"
+      ],
+      "clips": {
+        "FCU_MASTER_CORRECTED_COMBINED_OPERATION": "Combined FCU operation",
+        "FCU_R5_NG_GOVERNOR_CORRECTED": "Ng governor"
+      },
+      "groups": [
+        "FCU_DP_F2_ASSEMBLY",
+        "FCU_R5_EXTERIOR_CASTING",
+        "FCU_INTERNAL_SOURCE_RELATIONSHIP_SECTION",
+        "FCU_POWER_ARM_INSTALLATION",
+        "NEW_CASE_FCU_ROOT",
+        "FCU_ARCHIVE_R5"
+      ],
+      "mediaPath": "models/systems-lab/DHC6_PT6A27_FCU_REPLICA.glb",
+      "bytes": 3813364,
+      "sha256": "b47e95724830e960b301d2f4971e45568c5a10639b40bb62c76e2b7a76f5403d",
+      "nodes": 252,
+      "meshes": 216,
+      "triangles": 56645,
+      "animations": [
+        "FCU_MASTER_CORRECTED_COMBINED_OPERATION",
+        "FCU_R5_NG_GOVERNOR_CORRECTED"
+      ],
+      "extensionsUsed": [
+        "KHR_materials_unlit"
+      ],
+      "clipGroups": {},
+      "parts": {
+        "fcu_unit": [
+          "FCU_R5_EXTERIOR_CASTING",
+          "~^FCU_MAIN_BODY",
+          "~^FCU_DRIVE_BODY",
+          "~^FCU_FUEL_DELIVERY",
+          "~^FCU_CAM_BOX",
+          "~^FCU_FUEL_PUMP",
+          "~^FCU_REGULATOR_HOUSING",
+          "FCU_HYDRAULIC_SECTION",
+          "~^FCU_METERING_VALVE",
+          "~^FCU_BYPASS",
+          "~^FCU_HIGH_PRESSURE",
+          "~^NEW_CASE_FCU"
+        ],
+        "fuel_topping_governor": [
+          "FCU_NG_GOVERNOR_SECTION",
+          "~^FCU_NG_GOVERNOR",
+          "~^FCU_GOVERNOR",
+          "~^FCU_SPEED",
+          "~^FCU_ENRICHMENT",
+          "~^FCU_CAM_FOLLOWER",
+          "~^FCU_IDLE_SPEED"
+        ],
+        "air_fuel_signals": [
+          "FCU_PNEUMATIC_PRESSURE_SECTION",
+          "~^FCU_P3",
+          "~^FCU_PX",
+          "~^FCU_PY",
+          "~^FCU_BELLOWS",
+          "~^FCU_ATMOSPHERIC_VENT",
+          "FCU_INTERNAL_CONNECTION_DATUMS",
+          "~^FCU_P0",
+          "~^FCU_P1",
+          "~^FCU_P2",
+          "~^FCU_TORQUE_TUBE",
+          "~^FCU_ACCELERATION"
+        ],
+        "power_lever_linkage": [
+          "FCU_POWER_ARM_INSTALLATION",
+          "~^ITEM_123",
+          "~^ITEM_124",
+          "~^ITEM_125"
+        ],
+        "primary_governor": [],
+        "pilot_valve": [],
+        "beta_valve": [],
+        "overspeed_governor": [],
+        "overspeed_drain": [],
+        "test_solenoid": [],
+        "flyweight_head": [
+          "~^FCU_NG_GOVERNOR_WEIGHT"
+        ],
+        "speeder_spring": [],
+        "beta_backup_slipring": [],
+        "beta_backup_solenoid": [],
+        "oil_circuits": [],
+        "housing_cutaway": [
+          "FCU_R5_EXTERIOR_CASTING",
+          "~^NEW_CASE_FCU"
+        ],
+        "fuel_inlet": [
+          "~^FCU_P1_PUMP"
+        ],
+        "fuel_outlet": [
+          "~^FCU_P2_METERED",
+          "~^FCU_FUEL_DELIVERY"
+        ],
+        "bypass_spool": [
+          "~^FCU_BYPASS"
+        ],
+        "mounting_service": [
+          "~^ITEM_",
+          "~^FCU_DRIVE_BODY"
+        ]
+      },
+      "extraParts": [
+        {
+          "id": "bellows",
+          "label": "Bellows computing section",
+          "selectors": [
+            "FCU_BELLOWS_COMPUTING_SECTION",
+            "~^FCU_BELLOWS",
+            "~^FCU_ACCELERATION_BELLOWS",
+            "~^FCU_GOVERNOR_BELLOWS",
+            "~^FCU_TORQUE_TUBE"
+          ]
+        },
+        {
+          "id": "hydraulic_section",
+          "label": "Hydraulic section (metering, bypass, relief)",
+          "selectors": [
+            "FCU_HYDRAULIC_SECTION",
+            "~^FCU_METERING",
+            "~^FCU_BYPASS",
+            "~^FCU_HIGH_PRESSURE"
+          ]
+        },
+        {
+          "id": "compressor_delivery",
+          "label": "Compressor delivery (post SB1123)",
+          "selectors": [
+            "FCU_COMPRESSOR_DELIVERY_CONFIGURATION_POST_SB1123",
+            "~^ITEM_4[0-9]0"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aircraft-wheels",
+      "file": "DHC6WHEELS.glb",
+      "source": "reference-library",
+      "title": "DHC-6 Series 300 — wheel landplane",
+      "shortTitle": "Aircraft (wheels)",
+      "description": "Complete DHC-6 Series 300 exterior on the fixed wheel undercarriage; used as the Systems Lab aircraft explorer and the wheel-variant context model.",
+      "primaryFor": [
+        "LANDING_GEAR_WHEELS",
+        "AIRCRAFT_GENERAL",
+        "STANDARD_AIRFRAME_PRACTICES",
+        "OPERATIONS_TECHNIQUES"
+      ],
+      "alternateFor": [],
+      "hidden": [
+        "=shadow"
+      ],
+      "clips": {},
+      "groups": [
+        "world"
+      ],
+      "mediaPath": "models/systems-lab/DHC6WHEELS.glb",
+      "bytes": 4750916,
+      "sha256": "8282dd294e017e0e3fa43bdcde6d385965c366797d4abd686beaee42e7aab989",
+      "nodes": 121,
+      "meshes": 117,
+      "triangles": 23500,
+      "animations": [],
+      "extensionsUsed": [],
+      "clipGroups": {},
+      "parts": {
+        "nose_gear": [
+          "FrtStrut",
+          "=frt.d1",
+          "=frt.d2"
+        ],
+        "main_gear": [
+          "LHstrut",
+          "RHstrut"
+        ],
+        "wheels": [
+          "FrtWheel",
+          "Lwheel",
+          "Rwheel"
+        ],
+        "brakes": [],
+        "steering": [
+          "FrtStrut"
+        ],
+        "parking_brake": [],
+        "hydraulic_supply": [],
+        "tail_bumper": [],
+        "fig_6_1_dimensions": [],
+        "fig_6_2_jig": [],
+        "fig_6_3_stations": [],
+        "fig_6_4_area": [],
+        "fig_7_1": [],
+        "fig_7_2": [],
+        "fig_7_3": [],
+        "fig_7_4": [],
+        "fig_7_5_7_6": [],
+        "fig_6_11": [],
+        "fig_6_12": []
+      },
+      "extraParts": [
+        {
+          "id": "fuselage",
+          "label": "Fuselage, doors and glazing",
+          "selectors": [
+            "fuselage",
+            "longnose",
+            "bluntnose",
+            "~door",
+            "~glass",
+            "Baggage.door",
+            "aerial",
+            "fuel.caps"
+          ]
+        },
+        {
+          "id": "wings",
+          "label": "Wings, struts, flaps and ailerons",
+          "selectors": [
+            "wings",
+            "wingbrace",
+            "~^[LR]\\.(aileron|flap|slat)$"
+          ]
+        },
+        {
+          "id": "empennage",
+          "label": "Empennage",
+          "selectors": [
+            "Elevator",
+            "rudder",
+            "Hstab"
+          ]
+        },
+        {
+          "id": "nacelles",
+          "label": "Engines, propellers and exhausts",
+          "selectors": [
+            "Engine.cowl",
+            "Exhaust",
+            "LHEngine",
+            "RHEngine",
+            "~^[LR]prop",
+            "~^Spinner"
+          ]
+        },
+        {
+          "id": "lights",
+          "label": "Lights and pitot tubes",
+          "selectors": [
+            "LHLNDlight",
+            "RHLNDlight",
+            "taxilight",
+            "beacon",
+            "navlights",
+            "~^strobe",
+            "landing_light_cover",
+            "~pitot-tube$"
+          ]
+        }
+      ],
+      "explorer": true
+    },
+    {
+      "id": "aircraft-skis",
+      "file": "DHC6SKIS.glb",
+      "source": "reference-library",
+      "title": "DHC-6 Series 300 — ski undercarriage",
+      "shortTitle": "Aircraft (skis)",
+      "description": "Complete DHC-6 Series 300 exterior on the wheel-ski undercarriage (nose ski and main skis).",
+      "primaryFor": [
+        "LANDING_GEAR_SKI"
+      ],
+      "alternateFor": [],
+      "hidden": [
+        "=shadow"
+      ],
+      "clips": {},
+      "groups": [
+        "world",
+        "world.001"
+      ],
+      "mediaPath": "models/systems-lab/DHC6SKIS.glb",
+      "bytes": 4908832,
+      "sha256": "11f8067e7dbf1402486a725d3518d8a7ac492ab405275597395a6524a404cb39",
+      "nodes": 129,
+      "meshes": 124,
+      "triangles": 24976,
+      "animations": [],
+      "extensionsUsed": [],
+      "clipGroups": {},
+      "parts": {
+        "skis": [
+          "FrtSki",
+          "Lski",
+          "Rski"
+        ],
+        "performance": []
+      },
+      "extraParts": [
+        {
+          "id": "undercarriage",
+          "label": "Struts and wheels",
+          "selectors": [
+            "FrtStrut",
+            "LHstrut",
+            "RHstrut",
+            "FrtWheel",
+            "Lwheel",
+            "Rwheel"
+          ]
+        },
+        {
+          "id": "fuselage",
+          "label": "Fuselage, doors and glazing",
+          "selectors": [
+            "fuselage",
+            "longnose",
+            "bluntnose",
+            "~door",
+            "~glass"
+          ]
+        },
+        {
+          "id": "wings",
+          "label": "Wings, struts, flaps and ailerons",
+          "selectors": [
+            "wings",
+            "wingbrace",
+            "~^[LR]\\.(aileron|flap|slat)$"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "aircraft-floats",
+      "file": "DHC6FLOATS.glb",
+      "source": "reference-library",
+      "title": "DHC-6 Series 300 — float installation",
+      "shortTitle": "Aircraft (floats)",
+      "description": "Complete DHC-6 Series 300 exterior on floats with float struts.",
+      "primaryFor": [
+        "LANDING_GEAR_FLOATS"
+      ],
+      "alternateFor": [],
+      "hidden": [
+        "=shadow"
+      ],
+      "clips": {},
+      "groups": [
+        "world",
+        "world.001"
+      ],
+      "mediaPath": "models/systems-lab/DHC6FLOATS.glb",
+      "bytes": 5561128,
+      "sha256": "ee02b64478831288597dee096b7120f731f4e03d88f9123e64dea32c1334d5bf",
+      "nodes": 116,
+      "meshes": 111,
+      "triangles": 16911,
+      "animations": [],
+      "extensionsUsed": [],
+      "clipGroups": {},
+      "parts": {
+        "structure": [
+          "Floats",
+          "=LHfloat.strut",
+          "=RHfloat.strut",
+          "=float.fairing"
+        ],
+        "brakes": [],
+        "steering": [],
+        "shock": []
+      },
+      "extraParts": [
+        {
+          "id": "fuselage",
+          "label": "Fuselage, doors and glazing",
+          "selectors": [
+            "fuselage",
+            "longnose",
+            "bluntnose",
+            "~door",
+            "~glass"
+          ]
+        },
+        {
+          "id": "wings",
+          "label": "Wings, struts, flaps and ailerons",
+          "selectors": [
+            "wings",
+            "wingbrace",
+            "~^[LR]\\.(aileron|flap|slat)$"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "undercarriage-replica",
+      "file": "DHC6_LANDPLANE_UNDERCARRIAGE_REPLICA.glb",
+      "source": "reference-library",
+      "title": "Series 300 landplane undercarriage replica",
+      "shortTitle": "Undercarriage replica",
+      "description": "Detailed fixed landplane undercarriage: LH/RH main gear (airframe-fixed group, leg pivot group with shock absorber, brakes, rolling wheel group) and the nose gear with shock strut, steering group and rolling wheel group.",
+      "primaryFor": [],
+      "alternateFor": [
+        "LANDING_GEAR_WHEELS"
+      ],
+      "hidden": [
+        "=NOSE_GEAR_DONOR_ARCHIVE",
+        "=world.001",
+        "=world.002"
+      ],
+      "clips": {
+        "MAIN_GEAR_SHOCK_ABSORBER_COMPRESSION": "Main gear shock absorber compression",
+        "UNDERCARRIAGE_WHEELS_ROLL_359_9_DEG": "Wheels roll",
+        "NOSE_SHOCK_STRUT_COMPRESSION": "Nose shock strut compression",
+        "NOSE_STEERING_SWEEP_60_DEG": "Nose steering sweep (60°)"
+      },
+      "groups": [
+        "MAIN_GEAR_INSTALLATION_C6U1101",
+        "NOSE_GEAR_ASSEMBLY_C6U1500"
+      ],
+      "mediaPath": "models/systems-lab/DHC6_LANDPLANE_UNDERCARRIAGE_REPLICA.glb",
+      "bytes": 27899372,
+      "sha256": "2ec7f14d0b6a8cd82ef9408d68ec2ac8f6c50f7a336b9f84e66a55b224467268",
+      "nodes": 176,
+      "meshes": 158,
+      "triangles": 329449,
+      "animations": [
+        "MAIN_GEAR_SHOCK_ABSORBER_COMPRESSION",
+        "UNDERCARRIAGE_WHEELS_ROLL_359_9_DEG",
+        "NOSE_SHOCK_STRUT_COMPRESSION",
+        "NOSE_STEERING_SWEEP_60_DEG"
+      ],
+      "extensionsUsed": [],
+      "clipGroups": {},
+      "parts": {
+        "nose_gear": [
+          "NOSE_GEAR_ASSEMBLY_C6U1500",
+          "~^NOSE_GEAR",
+          "~^NOSE_SHOCK",
+          "~^NOSE_COMPARTMENT"
+        ],
+        "main_gear": [
+          "MAIN_GEAR_INSTALLATION_C6U1101",
+          "~^[LR]H_MAIN_GEAR",
+          "~^[LR]H_MAIN_LEG",
+          "~^[LR]H_MAIN_SHOCK",
+          "~^[LR]H_MAIN_REBOUND",
+          "~^[LR]H_FUSELAGE",
+          "FUSELAGE_BELLY_SKIN_MAIN_GEAR_STATION_REFERENCE",
+          "~^[LR]H_MAIN_AXLE"
+        ],
+        "wheels": [
+          "~^[LR]H_MAIN_WHEEL",
+          "~^[LR]H_MAIN_TIRE",
+          "~^[LR]H_MAIN_TUBELESS",
+          "~^[LR]H_MAIN_INBOARD",
+          "~^[LR]H_MAIN_OUTBOARD",
+          "~^NOSE_WHEEL",
+          "~^NOSE_TIRE",
+          "~^NOSE_TUBELESS",
+          "~^NOSE_INBOARD",
+          "~^NOSE_OUTBOARD"
+        ],
+        "brakes": [
+          "~^[LR]H_MAIN_BRAKE"
+        ],
+        "steering": [
+          "NOSE_STEERING_GROUP",
+          "~^NOSEWHEEL_STEERING",
+          "~^NOSE_GEAR_STEERING",
+          "~^NOSE_GEAR_TORQUE",
+          "~TORQUE_ARM"
+        ],
+        "hydraulic_supply": [
+          "~^[LR]H_MAIN_BRAKE_HYDRAULIC_LINE",
+          "~^NOSEWHEEL_STEERING_ACTUATOR"
+        ],
+        "parking_brake": [],
+        "tail_bumper": []
+      },
+      "extraParts": []
+    },
+    {
+      "id": "electrical-system",
+      "file": "electrical_system.glb",
+      "source": "android-bundled",
+      "title": "28 VDC electrical system (Android training model)",
+      "shortTitle": "Electrical system",
+      "description": "Android-bundled 28 VDC electrical system training model: batteries, battery master, starter-generators, distribution box and bus bars, bus tie, GCU/protection, cockpit controls, circuit-breaker panel, inverters, external power and cabling.",
+      "primaryFor": [
+        "ELECTRICAL"
+      ],
+      "alternateFor": [],
+      "hidden": [],
+      "clips": {},
+      "groups": [
+        "world"
+      ],
+      "mediaPath": "models/systems-lab/electrical_system.glb",
+      "bytes": 295780,
+      "sha256": "1bf61e288f8cc311cff878353d47e6d2887423f124e6316b12dc99b1cddef705",
+      "nodes": 342,
+      "meshes": 341,
+      "triangles": 18500,
+      "animations": [],
+      "extensionsUsed": [],
+      "clipGroups": {},
+      "parts": {
+        "main_battery": [
+          "=BatteryBay_Strap_Aft",
+          "=BatteryBay_Strap_Fwd",
+          "=BatteryBay_Tray",
+          "=MainBattery_Case",
+          "=MainBattery_NegTerminal_Post",
+          "=MainBattery_Placard",
+          "=MainBattery_PosTerminal_Post",
+          "=MainBattery_Top",
+          "=MainBattery_VentCap_1_1",
+          "=MainBattery_VentCap_1_2",
+          "=MainBattery_VentCap_2_1",
+          "=MainBattery_VentCap_2_2",
+          "=MainBattery_VentCap_3_1",
+          "=MainBattery_VentCap_3_2",
+          "=MainBattery_VentCap_4_1",
+          "=MainBattery_VentCap_4_2",
+          "=MainBattery_VentTube_joint1",
+          "=MainBattery_VentTube_joint2",
+          "=MainBattery_VentTube_seg1"
+        ],
+        "aux_battery": [
+          "=AuxBattery_Case",
+          "=AuxBattery_NegTerminal_Post",
+          "=AuxBattery_Placard",
+          "=AuxBattery_PosTerminal_Post",
+          "=AuxBattery_Top"
+        ],
+        "battery_master": [
+          "=BatteryMasterSolenoid_Body",
+          "=BatteryMasterSolenoid_Cap",
+          "=BatteryMasterSolenoid_PostA",
+          "=BatteryMasterSolenoid_PostB",
+          "=BatteryQuickDisconnect_Body",
+          "=BatteryQuickDisconnect_Grip"
+        ],
+        "starter_generators": [
+          "=StarterGen_Left_BrushCover_Top",
+          "=StarterGen_Left_CoolingShroud",
+          "=StarterGen_Left_DriveShaft",
+          "=StarterGen_Left_Housing",
+          "=StarterGen_Left_MountFlange",
+          "=StarterGen_Left_Nameplate",
+          "=StarterGen_Left_TerminalBox_Body",
+          "=StarterGen_Right_BrushCover_Top",
+          "=StarterGen_Right_CoolingShroud",
+          "=StarterGen_Right_DriveShaft",
+          "=StarterGen_Right_Housing",
+          "=StarterGen_Right_MountFlange",
+          "=StarterGen_Right_Nameplate",
+          "=StarterGen_Right_TerminalBox_Body",
+          "=StarterRelay_Left_Body",
+          "=StarterRelay_Left_Cap",
+          "=StarterRelay_Left_Placard",
+          "=StarterRelay_Right_Body",
+          "=StarterRelay_Right_Cap",
+          "=StarterRelay_Right_Placard"
+        ],
+        "main_distribution": [
+          "=BusBar_AUXBATT",
+          "=BusBar_BATTERY",
+          "=BusBar_ESS",
+          "=BusBar_LEFT",
+          "=BusBar_RIGHT",
+          "=DistBox_Body",
+          "=DistBox_Label_AUXBATT_BUS",
+          "=DistBox_Label_BATTERY_BUS",
+          "=DistBox_Label_DUALFED_BUS",
+          "=DistBox_Label_ESS_BUS",
+          "=DistBox_Label_LEFT_BUS",
+          "=DistBox_Label_RIGHT_BUS",
+          "=DistBox_Lid",
+          "=DualFedBus_Bar",
+          "=DualFedBus_Diode_Left",
+          "=DualFedBus_Diode_Right"
+        ],
+        "bus_tie": [
+          "=BusTieRelay_Body",
+          "=BusTieRelay_CoilCap",
+          "=BusTieRelay_Placard",
+          "=BusTieRelay_PostL",
+          "=BusTieRelay_PostR"
+        ],
+        "protection_and_gcu": [
+          "=GCU_Left_Case",
+          "=GCU_Left_Connector",
+          "=GCU_Left_Placard",
+          "=GCU_Right_Case",
+          "=GCU_Right_Connector",
+          "=GCU_Right_Placard",
+          "=RCCB_Left_Body",
+          "=RCCB_Left_Placard",
+          "=RCCB_Left_PostIn",
+          "=RCCB_Left_PostOut",
+          "=RCCB_Left_ResetButton",
+          "=RCCB_Right_Body",
+          "=RCCB_Right_Placard",
+          "=RCCB_Right_PostIn",
+          "=RCCB_Right_PostOut",
+          "=RCCB_Right_ResetButton"
+        ],
+        "cockpit_controls": [
+          "=CockpitElecPanel_Backing",
+          "=LoadMeter_L_Bezel",
+          "=LoadMeter_L_Case",
+          "=LoadMeter_L_Face",
+          "=LoadMeter_L_Placard",
+          "=LoadMeter_R_Bezel",
+          "=LoadMeter_R_Case",
+          "=LoadMeter_R_Face",
+          "=LoadMeter_R_Placard",
+          "=Sw_BATT_MASTER_Base",
+          "=Sw_BATT_MASTER_Bat",
+          "=Sw_BATT_MASTER_Placard",
+          "=Sw_BUS_TIE_Base",
+          "=Sw_BUS_TIE_Bat",
+          "=Sw_BUS_TIE_Placard",
+          "=Sw_EXT_PWR_Base",
+          "=Sw_EXT_PWR_Bat",
+          "=Sw_EXT_PWR_Placard",
+          "=Sw_GEN_L_Base",
+          "=Sw_GEN_L_Bat",
+          "=Sw_GEN_L_Placard",
+          "=Sw_GEN_R_Base",
+          "=Sw_GEN_R_Bat",
+          "=Sw_GEN_R_Placard",
+          "=Sw_INV_SELECT_Base",
+          "=Sw_INV_SELECT_Bat",
+          "=Sw_INV_SELECT_Placard",
+          "=VoltMeter_Bezel",
+          "=VoltMeter_Case",
+          "=VoltMeter_Face",
+          "=VoltMeter_Placard"
+        ],
+        "circuit_breaker_panel": [
+          "=CBPanel_Backing",
+          "=CBPanel_RowLabel_LEFT_BUS",
+          "=CBPanel_RowLabel_RIGHT_BUS",
+          "=CB_LEFT_BUS_10_Body",
+          "=CB_LEFT_BUS_10_Button",
+          "=CB_LEFT_BUS_11_Body",
+          "=CB_LEFT_BUS_11_Button",
+          "=CB_LEFT_BUS_12_Body",
+          "=CB_LEFT_BUS_12_Button",
+          "=CB_LEFT_BUS_13_Body",
+          "=CB_LEFT_BUS_13_Button",
+          "=CB_LEFT_BUS_14_Body",
+          "=CB_LEFT_BUS_14_Button",
+          "=CB_LEFT_BUS_1_Body",
+          "=CB_LEFT_BUS_1_Button",
+          "=CB_LEFT_BUS_2_Body",
+          "=CB_LEFT_BUS_2_Button",
+          "=CB_LEFT_BUS_3_Body",
+          "=CB_LEFT_BUS_3_Button",
+          "=CB_LEFT_BUS_4_Body",
+          "=CB_LEFT_BUS_4_Button",
+          "=CB_LEFT_BUS_5_Body",
+          "=CB_LEFT_BUS_5_Button",
+          "=CB_LEFT_BUS_6_Body",
+          "=CB_LEFT_BUS_6_Button",
+          "=CB_LEFT_BUS_7_Body",
+          "=CB_LEFT_BUS_7_Button",
+          "=CB_LEFT_BUS_8_Body",
+          "=CB_LEFT_BUS_8_Button",
+          "=CB_LEFT_BUS_9_Body",
+          "=CB_LEFT_BUS_9_Button",
+          "=CB_RIGHT_BUS_10_Body",
+          "=CB_RIGHT_BUS_10_Button",
+          "=CB_RIGHT_BUS_11_Body",
+          "=CB_RIGHT_BUS_11_Button",
+          "=CB_RIGHT_BUS_12_Body",
+          "=CB_RIGHT_BUS_12_Button",
+          "=CB_RIGHT_BUS_13_Body",
+          "=CB_RIGHT_BUS_13_Button",
+          "=CB_RIGHT_BUS_14_Body",
+          "=CB_RIGHT_BUS_14_Button",
+          "=CB_RIGHT_BUS_1_Body",
+          "=CB_RIGHT_BUS_1_Button",
+          "=CB_RIGHT_BUS_2_Body",
+          "=CB_RIGHT_BUS_2_Button",
+          "=CB_RIGHT_BUS_3_Body",
+          "=CB_RIGHT_BUS_3_Button",
+          "=CB_RIGHT_BUS_4_Body",
+          "=CB_RIGHT_BUS_4_Button",
+          "=CB_RIGHT_BUS_5_Body",
+          "=CB_RIGHT_BUS_5_Button",
+          "=CB_RIGHT_BUS_6_Body",
+          "=CB_RIGHT_BUS_6_Button",
+          "=CB_RIGHT_BUS_7_Body",
+          "=CB_RIGHT_BUS_7_Button",
+          "=CB_RIGHT_BUS_8_Body",
+          "=CB_RIGHT_BUS_8_Button",
+          "=CB_RIGHT_BUS_9_Body",
+          "=CB_RIGHT_BUS_9_Button"
+        ],
+        "inverters": [
+          "=AC_400FailFuse_Body",
+          "=AC_400FailFuse_Placard",
+          "=Bus_115VAC",
+          "=Bus_115VAC_Label",
+          "=Bus_26VAC",
+          "=Bus_26VAC_Label",
+          "=InverterRelay_Body",
+          "=InverterRelay_Cap",
+          "=InverterRelay_Placard",
+          "=Inverter_1_Case",
+          "=Inverter_1_Connector",
+          "=Inverter_1_Placard",
+          "=Inverter_1_TopVent",
+          "=Inverter_2_Case",
+          "=Inverter_2_Connector",
+          "=Inverter_2_Placard",
+          "=Inverter_2_TopVent"
+        ],
+        "external_power": [
+          "=ExtPowerRelay_Body",
+          "=ExtPowerRelay_Cap",
+          "=ExternalPower_HingedDoor",
+          "=ExternalPower_Housing",
+          "=ExternalPower_Pin_1",
+          "=ExternalPower_Pin_2",
+          "=ExternalPower_Pin_3",
+          "=ExternalPower_Placard"
+        ],
+        "power_cabling": [
+          "=Cable_BatteryBus_to_LeftBus_joint1",
+          "=Cable_BatteryBus_to_LeftBus_joint2",
+          "=Cable_BatteryBus_to_LeftBus_seg1",
+          "=Cable_BatteryBus_to_RightBus_joint1",
+          "=Cable_BatteryBus_to_RightBus_joint2",
+          "=Cable_BatteryBus_to_RightBus_seg1",
+          "=Cable_Battery_to_Ground_joint1",
+          "=Cable_Battery_to_Ground_joint2",
+          "=Cable_Battery_to_Ground_joint3",
+          "=Cable_Battery_to_Ground_seg1",
+          "=Cable_Battery_to_Ground_seg2",
+          "=Cable_Battery_to_MasterSolenoid_joint1",
+          "=Cable_Battery_to_MasterSolenoid_joint2",
+          "=Cable_Battery_to_MasterSolenoid_joint3",
+          "=Cable_Battery_to_MasterSolenoid_seg1",
+          "=Cable_Battery_to_MasterSolenoid_seg2",
+          "=Cable_BusTie_to_RightBus_joint1",
+          "=Cable_BusTie_to_RightBus_joint2",
+          "=Cable_BusTie_to_RightBus_seg1",
+          "=Cable_ExtPowerRelay_to_BatteryBus_joint1",
+          "=Cable_ExtPowerRelay_to_BatteryBus_joint2",
+          "=Cable_ExtPowerRelay_to_BatteryBus_joint3",
+          "=Cable_ExtPowerRelay_to_BatteryBus_joint4",
+          "=Cable_ExtPowerRelay_to_BatteryBus_seg1",
+          "=Cable_ExtPowerRelay_to_BatteryBus_seg2",
+          "=Cable_ExtPowerRelay_to_BatteryBus_seg3",
+          "=Cable_GCU_L_Field_joint1",
+          "=Cable_GCU_L_Field_joint2",
+          "=Cable_GCU_L_Field_seg1",
+          "=Cable_GCU_R_Field_joint1",
+          "=Cable_GCU_R_Field_joint2",
+          "=Cable_GCU_R_Field_seg1",
+          "=Cable_GPU_to_ExtPowerRelay_joint1",
+          "=Cable_GPU_to_ExtPowerRelay_joint2",
+          "=Cable_GPU_to_ExtPowerRelay_seg1",
+          "=Cable_GenL_to_RCCB_L_joint1",
+          "=Cable_GenL_to_RCCB_L_joint2",
+          "=Cable_GenL_to_RCCB_L_joint3",
+          "=Cable_GenL_to_RCCB_L_joint4",
+          "=Cable_GenL_to_RCCB_L_seg1",
+          "=Cable_GenL_to_RCCB_L_seg2",
+          "=Cable_GenL_to_RCCB_L_seg3",
+          "=Cable_GenR_to_RCCB_R_joint1",
+          "=Cable_GenR_to_RCCB_R_joint2",
+          "=Cable_GenR_to_RCCB_R_joint3",
+          "=Cable_GenR_to_RCCB_R_joint4",
+          "=Cable_GenR_to_RCCB_R_seg1",
+          "=Cable_GenR_to_RCCB_R_seg2",
+          "=Cable_GenR_to_RCCB_R_seg3",
+          "=Cable_Inverter1_AC_out_joint1",
+          "=Cable_Inverter1_AC_out_joint2",
+          "=Cable_Inverter1_AC_out_joint3",
+          "=Cable_Inverter1_AC_out_seg1",
+          "=Cable_Inverter1_AC_out_seg2",
+          "=Cable_Inverter2_AC_out_joint1",
+          "=Cable_Inverter2_AC_out_joint2",
+          "=Cable_Inverter2_AC_out_joint3",
+          "=Cable_Inverter2_AC_out_seg1",
+          "=Cable_Inverter2_AC_out_seg2",
+          "=Cable_LeftBus_to_BusTie_joint1",
+          "=Cable_LeftBus_to_BusTie_joint2",
+          "=Cable_LeftBus_to_BusTie_seg1",
+          "=Cable_LeftBus_to_CBPanel_joint1",
+          "=Cable_LeftBus_to_CBPanel_joint2",
+          "=Cable_LeftBus_to_CBPanel_joint3",
+          "=Cable_LeftBus_to_CBPanel_joint4",
+          "=Cable_LeftBus_to_CBPanel_seg1",
+          "=Cable_LeftBus_to_CBPanel_seg2",
+          "=Cable_LeftBus_to_CBPanel_seg3",
+          "=Cable_LeftBus_to_Inverter2_joint1",
+          "=Cable_LeftBus_to_Inverter2_joint2",
+          "=Cable_LeftBus_to_Inverter2_seg1",
+          "=Cable_MasterSolenoid_to_BatteryBus_joint1",
+          "=Cable_MasterSolenoid_to_BatteryBus_joint2",
+          "=Cable_MasterSolenoid_to_BatteryBus_joint3",
+          "=Cable_MasterSolenoid_to_BatteryBus_joint4",
+          "=Cable_MasterSolenoid_to_BatteryBus_seg1",
+          "=Cable_MasterSolenoid_to_BatteryBus_seg2",
+          "=Cable_MasterSolenoid_to_BatteryBus_seg3",
+          "=Cable_RCCB_L_to_LeftBus_joint1",
+          "=Cable_RCCB_L_to_LeftBus_joint2",
+          "=Cable_RCCB_L_to_LeftBus_seg1",
+          "=Cable_RCCB_R_to_RightBus_joint1",
+          "=Cable_RCCB_R_to_RightBus_joint2",
+          "=Cable_RCCB_R_to_RightBus_seg1",
+          "=Cable_RightBus_to_CBPanel_joint1",
+          "=Cable_RightBus_to_CBPanel_joint2",
+          "=Cable_RightBus_to_CBPanel_joint3",
+          "=Cable_RightBus_to_CBPanel_joint4",
+          "=Cable_RightBus_to_CBPanel_seg1",
+          "=Cable_RightBus_to_CBPanel_seg2",
+          "=Cable_RightBus_to_CBPanel_seg3",
+          "=Cable_RightBus_to_Inverter1_joint1",
+          "=Cable_RightBus_to_Inverter1_joint2",
+          "=Cable_RightBus_to_Inverter1_seg1",
+          "=Cable_Sw_BATT_MASTER_to_Solenoid_joint1",
+          "=Cable_Sw_BATT_MASTER_to_Solenoid_joint2",
+          "=Cable_Sw_BATT_MASTER_to_Solenoid_joint3",
+          "=Cable_Sw_BATT_MASTER_to_Solenoid_seg1",
+          "=Cable_Sw_BATT_MASTER_to_Solenoid_seg2",
+          "=Cable_Sw_BUS_TIE_to_Relay_joint1",
+          "=Cable_Sw_BUS_TIE_to_Relay_joint2",
+          "=Cable_Sw_BUS_TIE_to_Relay_joint3",
+          "=Cable_Sw_BUS_TIE_to_Relay_joint4",
+          "=Cable_Sw_BUS_TIE_to_Relay_seg1",
+          "=Cable_Sw_BUS_TIE_to_Relay_seg2",
+          "=Cable_Sw_BUS_TIE_to_Relay_seg3",
+          "=Cable_Sw_EXT_PWR_to_Relay_joint1",
+          "=Cable_Sw_EXT_PWR_to_Relay_joint2",
+          "=Cable_Sw_EXT_PWR_to_Relay_joint3",
+          "=Cable_Sw_EXT_PWR_to_Relay_joint4",
+          "=Cable_Sw_EXT_PWR_to_Relay_seg1",
+          "=Cable_Sw_EXT_PWR_to_Relay_seg2",
+          "=Cable_Sw_EXT_PWR_to_Relay_seg3",
+          "=Cable_Sw_GEN_L_to_Relay_joint1",
+          "=Cable_Sw_GEN_L_to_Relay_joint2",
+          "=Cable_Sw_GEN_L_to_Relay_joint3",
+          "=Cable_Sw_GEN_L_to_Relay_joint4",
+          "=Cable_Sw_GEN_L_to_Relay_seg1",
+          "=Cable_Sw_GEN_L_to_Relay_seg2",
+          "=Cable_Sw_GEN_L_to_Relay_seg3",
+          "=Cable_Sw_GEN_R_to_Relay_joint1",
+          "=Cable_Sw_GEN_R_to_Relay_joint2",
+          "=Cable_Sw_GEN_R_to_Relay_joint3",
+          "=Cable_Sw_GEN_R_to_Relay_joint4",
+          "=Cable_Sw_GEN_R_to_Relay_seg1",
+          "=Cable_Sw_GEN_R_to_Relay_seg2",
+          "=Cable_Sw_GEN_R_to_Relay_seg3",
+          "=Cable_Sw_INV_SELECT_to_Inverters_joint1",
+          "=Cable_Sw_INV_SELECT_to_Inverters_joint2",
+          "=Cable_Sw_INV_SELECT_to_Inverters_joint3",
+          "=Cable_Sw_INV_SELECT_to_Inverters_seg1",
+          "=Cable_Sw_INV_SELECT_to_Inverters_seg2",
+          "=Fuselage_Reference_Bar",
+          "=Sta_Battery",
+          "=Sta_Cockpit",
+          "=Sta_DistBox",
+          "=Sta_ExtPower",
+          "=Sta_Generators"
+        ]
+      },
+      "extraParts": []
+    },
+    {
+      "id": "pitot-static",
+      "file": "pitot_static_system.glb",
+      "source": "android-bundled",
+      "title": "Pitot-static system (Android training model)",
+      "shortTitle": "Pitot-static",
+      "description": "Android-bundled pitot-static training model: pitot mast and heater, static ports, water traps, alternate static selector, distribution manifold, pilot and copilot instruments and plumbing.",
+      "primaryFor": [
+        "INDICATIONS_ALERTING"
+      ],
+      "alternateFor": [],
+      "hidden": [],
+      "clips": {},
+      "groups": [
+        "world"
+      ],
+      "mediaPath": "models/systems-lab/pitot_static_system.glb",
+      "bytes": 192636,
+      "sha256": "25219c7278f40f75798f11f72472b014474f565eb892bb036e939c9ab098313d",
+      "nodes": 211,
+      "meshes": 210,
+      "triangles": 13288,
+      "animations": [],
+      "extensionsUsed": [],
+      "clipGroups": {},
+      "parts": {
+        "pitot_mast": [
+          "=Pitot_Tip",
+          "=Pitot_Tip_OpeningFront",
+          "=Pitot_Mast_Body",
+          "=Pitot_Mast_MountPlate"
+        ],
+        "pitot_heat": [
+          "=Pitot_Heater_Element",
+          "=Pitot_Heater_Wire_seg1",
+          "=Pitot_Heater_Wire_seg2",
+          "=Pitot_Heater_Wire_joint1",
+          "=Pitot_Heater_Wire_joint2",
+          "=Pitot_Heater_Wire_joint3"
+        ],
+        "static_ports": [
+          "=StaticPort_L_Plate",
+          "=StaticPort_L_Hole_0",
+          "=StaticPort_L_Hole_14",
+          "=StaticPort_L_Hole_28",
+          "=StaticPort_L_InternalFitting",
+          "=StaticPort_L_InternalPort_Elbow",
+          "=StaticPort_R_Plate",
+          "=StaticPort_R_Hole_0",
+          "=StaticPort_R_Hole_14",
+          "=StaticPort_R_Hole_28",
+          "=StaticPort_R_InternalFitting",
+          "=StaticPort_R_InternalPort_Elbow"
+        ],
+        "water_traps": [
+          "=Trap_StaticL_Can",
+          "=Trap_StaticL_TopCap",
+          "=Trap_StaticL_Bowl",
+          "=Trap_StaticL_DrainValve",
+          "=Trap_StaticL_InletPort",
+          "=Trap_StaticL_OutletPort",
+          "=Trap_StaticL_MountBracket",
+          "=Trap_StaticR_Can",
+          "=Trap_StaticR_TopCap",
+          "=Trap_StaticR_Bowl",
+          "=Trap_StaticR_DrainValve",
+          "=Trap_StaticR_InletPort",
+          "=Trap_StaticR_OutletPort",
+          "=Trap_StaticR_MountBracket",
+          "=Trap_Pitot_Can",
+          "=Trap_Pitot_TopCap",
+          "=Trap_Pitot_Bowl",
+          "=Trap_Pitot_DrainValve",
+          "=Trap_Pitot_InletPort",
+          "=Trap_Pitot_OutletPort",
+          "=Trap_Pitot_MountBracket"
+        ],
+        "alternate_static": [
+          "=AltStatic_Selector_Body",
+          "=AltStatic_Selector_HandleShaft",
+          "=AltStatic_Selector_HandleGrip",
+          "=AltStatic_Selector_Placard_NORMAL",
+          "=AltStatic_Selector_Placard_ALT",
+          "=AltStatic_Intake",
+          "=AltStatic_Intake_to_Selector_seg1",
+          "=AltStatic_Intake_to_Selector_seg2",
+          "=AltStatic_Intake_to_Selector_joint1",
+          "=AltStatic_Intake_to_Selector_joint2",
+          "=AltStatic_Intake_to_Selector_joint3"
+        ],
+        "distribution_manifold": [
+          "=StaticManifold_Body",
+          "=StaticManifold_Port_1",
+          "=StaticManifold_Port_2",
+          "=StaticManifold_Port_3",
+          "=StaticManifold_Port_4"
+        ],
+        "pilot_instruments": [
+          "=Pilot_ASI_Case",
+          "=Pilot_ASI_Bezel",
+          "=Pilot_ASI_Face",
+          "=Pilot_ASI_LabelTab",
+          "=Pilot_ASI_PitotPort",
+          "=Pilot_ASI_StaticPort",
+          "=Pilot_ALT_Case",
+          "=Pilot_ALT_Bezel",
+          "=Pilot_ALT_Face",
+          "=Pilot_ALT_LabelTab",
+          "=Pilot_ALT_StaticPort",
+          "=Pilot_VSI_Case",
+          "=Pilot_VSI_Bezel",
+          "=Pilot_VSI_Face",
+          "=Pilot_VSI_LabelTab",
+          "=Pilot_VSI_StaticPort"
+        ],
+        "copilot_instruments": [
+          "=CoPilot_ASI_Case",
+          "=CoPilot_ASI_Bezel",
+          "=CoPilot_ASI_Face",
+          "=CoPilot_ASI_LabelTab",
+          "=CoPilot_ASI_PitotPort",
+          "=CoPilot_ASI_StaticPort",
+          "=CoPilot_ALT_Case",
+          "=CoPilot_ALT_Bezel",
+          "=CoPilot_ALT_Face",
+          "=CoPilot_ALT_LabelTab",
+          "=CoPilot_ALT_StaticPort",
+          "=CoPilot_VSI_Case",
+          "=CoPilot_VSI_Bezel",
+          "=CoPilot_VSI_Face",
+          "=CoPilot_VSI_LabelTab",
+          "=CoPilot_VSI_StaticPort"
+        ],
+        "plumbing": [
+          "=Pitot_Heater_Wire_seg1",
+          "=Pitot_Heater_Wire_seg2",
+          "=Pitot_Heater_Wire_joint1",
+          "=Pitot_Heater_Wire_joint2",
+          "=Pitot_Heater_Wire_joint3",
+          "=AltStatic_Selector_Body",
+          "=AltStatic_Selector_HandleShaft",
+          "=AltStatic_Selector_HandleGrip",
+          "=AltStatic_Selector_Placard_NORMAL",
+          "=AltStatic_Selector_Placard_ALT",
+          "=Pitot_MastBase_to_Trap_seg1",
+          "=Pitot_MastBase_to_Trap_seg2",
+          "=Pitot_MastBase_to_Trap_joint1",
+          "=Pitot_MastBase_to_Trap_joint2",
+          "=Pitot_MastBase_to_Trap_joint3",
+          "=Pitot_Trap_to_PanelTee_seg1",
+          "=Pitot_Trap_to_PanelTee_seg2",
+          "=Pitot_Trap_to_PanelTee_seg3",
+          "=Pitot_Trap_to_PanelTee_joint1",
+          "=Pitot_Trap_to_PanelTee_joint2",
+          "=Pitot_Trap_to_PanelTee_joint3",
+          "=Pitot_Trap_to_PanelTee_joint4",
+          "=Pitot_Tee_to_PilotASI_seg1",
+          "=Pitot_Tee_to_PilotASI_seg2",
+          "=Pitot_Tee_to_PilotASI_seg3",
+          "=Pitot_Tee_to_PilotASI_joint1",
+          "=Pitot_Tee_to_PilotASI_joint2",
+          "=Pitot_Tee_to_PilotASI_joint3",
+          "=Pitot_Tee_to_PilotASI_joint4",
+          "=Pitot_Tee_to_CoPilotASI_seg1",
+          "=Pitot_Tee_to_CoPilotASI_seg2",
+          "=Pitot_Tee_to_CoPilotASI_seg3",
+          "=Pitot_Tee_to_CoPilotASI_joint1",
+          "=Pitot_Tee_to_CoPilotASI_joint2",
+          "=Pitot_Tee_to_CoPilotASI_joint3",
+          "=Pitot_Tee_to_CoPilotASI_joint4",
+          "=Static_L_Port_to_TrapL_seg1",
+          "=Static_L_Port_to_TrapL_seg2",
+          "=Static_L_Port_to_TrapL_joint1",
+          "=Static_L_Port_to_TrapL_joint2",
+          "=Static_L_Port_to_TrapL_joint3",
+          "=Static_R_Port_to_TrapR_seg1",
+          "=Static_R_Port_to_TrapR_seg2",
+          "=Static_R_Port_to_TrapR_joint1",
+          "=Static_R_Port_to_TrapR_joint2",
+          "=Static_R_Port_to_TrapR_joint3",
+          "=Static_TrapL_to_Manifold_seg1",
+          "=Static_TrapL_to_Manifold_seg2",
+          "=Static_TrapL_to_Manifold_joint1",
+          "=Static_TrapL_to_Manifold_joint2",
+          "=Static_TrapL_to_Manifold_joint3",
+          "=Static_TrapR_to_Manifold_seg1",
+          "=Static_TrapR_to_Manifold_seg2",
+          "=Static_TrapR_to_Manifold_joint1",
+          "=Static_TrapR_to_Manifold_joint2",
+          "=Static_TrapR_to_Manifold_joint3",
+          "=Static_Manifold_to_AltSelector_seg1",
+          "=Static_Manifold_to_AltSelector_seg2",
+          "=Static_Manifold_to_AltSelector_seg3",
+          "=Static_Manifold_to_AltSelector_joint1",
+          "=Static_Manifold_to_AltSelector_joint2",
+          "=Static_Manifold_to_AltSelector_joint3",
+          "=Static_Manifold_to_AltSelector_joint4",
+          "=AltStatic_Intake_to_Selector_seg1",
+          "=AltStatic_Intake_to_Selector_seg2",
+          "=AltStatic_Intake_to_Selector_joint1",
+          "=AltStatic_Intake_to_Selector_joint2",
+          "=AltStatic_Intake_to_Selector_joint3",
+          "=Static_Selector_to_PanelDist_seg1",
+          "=Static_Selector_to_PanelDist_seg2",
+          "=Static_Selector_to_PanelDist_seg3",
+          "=Static_Selector_to_PanelDist_joint1",
+          "=Static_Selector_to_PanelDist_joint2",
+          "=Static_Selector_to_PanelDist_joint3",
+          "=Static_Selector_to_PanelDist_joint4",
+          "=Static_Dist_to_Pilot_ASI_seg1",
+          "=Static_Dist_to_Pilot_ASI_seg2",
+          "=Static_Dist_to_Pilot_ASI_seg3",
+          "=Static_Dist_to_Pilot_ASI_joint1",
+          "=Static_Dist_to_Pilot_ASI_joint2",
+          "=Static_Dist_to_Pilot_ASI_joint3",
+          "=Static_Dist_to_Pilot_ASI_joint4",
+          "=Static_Dist_to_Pilot_ALT_seg1",
+          "=Static_Dist_to_Pilot_ALT_seg2",
+          "=Static_Dist_to_Pilot_ALT_seg3",
+          "=Static_Dist_to_Pilot_ALT_joint1",
+          "=Static_Dist_to_Pilot_ALT_joint2",
+          "=Static_Dist_to_Pilot_ALT_joint3",
+          "=Static_Dist_to_Pilot_ALT_joint4",
+          "=Static_Dist_to_Pilot_VSI_seg1",
+          "=Static_Dist_to_Pilot_VSI_seg2",
+          "=Static_Dist_to_Pilot_VSI_seg3",
+          "=Static_Dist_to_Pilot_VSI_joint1",
+          "=Static_Dist_to_Pilot_VSI_joint2",
+          "=Static_Dist_to_Pilot_VSI_joint3",
+          "=Static_Dist_to_Pilot_VSI_joint4",
+          "=Static_Dist_to_CoPilot_ASI_seg1",
+          "=Static_Dist_to_CoPilot_ASI_seg2",
+          "=Static_Dist_to_CoPilot_ASI_seg3",
+          "=Static_Dist_to_CoPilot_ASI_joint1",
+          "=Static_Dist_to_CoPilot_ASI_joint2",
+          "=Static_Dist_to_CoPilot_ASI_joint3",
+          "=Static_Dist_to_CoPilot_ASI_joint4",
+          "=Static_Dist_to_CoPilot_ALT_seg1",
+          "=Static_Dist_to_CoPilot_ALT_seg2",
+          "=Static_Dist_to_CoPilot_ALT_seg3",
+          "=Static_Dist_to_CoPilot_ALT_joint1",
+          "=Static_Dist_to_CoPilot_ALT_joint2",
+          "=Static_Dist_to_CoPilot_ALT_joint3",
+          "=Static_Dist_to_CoPilot_ALT_joint4",
+          "=Static_Dist_to_CoPilot_VSI_seg1",
+          "=Static_Dist_to_CoPilot_VSI_seg2",
+          "=Static_Dist_to_CoPilot_VSI_seg3",
+          "=Static_Dist_to_CoPilot_VSI_joint1",
+          "=Static_Dist_to_CoPilot_VSI_joint2",
+          "=Static_Dist_to_CoPilot_VSI_joint3",
+          "=Static_Dist_to_CoPilot_VSI_joint4",
+          "=BNut_1",
+          "=BNut_2",
+          "=BNut_3",
+          "=BNut_4",
+          "=BNut_5",
+          "=BNut_6",
+          "=BNut_7",
+          "=BNut_8",
+          "=BNut_9",
+          "=BNut_10"
+        ]
+      },
+      "extraParts": []
+    },
+    {
+      "id": "environmental-bleed",
+      "file": "environmental_bleed_training_mobile_no_draco.glb",
+      "source": "android-bundled",
+      "title": "Bleed air, boots, intake deflectors and cabin heat (Android training model)",
+      "shortTitle": "Environmental",
+      "description": "Android-bundled environmental training model: P3 bleed ports and ducts, de-ice boots, intake deflectors and cabin heat distribution on an aircraft context frame.",
+      "primaryFor": [
+        "ENVIRONMENTAL"
+      ],
+      "alternateFor": [],
+      "hidden": [],
+      "clips": {},
+      "groups": [],
+      "mediaPath": "models/systems-lab/environmental_bleed_training_mobile_no_draco.glb",
+      "bytes": 855172,
+      "sha256": "177c04debd1c95b7cabe34dc40d6c9620cec0fa4765dff067937d4d4ec8478bb",
+      "nodes": 21,
+      "meshes": 21,
+      "triangles": 33235,
+      "animations": [],
+      "extensionsUsed": [],
+      "clipGroups": {},
+      "parts": {
+        "bleed": [
+          "=bleed_duct_l",
+          "=bleed_duct_r",
+          "=bleed_port_l",
+          "=bleed_port_r",
+          "=bleed_valve_detail"
+        ],
+        "boots": [
+          "=boots_fin",
+          "=boots_hstab_l",
+          "=boots_hstab_r",
+          "=boots_wing_l",
+          "=boots_wing_r"
+        ],
+        "intake": [
+          "=intake_deflector_l",
+          "=intake_deflector_r"
+        ],
+        "cabin": [
+          "=cabin_duct",
+          "=cabin_mix_valve",
+          "=cabin_windshield_heat"
+        ]
+      },
+      "extraParts": []
     }
-   ]
-  },
-  {
-   "id": "fuel-system",
-   "file": "FUEL_SYSTEM.glb",
-   "source": "reference-library",
-   "title": "Twin Otter fuel system",
-   "shortTitle": "Fuel system",
-   "description": "Aircraft-context fuel system: forward and aft tanks with collector cells, boost pumps, ejectors, crossfeed, gascolators/filters, firewall shutoffs, flow transducers, engine-driven pumps, flow dividers and vent system.",
-   "primaryFor": [
-    "FUEL"
-   ],
-   "alternateFor": [],
-   "hidden": [],
-   "clips": {},
-   "groups": [
-    "world"
-   ],
-   "mediaPath": "models/systems-lab/FUEL_SYSTEM.glb",
-   "bytes": 18569432,
-   "sha256": "99d71dc3fd80bbfb00cc7b825a0f3fd655bfd15a643a27823909f9b3a1eba299",
-   "nodes": 418,
-   "meshes": 417,
-   "triangles": 243134,
-   "animations": [],
-   "extensionsUsed": [],
-   "clipGroups": {},
-   "parts": {
-    "fwd_tank": [
-     "FwdTank"
-    ],
-    "aft_tank": [
-     "AftTank"
-    ],
-    "fwd_collector": [
-     "FwdTank_CollectorCell",
-     "FwdTank_FlapperValve"
-    ],
-    "aft_collector": [
-     "AftTank_CollectorCell",
-     "AftTank_FlapperValve"
-    ],
-    "fwd_boost": [
-     "FwdTank_BoostPump"
-    ],
-    "aft_boost": [
-     "AftTank_BoostPump"
-    ],
-    "fuel_ejector": [
-     "FwdTank_Ejector",
-     "AftTank_Ejector"
-    ],
-    "crossfeed_valve": [
-     "Crossfeed"
-    ],
-    "fuel_filter": [
-     "FuelFilter"
-    ],
-    "fuel_sov": [
-     "FirewallShutoff"
-    ],
-    "fcu": [
-     "FCUStub",
-     "EngineDrivenPump"
-    ],
-    "flow_divider": [
-     "FlowDivider"
-    ]
-   },
-   "extraParts": [
-    {
-     "id": "fuel_plumbing",
-     "label": "Fuel lines",
-     "selectors": [
-      "Line",
-      "BNut"
-     ]
-    },
-    {
-     "id": "vent_system",
-     "label": "Vent system",
-     "selectors": [
-      "Vent",
-      "VentMast"
-     ]
-    },
-    {
-     "id": "fuel_flow_transducers",
-     "label": "Fuel-flow transducers",
-     "selectors": [
-      "FuelFlowTransducer"
-     ]
-    },
-    {
-     "id": "thermal_relief",
-     "label": "Thermal relief valves",
-     "selectors": [
-      "ThermalReliefValve"
-     ]
-    }
-   ]
-  },
-  {
-   "id": "starter-generator",
-   "file": "DHC6_STARTER_GENERATOR_REPLICA.glb",
-   "source": "reference-library",
-   "title": "Starter-generator replica",
-   "shortTitle": "Starter-generator",
-   "description": "Starter-generator with rotating armature/commutator assembly, drive spline, bearings, brush holders, main field and poles, fan screen and quick-attach-detach (QAD) mounting.",
-   "primaryFor": [
-    "STARTING"
-   ],
-   "alternateFor": [
-    "ELECTRICAL"
-   ],
-   "hidden": [
-    "~^R1_ARCHIVE",
-    "~^R2E_ARCHIVE",
-    "~^R2C_ARCHIVE"
-   ],
-   "clips": {
-    "ROTATING_ASSEMBLY_CCW_DRIVE_ENDAction.001": "Armature rotation (CCW, drive end)"
-   },
-   "groups": [
-    "ROTATING_ASSEMBLY_CCW_DRIVE_END"
-   ],
-   "mediaPath": "models/systems-lab/DHC6_STARTER_GENERATOR_REPLICA.glb",
-   "bytes": 3910024,
-   "sha256": "24793a93826db312184723ad08d4194d3af711ae73a66bc2c1e7a268c0a7e043",
-   "nodes": 418,
-   "meshes": 411,
-   "triangles": 71928,
-   "animations": [
-    "ROTATING_ASSEMBLY_CCW_DRIVE_ENDAction.001"
-   ],
-   "extensionsUsed": [],
-   "clipGroups": {},
-   "parts": {
-    "starter_generators": [
-     "ROTATING_ASSEMBLY_CCW_DRIVE_END",
-     "DRIVE_END",
-     "ANTI_END",
-     "ANTI_DRIVE",
-     "BRUSH_HOLDER",
-     "MAIN_FIELD",
-     "MAIN_POLE",
-     "FAN_SCREEN",
-     "BEARING_1",
-     "BEARING_2",
-     "CMM",
-     "QAD",
-     "DHC6_IPC54B",
-     "DHC6_IPC54C",
-     "DHC6_IPC54L",
-     "DHC6_QAD",
-     "R2D_DRIVE",
-     "ARMATURE",
-     "DRIVE_SPLINE_12T"
-    ],
-    "starter_gen": [
-     "ROTATING_ASSEMBLY_CCW_DRIVE_END",
-     "DRIVE_END",
-     "ANTI_END",
-     "ANTI_DRIVE",
-     "BRUSH_HOLDER",
-     "MAIN_FIELD",
-     "MAIN_POLE",
-     "FAN_SCREEN",
-     "BEARING_1",
-     "BEARING_2",
-     "CMM",
-     "QAD",
-     "DHC6_IPC54B",
-     "DHC6_IPC54C",
-     "DHC6_IPC54L",
-     "DHC6_QAD",
-     "R2D_DRIVE",
-     "ARMATURE",
-     "DRIVE_SPLINE_12T"
-    ]
-   },
-   "extraParts": [
-    {
-     "id": "armature",
-     "label": "Armature and commutator (rotating)",
-     "selectors": [
-      "ROTATING_ASSEMBLY_CCW_DRIVE_END",
-      "ARMATURE"
-     ]
-    },
-    {
-     "id": "brushes",
-     "label": "Brush holders",
-     "selectors": [
-      "BRUSH_HOLDER",
-      "CMM_BRUSH",
-      "R2C_BRUSH"
-     ]
-    },
-    {
-     "id": "field",
-     "label": "Main field and poles",
-     "selectors": [
-      "MAIN_FIELD",
-      "MAIN_POLE"
-     ]
-    },
-    {
-     "id": "bearings",
-     "label": "Bearings",
-     "selectors": [
-      "BEARING_1",
-      "BEARING_2"
-     ]
-    },
-    {
-     "id": "drive_end",
-     "label": "Drive end and spline",
-     "selectors": [
-      "DRIVE_END",
-      "DRIVE_SPLINE_12T",
-      "R2D_DRIVE"
-     ]
-    },
-    {
-     "id": "qad_mount",
-     "label": "QAD mounting",
-     "selectors": [
-      "QAD",
-      "DHC6_QAD"
-     ]
-    },
-    {
-     "id": "fan_screen",
-     "label": "Cooling fan screen",
-     "selectors": [
-      "FAN_SCREEN"
-     ]
-    }
-   ]
-  },
-  {
-   "id": "hydraulic-pack",
-   "file": "HYDRAULIC_SYSTEM_PACK_REPLICA.glb",
-   "source": "reference-library",
-   "title": "Hydraulic power package replica",
-   "shortTitle": "Hydraulic package",
-   "description": "Hydraulic power pack on its tray: reservoir, 28 V motor-driven pump, filter, system and brake accumulators, relief/check valves, gauges, pressure switch and the labelled pipe network with animated flow paths.",
-   "primaryFor": [
-    "HYDRAULICS"
-   ],
-   "alternateFor": [],
-   "hidden": [
-    "~DONOR"
-   ],
-   "clips": {},
-   "groups": [],
-   "mediaPath": "models/systems-lab/HYDRAULIC_SYSTEM_PACK_REPLICA.glb",
-   "bytes": 4990436,
-   "sha256": "7149445891e16d6e7910f5a1cd033499ba9f2310af005f9c5ff90539286f1c2b",
-   "nodes": 596,
-   "meshes": 465,
-   "triangles": 119795,
-   "animations": [
-    "FLOW | BRAKE_ACCUMULATOR_DISCHARGE | P10 | 1Action.002",
-    "FLOW | BRAKE_ACCUMULATOR_DISCHARGE | P10 | 2Action.002",
-    "FLOW | BRAKE_ACCUMULATOR_DISCHARGE | P18 | 1Action.002",
-    "FLOW | BRAKE_ACCUMULATOR_DISCHARGE | P18 | 2Action.002",
-    "FLOW | BRAKE_RELIEF_FLOW | P01 | 1Action.002",
-    "FLOW | BRAKE_RELIEF_FLOW | P01 | 2Action.002",
-    "FLOW | BRAKE_RELIEF_FLOW | P02 | 1Action.002",
-    "FLOW | BRAKE_RELIEF_FLOW | P02 | 2Action.002",
-    "FLOW | BRAKE_RELIEF_FLOW | P03 | 1Action.002",
-    "FLOW | BRAKE_RELIEF_FLOW | P03 | 2Action.002",
-    "FLOW | BRAKE_RELIEF_FLOW | P04 | 1Action.002",
-    "FLOW | BRAKE_RELIEF_FLOW | P04 | 2Action.002",
-    "FLOW | BRAKE_RELIEF_FLOW | P05 | 1Action.002",
-    "FLOW | BRAKE_RELIEF_FLOW | P05 | 2Action.002",
-    "FLOW | BRAKE_RELIEF_FLOW | P06 | 1Action.002",
-    "FLOW | BRAKE_RELIEF_FLOW | P06 | 2Action.002",
-    "FLOW | BRAKE_RELIEF_FLOW | P08 | 1Action.002",
-    "FLOW | BRAKE_RELIEF_FLOW | P08 | 2Action.002",
-    "FLOW | BRAKE_RELIEF_FLOW | P09 | 1Action.002",
-    "FLOW | BRAKE_RELIEF_FLOW | P09 | 2Action.002",
-    "FLOW | BRAKE_RELIEF_FLOW | P14 | 1Action.002",
-    "FLOW | BRAKE_RELIEF_FLOW | P14 | 2Action.002",
-    "FLOW | BRAKE_RELIEF_FLOW | P15 | 1Action.002",
-    "FLOW | BRAKE_RELIEF_FLOW | P15 | 2Action.002",
-    "FLOW | BRAKE_RELIEF_FLOW | P16 | 1Action.002",
-    "FLOW | BRAKE_RELIEF_FLOW | P16 | 2Action.002",
-    "FLOW | ELECTRIC_PUMP_CHARGE | P01 | 1Action.002",
-    "FLOW | ELECTRIC_PUMP_CHARGE | P01 | 2Action.002",
-    "FLOW | ELECTRIC_PUMP_CHARGE | P02 | 1Action.002",
-    "FLOW | ELECTRIC_PUMP_CHARGE | P02 | 2Action.002",
-    "FLOW | ELECTRIC_PUMP_CHARGE | P03 | 1Action.002",
-    "FLOW | ELECTRIC_PUMP_CHARGE | P03 | 2Action.002",
-    "FLOW | ELECTRIC_PUMP_CHARGE | P04 | 1Action.002",
-    "FLOW | ELECTRIC_PUMP_CHARGE | P04 | 2Action.002",
-    "FLOW | ELECTRIC_PUMP_CHARGE | P05 | 1Action.002",
-    "FLOW | ELECTRIC_PUMP_CHARGE | P05 | 2Action.002",
-    "FLOW | ELECTRIC_PUMP_CHARGE | P06 | 1Action.002",
-    "FLOW | ELECTRIC_PUMP_CHARGE | P06 | 2Action.002",
-    "FLOW | ELECTRIC_PUMP_CHARGE | P07 | 1Action.002",
-    "FLOW | ELECTRIC_PUMP_CHARGE | P07 | 2Action.002",
-    "FLOW | ELECTRIC_PUMP_CHARGE | P08 | 1Action.002",
-    "FLOW | ELECTRIC_PUMP_CHARGE | P08 | 2Action.002",
-    "FLOW | ELECTRIC_PUMP_CHARGE | P09 | 1Action.002",
-    "FLOW | ELECTRIC_PUMP_CHARGE | P09 | 2Action.002",
-    "FLOW | ELECTRIC_PUMP_CHARGE | P10 | 1Action.002",
-    "FLOW | ELECTRIC_PUMP_CHARGE | P10 | 2Action.002",
-    "FLOW | HANDPUMP_PRESSURIZATION | P07 | 1Action.002",
-    "FLOW | HANDPUMP_PRESSURIZATION | P07 | 2Action.002",
-    "FLOW | HANDPUMP_PRESSURIZATION | P08 | 1Action.002",
-    "FLOW | HANDPUMP_PRESSURIZATION | P08 | 2Action.002",
-    "FLOW | HANDPUMP_PRESSURIZATION | P09 | 1Action.002",
-    "FLOW | HANDPUMP_PRESSURIZATION | P09 | 2Action.002",
-    "FLOW | HANDPUMP_PRESSURIZATION | P10 | 1Action.002",
-    "FLOW | HANDPUMP_PRESSURIZATION | P10 | 2Action.002",
-    "FLOW | HANDPUMP_PRESSURIZATION | P17 | 1Action.002",
-    "FLOW | HANDPUMP_PRESSURIZATION | P17 | 2Action.002",
-    "FLOW | HANDPUMP_PRESSURIZATION | P18 | 1Action.002",
-    "FLOW | HANDPUMP_PRESSURIZATION | P18 | 2Action.002",
-    "FLOW | HANDPUMP_PRESSURIZATION | P19 | 1Action.002",
-    "FLOW | HANDPUMP_PRESSURIZATION | P19 | 2Action.002",
-    "FLOW | HANDPUMP_PRESSURIZATION | P20 | 1Action.002",
-    "FLOW | HANDPUMP_PRESSURIZATION | P20 | 2Action.002",
-    "FLOW | SYSTEM_ACCUMULATOR_CIRCULATION | P07 | 1Action.002",
-    "FLOW | SYSTEM_ACCUMULATOR_CIRCULATION | P07 | 2Action.002",
-    "FLOW | SYSTEM_ACCUMULATOR_CIRCULATION | P16 | 1Action.002",
-    "FLOW | SYSTEM_ACCUMULATOR_CIRCULATION | P16 | 2Action.002",
-    "FLOW | SYSTEM_ACCUMULATOR_CIRCULATION | P17 | 1Action.002",
-    "FLOW | SYSTEM_ACCUMULATOR_CIRCULATION | P17 | 2Action.002",
-    "FLOW | SYSTEM_ACCUMULATOR_CIRCULATION | P21 | 1Action.002",
-    "FLOW | SYSTEM_ACCUMULATOR_CIRCULATION | P21 | 2Action.002",
-    "FLOW | SYSTEM_RELIEF_FLOW | P01 | 1Action.002",
-    "FLOW | SYSTEM_RELIEF_FLOW | P01 | 2Action.002",
-    "FLOW | SYSTEM_RELIEF_FLOW | P02 | 1Action.002",
-    "FLOW | SYSTEM_RELIEF_FLOW | P02 | 2Action.002",
-    "FLOW | SYSTEM_RELIEF_FLOW | P03 | 1Action.002",
-    "FLOW | SYSTEM_RELIEF_FLOW | P03 | 2Action.002",
-    "FLOW | SYSTEM_RELIEF_FLOW | P12 | 1Action.002",
-    "FLOW | SYSTEM_RELIEF_FLOW | P12 | 2Action.002",
-    "FLOW | SYSTEM_RELIEF_FLOW | P13 | 1Action.002",
-    "FLOW | SYSTEM_RELIEF_FLOW | P13 | 2Action.002",
-    "FLOW | SYSTEM_RELIEF_FLOW | P16 | 1Action.002",
-    "FLOW | SYSTEM_RELIEF_FLOW | P16 | 2Action.002"
-   ],
-   "extensionsUsed": [
-    "KHR_materials_emissive_strength"
-   ],
-   "clipGroups": {
-    "Electric pump charge": [
-     "~ELECTRIC_PUMP_CHARGE"
-    ],
-    "System accumulator circulation": [
-     "~SYSTEM_ACCUMULATOR_CIRCULATION"
-    ],
-    "System relief flow": [
-     "~SYSTEM_RELIEF_FLOW"
-    ],
-    "Brake accumulator discharge": [
-     "~BRAKE_ACCUMULATOR_DISCHARGE"
-    ],
-    "Brake relief flow": [
-     "~BRAKE_RELIEF_FLOW"
-    ],
-    "Hand-pump pressurisation": [
-     "~HANDPUMP_PRESSURIZATION"
-    ]
-   },
-   "parts": {
-    "reservoir": [
-     "~RESERVOIR"
-    ],
-    "pressure_switch": [
-     "~Pressure switch",
-     "~PRESSURE_SWITCH"
-    ],
-    "dc_motor": [
-     "~MOTOR"
-    ],
-    "hydraulic_pump": [
-     "~PUMP"
-    ],
-    "relief_valves": [
-     "~RELIEF",
-     "~CHECK_VALVE",
-     "~NEEDLE",
-     "~N2 service valve",
-     "~VALVES_GAUGES"
-    ],
-    "flap_accumulator": [
-     "~SYSTEM_ACCUMULATOR",
-     "~DAMPING",
-     "~ACCUM_CLAMP_DAMPING"
-    ],
-    "brake_accumulator": [
-     "~BRAKE_ACCUM",
-     "~^BRAKE \\|",
-     "~ACCUM_CLAMP_BRAKE"
-    ],
-    "filter": [
-     "~FILTER",
-     "~Filter"
-    ],
-    "plumbing": [
-     "~^PORT",
-     "~^UNION",
-     "~^JUNCTION",
-     "~PIPE_NETWORK",
-     "~^P\\d\\d ",
-     "~^R8F_FIT"
-    ]
-   },
-   "extraParts": [
-    {
-     "id": "gauges",
-     "label": "Gauges and dials",
-     "selectors": [
-      "~GAUGE",
-      "~Gauge",
-      "~^DIAL"
-     ]
-    },
-    {
-     "id": "tray",
-     "label": "Mounting tray",
-     "selectors": [
-      "~TRAY"
-     ]
-    },
-    {
-     "id": "labels",
-     "label": "Port labels",
-     "selectors": [
-      "~^LABEL"
-     ]
-    }
-   ]
-  },
-  {
-   "id": "flap-system",
-   "file": "FLAP_SYSTEM.glb",
-   "source": "reference-library",
-   "title": "Flap actuator and selector valve (C6HF1020-5 / C6CF1502-1)",
-   "shortTitle": "Flap system",
-   "description": "Flap hydraulic actuator with piston rod travel and the installed selector valve: poppets, camshaft, hydraulic port face, and the 2:1 epicyclic follow-up mechanism with input and follow-up pulleys.",
-   "primaryFor": [
-    "FLIGHT_CONTROLS"
-   ],
-   "alternateFor": [],
-   "hidden": [],
-   "clips": {
-    "FLAPS_DOWN_EXTENSION_AND_FOLLOW_UP_NEUTRAL": "Flaps down (extension, follow-up to neutral)",
-    "FLAPS_UP_RETRACTION_AND_FOLLOW_UP_NEUTRAL": "Flaps up (retraction, follow-up to neutral)",
-    "NEUTRAL_ALL_PORTS_BLOCKED.001": "Neutral \u2014 all ports blocked"
-   },
-   "groups": [
-    "ACTUATOR_ASSEMBLY_GROUP",
-    "C6CF1502_1_SELECTOR_VALVE_INSTALLED_GROUP"
-   ],
-   "mediaPath": "models/systems-lab/FLAP_SYSTEM.glb",
-   "bytes": 1404788,
-   "sha256": "07125ecc410fb7602ed66c8428ef3930efc841be3380d4e6d91d970d86745f5b",
-   "nodes": 187,
-   "meshes": 167,
-   "triangles": 42816,
-   "animations": [
-    "FLAPS_DOWN_EXTENSION_AND_FOLLOW_UP_NEUTRAL",
-    "FLAPS_UP_RETRACTION_AND_FOLLOW_UP_NEUTRAL",
-    "NEUTRAL_ALL_PORTS_BLOCKED.001"
-   ],
-   "extensionsUsed": [],
-   "clipGroups": {},
-   "parts": {
-    "surface_flap": [
-     "ACTUATOR_ASSEMBLY_GROUP",
-     "~^ACTUATOR_",
-     "~^JET_RESTRICTOR",
-     "~^END_FITTING"
-    ],
-    "control_column": [],
-    "control_pedals": [],
-    "control_interlink": [],
-    "cable_aileron_run": [],
-    "cable_elevator_run": [],
-    "cable_rudder_run": [],
-    "surface_aileron": [],
-    "surface_elevator": [],
-    "surface_rudder": [],
-    "tab_": []
-   },
-   "extraParts": [
-    {
-     "id": "selector_valve",
-     "label": "Selector valve body and port face",
-     "selectors": [
-      "C6CF1502_1_FIXED_VALVE_STRUCTURE",
-      "HYDRAULIC_PORT_FACE_ASSEMBLY",
-      "~^SFD1439",
-      "~^C1_FLAPS_DOWN",
-      "~^C2_FLAPS_UP",
-      "~^P_PRESSURE_PORT",
-      "~^R_RETURN_PORT",
-      "SELECTOR_VALVE_TO",
-      "~^SIDE_SERVICE_BOSS",
-      "~^CAMSHAFT_BORE",
-      "~^NASM20995"
-     ]
-    },
-    {
-     "id": "poppets",
-     "label": "Poppet valves",
-     "selectors": [
-      "~POPPET"
-     ]
-    },
-    {
-     "id": "camshaft",
-     "label": "Camshaft",
-     "selectors": [
-      "SKD1440_1_CAMSHAFT_MOTION",
-      "~CAMSHAFT",
-      "~TWO_LOBE_CAM"
-     ]
-    },
-    {
-     "id": "follow_up",
-     "label": "Epicyclic follow-up (2:1) and pulleys",
-     "selectors": [
-      "EPICYCLIC_GEAR_MECHANISM_2_TO_1",
-      "~PULLEY",
-      "~SPIDER",
-      "~PLANET",
-      "~C6CF1503_29_GEAR",
-      "~C6CF1503_31_GEAR",
-      "~^110_53"
-     ]
-    },
-    {
-     "id": "piston_rod",
-     "label": "Actuator piston rod (3/4 in travel)",
-     "selectors": [
-      "ACTUATOR_PISTON_ROD_TRAVEL_3_4_IN",
-      "~^ACTUATOR_PISTON",
-      "~^ACTUATOR_END_FITTING",
-      "~^END_FITTING_ITEM",
-      "~^ACTUATOR_HOLLOW_PISTON",
-      "~^ACTUATOR_HIDDEN_PISTON",
-      "~^ACTUATOR_LOCKRING"
-     ]
-    }
-   ]
-  },
-  {
-   "id": "trim-control",
-   "file": "DHC6_TRIM_CONTROL.glb",
-   "source": "reference-library",
-   "title": "Elevator and rudder trim control",
-   "shortTitle": "Trim control",
-   "description": "Cockpit trim control assembly: elevator and rudder trim handwheels, spiral drums, cable windings, pointers and the fixed frame.",
-   "primaryFor": [],
-   "alternateFor": [
-    "FLIGHT_CONTROLS"
-   ],
-   "hidden": [],
-   "clips": {
-    "ELEVATOR_TRIM_MINIMUM_TWO_TURNS_EACH_DIRECTION": "Elevator trim (two turns each way)",
-    "RUDDER_TRIM_MINIMUM_TWO_TURNS_EACH_DIRECTION": "Rudder trim (two turns each way)"
-   },
-   "groups": [
-    "COMPLETE_TRIM_CONTROL_ASSEMBLY"
-   ],
-   "mediaPath": "models/systems-lab/DHC6_TRIM_CONTROL.glb",
-   "bytes": 2570688,
-   "sha256": "3560a78bbc3b29aaf80cd1395ba9021f7e60b8a7e6f80764415baea6677e19e1",
-   "nodes": 823,
-   "meshes": 810,
-   "triangles": 35636,
-   "animations": [
-    "ELEVATOR_TRIM_MINIMUM_TWO_TURNS_EACH_DIRECTION",
-    "RUDDER_TRIM_MINIMUM_TWO_TURNS_EACH_DIRECTION"
-   ],
-   "extensionsUsed": [],
-   "clipGroups": {},
-   "parts": {
-    "tab_": [
-     "COMPLETE_ELEVATOR_POINTER_MOTION",
-     "COMPLETE_RUDDER_POINTER_MOTION",
-     "~^COMPLETE_ELEVATOR_POINTER",
-     "~^COMPLETE_RUDDER_POINTER"
-    ],
-    "cable_elevator_run": [
-     "~^COMPLETE_ELEVATOR_CABLE"
-    ],
-    "cable_rudder_run": [
-     "~^COMPLETE_RUDDER_CABLE"
-    ],
-    "control_interlink": [
-     "COMPLETE_FIXED_FRAME"
-    ],
-    "surface_elevator": [
-     "COMPLETE_ELEVATOR_ROTATING_ASSEMBLY",
-     "~^COMPLETE_ELEVATOR_HANDWHEEL",
-     "~^COMPLETE_ELEVATOR_SPIRAL",
-     "~^COMPLETE_ELEVATOR_SHAFT",
-     "~^COMPLETE_ELEVATOR_ROLL"
-    ],
-    "surface_rudder": [
-     "COMPLETE_RUDDER_ROTATING_ASSEMBLY",
-     "~^COMPLETE_RUDDER_HANDWHEEL",
-     "~^COMPLETE_RUDDER_SPIRAL",
-     "~^COMPLETE_RUDDER_SHAFT",
-     "~^COMPLETE_RUDDER_ROLL"
-    ]
-   },
-   "extraParts": [
-    {
-     "id": "elevator_trim",
-     "label": "Elevator trim wheel, drum and cables",
-     "selectors": [
-      "~^COMPLETE_ELEVATOR"
-     ]
-    },
-    {
-     "id": "rudder_trim",
-     "label": "Rudder trim wheel, drum and cables",
-     "selectors": [
-      "~^COMPLETE_RUDDER"
-     ]
-    },
-    {
-     "id": "trim_frame",
-     "label": "Fixed frame and mounts",
-     "selectors": [
-      "COMPLETE_FIXED_FRAME",
-      "~^COMPLETE_FRAME",
-      "~^COMPLETE_LEFT_",
-      "~^COMPLETE_RIGHT_"
-     ]
-    }
-   ]
-  },
-  {
-   "id": "air-conditioning",
-   "file": "AIR-CONDITIONNG.glb",
-   "source": "reference-library",
-   "title": "Air-conditioning installation (vapour-cycle)",
-   "shortTitle": "Air conditioning",
-   "description": "Vapour-cycle air-conditioning installation grouped by air handling, electrical, refrigerant lines, refrigeration components, structure and fuselage station references.",
-   "primaryFor": [
-    "AIR_CONDITIONING"
-   ],
-   "alternateFor": [],
-   "hidden": [],
-   "clips": {},
-   "groups": [
-    "AC_GRP_AirHandling",
-    "AC_GRP_Electrical",
-    "AC_GRP_RefrigerantLines",
-    "AC_GRP_Refrigeration",
-    "AC_GRP_StationReferences",
-    "AC_GRP_Structure"
-   ],
-   "mediaPath": "models/systems-lab/AIR-CONDITIONNG.glb",
-   "bytes": 1600120,
-   "sha256": "22146e6333130fb63a3f69bd1c169c47a7c834b21592ef1eedceabac558257ba",
-   "nodes": 54,
-   "meshes": 41,
-   "triangles": 21324,
-   "animations": [],
-   "extensionsUsed": [],
-   "clipGroups": {},
-   "parts": {
-    "structure": [
-     "AC_GRP_Structure",
-     "AC_Aft_Frame",
-     "AC_Compartment_Floor",
-     "AC_Forward_Bulkhead",
-     "AC_Fuselage_Skin",
-     "AC_GRP_StationReferences",
-     "AC_REF_Station"
-    ],
-    "ducting": [
-     "AC_Main_Duct",
-     "AC_Air_Exhaust_Duct",
-     "AC_Return_Air_Grille"
-    ],
-    "evaporator": [
-     "AC_Evaporator"
-    ],
-    "condenser": [
-     "AC_Condenser"
-    ],
-    "compressor": [
-     "=AC_Compressor",
-     "AC_Compressor_Drive_Coupling",
-     "AC_Compressor_MountRail"
-    ],
-    "compressor_motor": [
-     "AC_Compressor_Motor"
-    ],
-    "receiver_dryer": [
-     "AC_Receiver_Dryer"
-    ],
-    "expansion_valve": [
-     "AC_ExpansionValve_TXV"
-    ],
-    "controls_service": [
-     "AC_Pressure_Switch",
-     "AC_Thermostat_Switch",
-     "AC_Service_Connections"
-    ],
-    "electrical_controls": [
-     "AC_CircuitBreaker_Relay_Panel",
-     "AC_Wiring_Harness",
-     "AC_GRP_Electrical"
-    ],
-    "refrigerant_lines": [
-     "AC_Line",
-     "AC_GRP_RefrigerantLines"
-    ]
-   },
-   "extraParts": []
-  },
-  {
-   "id": "bleed-valve",
-   "file": "DHC6_PT6A27_BLEED_VALVE_MASTER.glb",
-   "source": "reference-library",
-   "title": "PT6A-27 compressor bleed valve",
-   "shortTitle": "Compressor bleed valve",
-   "description": "Compressor bleed valve master: fixed valve structure with cover, metering/convergent/divergent orifice displays, P3 guide tube, moving piston-diaphragm assembly and the P2.5 / P3 / ambient connection points.",
-   "primaryFor": [
-    "AIR_SYSTEMS"
-   ],
-   "alternateFor": [],
-   "hidden": [],
-   "clips": {
-    "BLEED_VALVE_NORMALIZED_OPERATION.001": "Bleed valve operation (normalised)"
-   },
-   "groups": [
-    "CONNECTION_POINTS",
-    "FIXED_VALVE_STRUCTURE",
-    "MOVING_PISTON_DIAPHRAGM_ASSEMBLY"
-   ],
-   "mediaPath": "models/systems-lab/DHC6_PT6A27_BLEED_VALVE_MASTER.glb",
-   "bytes": 1063228,
-   "sha256": "a972b1d27c27753acc0c86741913806a7cd185467620c39a1dccfbb4828ba773",
-   "nodes": 51,
-   "meshes": 37,
-   "triangles": 23348,
-   "animations": [
-    "BLEED_VALVE_NORMALIZED_OPERATION.001"
-   ],
-   "extensionsUsed": [],
-   "clipGroups": {},
-   "parts": {
-    "valve_housing": [
-     "FIXED_VALVE_STRUCTURE",
-     "HOUSING_SHELL_SOURCE_PROPORTION_DERIVED",
-     "COVER",
-     "COVER_RIM",
-     "MOUNTING_FLANGE",
-     "ATMOSPHERIC_DISCHARGE_BOSS"
-    ],
-    "piston_assembly": [
-     "MOVING_PISTON_DIAPHRAGM_ASSEMBLY",
-     "PISTON",
-     "PISTON_SUPPORT_PLATE",
-     "ROLLING_DIAPHRAGM_MOVING",
-     "GUIDE_SLEEVE",
-     "MECHANISM_AXIS_PISTON_GUIDE"
-    ],
-    "main_spring": [],
-    "lower_spring": [],
-    "guide_and_seats": [
-     "GUIDE_PIN",
-     "P3_GUIDE_TUBE",
-     "GUIDE_SLEEVE",
-     "MECHANISM_AXIS_PISTON_GUIDE"
-    ],
-    "backing_disc": [
-     "ROLLING_DIAPHRAGM_FIXED",
-     "~DIAPHRAGM"
-    ],
-    "pressure_paths": [
-     "CONNECTION_POINTS",
-     "~CONNECTION_POINT",
-     "~ORIFICE",
-     "P3_ALIGNMENT_SPRING_PIN",
-     "P3_PRIMARY_METERING_BOSS",
-     "PRIMARY_METERING_PLUG",
-     "PRESSURE_CHECK_PLUG",
-     "ALIGNMENT_POINT_HOLLOW_SPRING_PIN_P3_PASSAGE",
-     "~^P3_",
-     "~^PX_"
-    ]
-   },
-   "extraParts": []
-  },
-  {
-   "id": "fuel-heater",
-   "file": "DHC6_PTA27_OIL_TO_FUEL_HEATER_MASTER.glb",
-   "source": "reference-library",
-   "title": "Oil-to-fuel heater (10544 series)",
-   "shortTitle": "Fuel heater",
-   "description": "Oil-to-fuel heater with the internal heat-exchange matrix, thermal bypass control (capsule, piston, return spring), three-point mounting, oil transfer tubes and heater-to-fuel-pump transfer assembly.",
-   "primaryFor": [
-    "ENGINE_FUEL_CONTROL"
-   ],
-   "alternateFor": [],
-   "hidden": [],
-   "clips": {
-    "Animation.001": "Thermal bypass operation"
-   },
-   "groups": [
-    "HEATER_ITEM_70_COMPLETE_ASSEMBLY",
-    "ITEM_10_3016175_TWO_HOLE_ELBOW_ASSEMBLY",
-    "ITEM_50_3014897_HEATER_TO_FUEL_PUMP_TRANSFER_ASSEMBLY",
-    "ITEM_100_3014909_OIL_TRANSFER_TUBES_ASSEMBLY",
-    "NONPHYSICAL_OPERATION_VISUALIZATION_GROUP"
-   ],
-   "mediaPath": "models/systems-lab/DHC6_PTA27_OIL_TO_FUEL_HEATER_MASTER.glb",
-   "bytes": 5461340,
-   "sha256": "6edfb51d56f6c5a6bae3b306455b55ed535d61a3778b94ba2f38b1ab7129113a",
-   "nodes": 293,
-   "meshes": 255,
-   "triangles": 86200,
-   "animations": [
-    "Animation.001"
-   ],
-   "extensionsUsed": [],
-   "clipGroups": {},
-   "parts": {
-    "housing_cutaway": [
-     "HEATER_MAIN_BODY_SOURCE_PROPORTION_DERIVED",
-     "HEATER_BODY_SERVICE_SEAM",
-     "HEATER_ITEM_70_COMPLETE_ASSEMBLY",
-     "HEAT_EXCHANGE_MATRIX_CYLINDRICAL_SUPPORT"
-    ],
-    "mounting_service": [
-     "HEATER_THREE_POINT_ATTACHMENT",
-     "HEATER_MOUNTING_CRADLE_SOURCE_PROPORTION_DERIVED",
-     "~^ITEM_80_",
-     "~^ITEM_90_",
-     "LARGE_EXTERNAL_HEX_PORT_FUNCTION_SOURCE_BLOCKED",
-     "~^LARGE_EXTERNAL_PORT"
-    ],
-    "fuel_inlet": [
-     "FUEL_PUMP_INTERFACE_REFERENCE",
-     "ITEM_50_3014897_HEATER_TO_FUEL_PUMP_TRANSFER_ASSEMBLY",
-     "~^ITEM_50_",
-     "~^ITEM_60_"
-    ],
-    "fuel_coil": [
-     "INTERNAL_HEAT_EXCHANGE_MATRIX_ASSEMBLY",
-     "~^HEAT_EXCHANGE_MATRIX"
-    ],
-    "fuel_outlet": [
-     "FUEL_FLOW_HEATER_TO_PUMP_CONTROL",
-     "FUEL_TRANSFER_CONNECTION_TO_PUMP",
-     "~^FUEL_TRANSFER_PORT",
-     "~^FUEL_FLOW_HEATER"
-    ],
-    "oil_inlet": [
-     "~^ENGINE_OIL_INTERFACE",
-     "~^OIL_TRANSFER",
-     "ITEM_100_3014909_OIL_TRANSFER_TUBES_ASSEMBLY",
-     "~^ITEM_100_",
-     "~^ITEM_110_",
-     "ITEM_10_3016175_TWO_HOLE_ELBOW_ASSEMBLY",
-     "~^ITEM_10_",
-     "~^ITEM_20_",
-     "~^ITEM_30_",
-     "~^ITEM_40_"
-    ],
-    "oil_tube_bundle": [
-     "OIL_FLOW_THROUGH_HEAT_EXCHANGE_CORE_CONTROL",
-     "~^OIL_FLOW_CORE"
-    ],
-    "bypass_spool": [
-     "THERMAL_BYPASS_CONTROL_ASSEMBLY",
-     "~^THERMAL_BYPASS",
-     "~^BYPASS_CONTROL",
-     "~^BYPASS_RETURN_SPRING",
-     "~^THERMAL_CAPSULE",
-     "OIL_BYPASS_FLOW_CONTROL",
-     "~^OIL_FLOW_BYPASS"
-    ],
-    "drain_valve": []
-   },
-   "extraParts": []
-  },
-  {
-   "id": "engine-fuel-pump",
-   "file": "DHC6_PT6A27_FUEL_PUMP_MASTER.glb",
-   "source": "reference-library",
-   "title": "PT6A-27 engine-driven fuel pump",
-   "shortTitle": "Engine fuel pump",
-   "description": "Engine-driven gear-type fuel pump: inlet strainer, gear train, 10-micron outlet filter with bypass, regulating valve, bearings and the FCU/accessory-gearbox mounting, with fuel-flow overlay animations.",
-   "primaryFor": [],
-   "alternateFor": [
-    "ENGINE_FUEL_CONTROL"
-   ],
-   "hidden": [],
-   "clips": {},
-   "groups": [
-    "NONPHYSICAL_TRAINING_VISUALIZATION_GROUP",
-    "ROTATING_GEAR_TRAIN"
-   ],
-   "mediaPath": "models/systems-lab/DHC6_PT6A27_FUEL_PUMP_MASTER.glb",
-   "bytes": 1265376,
-   "sha256": "1a9722e1d3e1cea29c2cd381e931498962ce4125affcbd2b3759d3ee2dd8b8ff",
-   "nodes": 276,
-   "meshes": 252,
-   "triangles": 42504,
-   "animations": [
-    "FUEL_PUMP_OPERATION__FUEL_FLOW_OVERLAY_01_SCREENED_INLET_FROM_HEATER_CONTROL",
-    "FUEL_PUMP_OPERATION__FUEL_FLOW_OVERLAY_02_SCREEN_TO_GEAR_INLET_CONTROL",
-    "FUEL_PUMP_OPERATION__FUEL_FLOW_OVERLAY_03_GEAR_DISCHARGE_TO_10_MICRON_FILTER_CONTROL",
-    "FUEL_PUMP_OPERATION__FUEL_FLOW_OVERLAY_04_FILTERED_OUTLET_TO_FCU_CONTROL",
-    "FUEL_PUMP_OPERATION__FUEL_FLOW_OVERLAY_05_FCU_BYPASS_RETURN_TO_GEAR_INLET_CONTROL",
-    "FUEL_PUMP_OPERATION__FUEL_FLOW_OVERLAY_06_FILTER_BYPASS_TO_FCU_CONTROL",
-    "FUEL_PUMP_OPERATION__FUEL_FLOW_OVERLAY_07_REGULATING_VALVE_SUPPLY_CONTROL",
-    "FUEL_PUMP_OPERATION__FUEL_FLOW_OVERLAY_08_REGULATING_RETURN_DOWNSTREAM_OF_SCREEN_CONTROL",
-    "FUEL_PUMP_OPERATION__FUEL_FLOW_OVERLAY_09_DRIVE_BEARING_PRESSURE_FEED_CONTROL",
-    "FUEL_PUMP_OPERATION__FUEL_FLOW_OVERLAY_10_DRIVEN_BEARING_PRESSURE_FEED_CONTROL",
-    "FUEL_PUMP_OPERATION__INLET_SCREEN_BYPASS_1_5_PSID_CONDITION_CONTROL",
-    "FUEL_PUMP_OPERATION__OUTLET_FILTER_BYPASS_20_PSID_CONDITION_CONTROL",
-    "FUEL_PUMP_OPERATION__FUEL_PUMP_DRIVE_GEAR_SPIN",
-    "FUEL_PUMP_OPERATION__FUEL_PUMP_DRIVEN_GEAR_SPIN"
-   ],
-   "extensionsUsed": [],
-   "clipGroups": {
-    "Fuel flow overlays": [
-     "~^FUEL_PUMP_OPERATION__FUEL_FLOW_OVERLAY"
-    ],
-    "Inlet screen bypass (1.5 psid)": [
-     "~INLET_SCREEN_BYPASS"
-    ],
-    "Outlet filter bypass (20 psid)": [
-     "~OUTLET_FILTER_BYPASS"
-    ],
-    "Gear train": [
-     "~GEAR_SPIN$"
-    ]
-   },
-   "parts": {
-    "housing_cutaway": [
-     "COMPLETE_FIXED_CASTING",
-     "~^CAST_STIFFENING_RIB",
-     "COMPLETE_ASSEMBLY"
-    ],
-    "mounting_service": [
-     "ACCESSORY_GEARBOX_MOUNT_FLANGE",
-     "~^FCU_MOUNT_STUD",
-     "FCU_MATING_FACE",
-     "~^CARBON_SEAL"
-    ],
-    "fuel_inlet": [
-     "~^INLET_STRAINER",
-     "~FUEL_FLOW_OVERLAY_01",
-     "~FUEL_FLOW_OVERLAY_02",
-     "~INLET_SCREEN_BYPASS"
-    ],
-    "fuel_coil": [],
-    "fuel_outlet": [
-     "~^TEN_MICRON_OUTLET",
-     "~FUEL_FLOW_OVERLAY_03",
-     "~FUEL_FLOW_OVERLAY_04",
-     "~OUTLET_FILTER_BYPASS",
-     "~^UPPER_FILTER_GALLERY",
-     "~^LOWER_FILTER_COVER",
-     "~^FILTER_BYPASS"
-    ],
-    "oil_inlet": [],
-    "oil_tube_bundle": [],
-    "bypass_spool": [
-     "~^BYPASS_REGULATING_VALVE",
-     "BYPASS_VALVE_GALLERY",
-     "~^REGULATING_SPRING",
-     "~FUEL_FLOW_OVERLAY_05",
-     "~FUEL_FLOW_OVERLAY_06",
-     "~FUEL_FLOW_OVERLAY_07",
-     "~FUEL_FLOW_OVERLAY_08"
-    ],
-    "drain_valve": []
-   },
-   "extraParts": [
-    {
-     "id": "gear_train",
-     "label": "Rotating gear train",
-     "selectors": [
-      "ROTATING_GEAR_TRAIN",
-      "~GEAR_SPIN",
-      "~^PUMP_DRIVE",
-      "~^PUMP_DRIVEN",
-      "~^DRIVEN_",
-      "~^INPUT_"
-     ]
-    },
-    {
-     "id": "bearings",
-     "label": "Pressure-loaded bushings and springs",
-     "selectors": [
-      "~BUSHING",
-      "~FUEL_FLOW_OVERLAY_09",
-      "~FUEL_FLOW_OVERLAY_10"
-     ]
-    }
-   ]
-  },
-  {
-   "id": "fcu",
-   "file": "DHC6_PT6A27_FCU_REPLICA.glb",
-   "source": "reference-library",
-   "title": "PT6A-27 fuel control unit (FCU) replica",
-   "shortTitle": "Fuel control unit",
-   "description": "Bendix-type FCU with exterior casting, bellows computing section, hydraulic section (metering, bypass and high-pressure relief valves), Ng governor section, pneumatic pressure section and the power-arm installation.",
-   "primaryFor": [],
-   "alternateFor": [
-    "ENGINE_CONTROLS",
-    "ENGINE_FUEL_CONTROL"
-   ],
-   "hidden": [
-    "=FCU_ARCHIVE_R5",
-    "=FCU_ARCHIVE_USER_PARTS_NOT_FITTED",
-    "~ARCHIVE",
-    "~NOT_IN_SOURCE",
-    "~REPLACED_BY",
-    "~DONOR",
-    "~INSTALL_REF",
-    "~REVIEW_LABELS",
-    "~_HEADING$"
-   ],
-   "clips": {
-    "FCU_MASTER_CORRECTED_COMBINED_OPERATION": "Combined FCU operation",
-    "FCU_R5_NG_GOVERNOR_CORRECTED": "Ng governor"
-   },
-   "groups": [
-    "FCU_DP_F2_ASSEMBLY",
-    "FCU_R5_EXTERIOR_CASTING",
-    "FCU_INTERNAL_SOURCE_RELATIONSHIP_SECTION",
-    "FCU_POWER_ARM_INSTALLATION",
-    "NEW_CASE_FCU_ROOT",
-    "FCU_ARCHIVE_R5"
-   ],
-   "mediaPath": "models/systems-lab/DHC6_PT6A27_FCU_REPLICA.glb",
-   "bytes": 3813364,
-   "sha256": "b47e95724830e960b301d2f4971e45568c5a10639b40bb62c76e2b7a76f5403d",
-   "nodes": 252,
-   "meshes": 216,
-   "triangles": 56645,
-   "animations": [
-    "FCU_MASTER_CORRECTED_COMBINED_OPERATION",
-    "FCU_R5_NG_GOVERNOR_CORRECTED"
-   ],
-   "extensionsUsed": [
-    "KHR_materials_unlit"
-   ],
-   "clipGroups": {},
-   "parts": {
-    "fcu_unit": [
-     "FCU_R5_EXTERIOR_CASTING",
-     "~^FCU_MAIN_BODY",
-     "~^FCU_DRIVE_BODY",
-     "~^FCU_FUEL_DELIVERY",
-     "~^FCU_CAM_BOX",
-     "~^FCU_FUEL_PUMP",
-     "~^FCU_REGULATOR_HOUSING",
-     "FCU_HYDRAULIC_SECTION",
-     "~^FCU_METERING_VALVE",
-     "~^FCU_BYPASS",
-     "~^FCU_HIGH_PRESSURE",
-     "~^NEW_CASE_FCU"
-    ],
-    "fuel_topping_governor": [
-     "FCU_NG_GOVERNOR_SECTION",
-     "~^FCU_NG_GOVERNOR",
-     "~^FCU_GOVERNOR",
-     "~^FCU_SPEED",
-     "~^FCU_ENRICHMENT",
-     "~^FCU_CAM_FOLLOWER",
-     "~^FCU_IDLE_SPEED"
-    ],
-    "air_fuel_signals": [
-     "FCU_PNEUMATIC_PRESSURE_SECTION",
-     "~^FCU_P3",
-     "~^FCU_PX",
-     "~^FCU_PY",
-     "~^FCU_BELLOWS",
-     "~^FCU_ATMOSPHERIC_VENT",
-     "FCU_INTERNAL_CONNECTION_DATUMS",
-     "~^FCU_P0",
-     "~^FCU_P1",
-     "~^FCU_P2",
-     "~^FCU_TORQUE_TUBE",
-     "~^FCU_ACCELERATION"
-    ],
-    "power_lever_linkage": [
-     "FCU_POWER_ARM_INSTALLATION",
-     "~^ITEM_123",
-     "~^ITEM_124",
-     "~^ITEM_125"
-    ],
-    "primary_governor": [],
-    "pilot_valve": [],
-    "beta_valve": [],
-    "overspeed_governor": [],
-    "overspeed_drain": [],
-    "test_solenoid": [],
-    "flyweight_head": [
-     "~^FCU_NG_GOVERNOR_WEIGHT"
-    ],
-    "speeder_spring": [],
-    "beta_backup_slipring": [],
-    "beta_backup_solenoid": [],
-    "oil_circuits": [],
-    "housing_cutaway": [
-     "FCU_R5_EXTERIOR_CASTING",
-     "~^NEW_CASE_FCU"
-    ],
-    "fuel_inlet": [
-     "~^FCU_P1_PUMP"
-    ],
-    "fuel_outlet": [
-     "~^FCU_P2_METERED",
-     "~^FCU_FUEL_DELIVERY"
-    ],
-    "bypass_spool": [
-     "~^FCU_BYPASS"
-    ],
-    "mounting_service": [
-     "~^ITEM_",
-     "~^FCU_DRIVE_BODY"
-    ]
-   },
-   "extraParts": [
-    {
-     "id": "bellows",
-     "label": "Bellows computing section",
-     "selectors": [
-      "FCU_BELLOWS_COMPUTING_SECTION",
-      "~^FCU_BELLOWS",
-      "~^FCU_ACCELERATION_BELLOWS",
-      "~^FCU_GOVERNOR_BELLOWS",
-      "~^FCU_TORQUE_TUBE"
-     ]
-    },
-    {
-     "id": "hydraulic_section",
-     "label": "Hydraulic section (metering, bypass, relief)",
-     "selectors": [
-      "FCU_HYDRAULIC_SECTION",
-      "~^FCU_METERING",
-      "~^FCU_BYPASS",
-      "~^FCU_HIGH_PRESSURE"
-     ]
-    },
-    {
-     "id": "compressor_delivery",
-     "label": "Compressor delivery (post SB1123)",
-     "selectors": [
-      "FCU_COMPRESSOR_DELIVERY_CONFIGURATION_POST_SB1123",
-      "~^ITEM_4[0-9]0"
-     ]
-    }
-   ]
-  },
-  {
-   "id": "aircraft-wheels",
-   "file": "DHC6WHEELS.glb",
-   "source": "reference-library",
-   "title": "DHC-6 Series 300 \u2014 wheel landplane",
-   "shortTitle": "Aircraft (wheels)",
-   "description": "Complete DHC-6 Series 300 exterior on the fixed wheel undercarriage; used as the Systems Lab aircraft explorer and the wheel-variant context model.",
-   "primaryFor": [
-    "LANDING_GEAR_WHEELS",
-    "AIRCRAFT_GENERAL",
-    "STANDARD_AIRFRAME_PRACTICES",
-    "OPERATIONS_TECHNIQUES"
-   ],
-   "alternateFor": [],
-   "hidden": [
-    "=shadow"
-   ],
-   "clips": {},
-   "groups": [
-    "world"
-   ],
-   "mediaPath": "models/systems-lab/DHC6WHEELS.glb",
-   "bytes": 4750916,
-   "sha256": "8282dd294e017e0e3fa43bdcde6d385965c366797d4abd686beaee42e7aab989",
-   "nodes": 121,
-   "meshes": 117,
-   "triangles": 23500,
-   "animations": [],
-   "extensionsUsed": [],
-   "clipGroups": {},
-   "parts": {
-    "nose_gear": [
-     "FrtStrut",
-     "=frt.d1",
-     "=frt.d2"
-    ],
-    "main_gear": [
-     "LHstrut",
-     "RHstrut"
-    ],
-    "wheels": [
-     "FrtWheel",
-     "Lwheel",
-     "Rwheel"
-    ],
-    "brakes": [],
-    "steering": [
-     "FrtStrut"
-    ],
-    "parking_brake": [],
-    "hydraulic_supply": [],
-    "tail_bumper": [],
-    "fig_6_1_dimensions": [],
-    "fig_6_2_jig": [],
-    "fig_6_3_stations": [],
-    "fig_6_4_area": [],
-    "fig_7_1": [],
-    "fig_7_2": [],
-    "fig_7_3": [],
-    "fig_7_4": [],
-    "fig_7_5_7_6": [],
-    "fig_6_11": [],
-    "fig_6_12": []
-   },
-   "extraParts": [
-    {
-     "id": "fuselage",
-     "label": "Fuselage, doors and glazing",
-     "selectors": [
-      "fuselage",
-      "longnose",
-      "bluntnose",
-      "~door",
-      "~glass",
-      "Baggage.door",
-      "aerial",
-      "fuel.caps"
-     ]
-    },
-    {
-     "id": "wings",
-     "label": "Wings, struts, flaps and ailerons",
-     "selectors": [
-      "wings",
-      "wingbrace",
-      "~^[LR]\\.(aileron|flap|slat)$"
-     ]
-    },
-    {
-     "id": "empennage",
-     "label": "Empennage",
-     "selectors": [
-      "Elevator",
-      "rudder",
-      "Hstab"
-     ]
-    },
-    {
-     "id": "nacelles",
-     "label": "Engines, propellers and exhausts",
-     "selectors": [
-      "Engine.cowl",
-      "Exhaust",
-      "LHEngine",
-      "RHEngine",
-      "~^[LR]prop",
-      "~^Spinner"
-     ]
-    },
-    {
-     "id": "lights",
-     "label": "Lights and pitot tubes",
-     "selectors": [
-      "LHLNDlight",
-      "RHLNDlight",
-      "taxilight",
-      "beacon",
-      "navlights",
-      "~^strobe",
-      "landing_light_cover",
-      "~pitot-tube$"
-     ]
-    }
-   ],
-   "explorer": true
-  },
-  {
-   "id": "aircraft-skis",
-   "file": "DHC6SKIS.glb",
-   "source": "reference-library",
-   "title": "DHC-6 Series 300 \u2014 ski undercarriage",
-   "shortTitle": "Aircraft (skis)",
-   "description": "Complete DHC-6 Series 300 exterior on the wheel-ski undercarriage (nose ski and main skis).",
-   "primaryFor": [
-    "LANDING_GEAR_SKI"
-   ],
-   "alternateFor": [],
-   "hidden": [
-    "=shadow"
-   ],
-   "clips": {},
-   "groups": [
-    "world",
-    "world.001"
-   ],
-   "mediaPath": "models/systems-lab/DHC6SKIS.glb",
-   "bytes": 4908832,
-   "sha256": "11f8067e7dbf1402486a725d3518d8a7ac492ab405275597395a6524a404cb39",
-   "nodes": 129,
-   "meshes": 124,
-   "triangles": 24976,
-   "animations": [],
-   "extensionsUsed": [],
-   "clipGroups": {},
-   "parts": {
-    "skis": [
-     "FrtSki",
-     "Lski",
-     "Rski"
-    ],
-    "performance": []
-   },
-   "extraParts": [
-    {
-     "id": "undercarriage",
-     "label": "Struts and wheels",
-     "selectors": [
-      "FrtStrut",
-      "LHstrut",
-      "RHstrut",
-      "FrtWheel",
-      "Lwheel",
-      "Rwheel"
-     ]
-    },
-    {
-     "id": "fuselage",
-     "label": "Fuselage, doors and glazing",
-     "selectors": [
-      "fuselage",
-      "longnose",
-      "bluntnose",
-      "~door",
-      "~glass"
-     ]
-    },
-    {
-     "id": "wings",
-     "label": "Wings, struts, flaps and ailerons",
-     "selectors": [
-      "wings",
-      "wingbrace",
-      "~^[LR]\\.(aileron|flap|slat)$"
-     ]
-    }
-   ]
-  },
-  {
-   "id": "aircraft-floats",
-   "file": "DHC6FLOATS.glb",
-   "source": "reference-library",
-   "title": "DHC-6 Series 300 \u2014 float installation",
-   "shortTitle": "Aircraft (floats)",
-   "description": "Complete DHC-6 Series 300 exterior on floats with float struts.",
-   "primaryFor": [
-    "LANDING_GEAR_FLOATS"
-   ],
-   "alternateFor": [],
-   "hidden": [
-    "=shadow"
-   ],
-   "clips": {},
-   "groups": [
-    "world",
-    "world.001"
-   ],
-   "mediaPath": "models/systems-lab/DHC6FLOATS.glb",
-   "bytes": 5561128,
-   "sha256": "ee02b64478831288597dee096b7120f731f4e03d88f9123e64dea32c1334d5bf",
-   "nodes": 116,
-   "meshes": 111,
-   "triangles": 16911,
-   "animations": [],
-   "extensionsUsed": [],
-   "clipGroups": {},
-   "parts": {
-    "structure": [
-     "Floats",
-     "=LHfloat.strut",
-     "=RHfloat.strut",
-     "=float.fairing"
-    ],
-    "brakes": [],
-    "steering": [],
-    "shock": []
-   },
-   "extraParts": [
-    {
-     "id": "fuselage",
-     "label": "Fuselage, doors and glazing",
-     "selectors": [
-      "fuselage",
-      "longnose",
-      "bluntnose",
-      "~door",
-      "~glass"
-     ]
-    },
-    {
-     "id": "wings",
-     "label": "Wings, struts, flaps and ailerons",
-     "selectors": [
-      "wings",
-      "wingbrace",
-      "~^[LR]\\.(aileron|flap|slat)$"
-     ]
-    }
-   ]
-  },
-  {
-   "id": "undercarriage-replica",
-   "file": "DHC6_LANDPLANE_UNDERCARRIAGE_REPLICA.glb",
-   "source": "reference-library",
-   "title": "Series 300 landplane undercarriage replica",
-   "shortTitle": "Undercarriage replica",
-   "description": "Detailed fixed landplane undercarriage: LH/RH main gear (airframe-fixed group, leg pivot group with shock absorber, brakes, rolling wheel group) and the nose gear with shock strut, steering group and rolling wheel group.",
-   "primaryFor": [],
-   "alternateFor": [
-    "LANDING_GEAR_WHEELS"
-   ],
-   "hidden": [
-    "=NOSE_GEAR_DONOR_ARCHIVE",
-    "=world.001",
-    "=world.002"
-   ],
-   "clips": {
-    "MAIN_GEAR_SHOCK_ABSORBER_COMPRESSION": "Main gear shock absorber compression",
-    "UNDERCARRIAGE_WHEELS_ROLL_359_9_DEG": "Wheels roll",
-    "NOSE_SHOCK_STRUT_COMPRESSION": "Nose shock strut compression",
-    "NOSE_STEERING_SWEEP_60_DEG": "Nose steering sweep (60\u00b0)"
-   },
-   "groups": [
-    "MAIN_GEAR_INSTALLATION_C6U1101",
-    "NOSE_GEAR_ASSEMBLY_C6U1500"
-   ],
-   "mediaPath": "models/systems-lab/DHC6_LANDPLANE_UNDERCARRIAGE_REPLICA.glb",
-   "bytes": 27899372,
-   "sha256": "2ec7f14d0b6a8cd82ef9408d68ec2ac8f6c50f7a336b9f84e66a55b224467268",
-   "nodes": 176,
-   "meshes": 158,
-   "triangles": 329449,
-   "animations": [
-    "MAIN_GEAR_SHOCK_ABSORBER_COMPRESSION",
-    "UNDERCARRIAGE_WHEELS_ROLL_359_9_DEG",
-    "NOSE_SHOCK_STRUT_COMPRESSION",
-    "NOSE_STEERING_SWEEP_60_DEG"
-   ],
-   "extensionsUsed": [],
-   "clipGroups": {},
-   "parts": {
-    "nose_gear": [
-     "NOSE_GEAR_ASSEMBLY_C6U1500",
-     "~^NOSE_GEAR",
-     "~^NOSE_SHOCK",
-     "~^NOSE_COMPARTMENT"
-    ],
-    "main_gear": [
-     "MAIN_GEAR_INSTALLATION_C6U1101",
-     "~^[LR]H_MAIN_GEAR",
-     "~^[LR]H_MAIN_LEG",
-     "~^[LR]H_MAIN_SHOCK",
-     "~^[LR]H_MAIN_REBOUND",
-     "~^[LR]H_FUSELAGE",
-     "FUSELAGE_BELLY_SKIN_MAIN_GEAR_STATION_REFERENCE",
-     "~^[LR]H_MAIN_AXLE"
-    ],
-    "wheels": [
-     "~^[LR]H_MAIN_WHEEL",
-     "~^[LR]H_MAIN_TIRE",
-     "~^[LR]H_MAIN_TUBELESS",
-     "~^[LR]H_MAIN_INBOARD",
-     "~^[LR]H_MAIN_OUTBOARD",
-     "~^NOSE_WHEEL",
-     "~^NOSE_TIRE",
-     "~^NOSE_TUBELESS",
-     "~^NOSE_INBOARD",
-     "~^NOSE_OUTBOARD"
-    ],
-    "brakes": [
-     "~^[LR]H_MAIN_BRAKE"
-    ],
-    "steering": [
-     "NOSE_STEERING_GROUP",
-     "~^NOSEWHEEL_STEERING",
-     "~^NOSE_GEAR_STEERING",
-     "~^NOSE_GEAR_TORQUE",
-     "~TORQUE_ARM"
-    ],
-    "hydraulic_supply": [
-     "~^[LR]H_MAIN_BRAKE_HYDRAULIC_LINE",
-     "~^NOSEWHEEL_STEERING_ACTUATOR"
-    ],
-    "parking_brake": [],
-    "tail_bumper": []
-   },
-   "extraParts": []
-  },
-  {
-   "id": "electrical-system",
-   "file": "electrical_system.glb",
-   "source": "android-bundled",
-   "title": "28 VDC electrical system (Android training model)",
-   "shortTitle": "Electrical system",
-   "description": "Android-bundled 28 VDC electrical system training model: batteries, battery master, starter-generators, distribution box and bus bars, bus tie, GCU/protection, cockpit controls, circuit-breaker panel, inverters, external power and cabling.",
-   "primaryFor": [
-    "ELECTRICAL"
-   ],
-   "alternateFor": [],
-   "hidden": [],
-   "clips": {},
-   "groups": [
-    "world"
-   ],
-   "mediaPath": "models/systems-lab/electrical_system.glb",
-   "bytes": 295780,
-   "sha256": "1bf61e288f8cc311cff878353d47e6d2887423f124e6316b12dc99b1cddef705",
-   "nodes": 342,
-   "meshes": 341,
-   "triangles": 18500,
-   "animations": [],
-   "extensionsUsed": [],
-   "clipGroups": {},
-   "parts": {
-    "main_battery": [
-     "=BatteryBay_Strap_Aft",
-     "=BatteryBay_Strap_Fwd",
-     "=BatteryBay_Tray",
-     "=MainBattery_Case",
-     "=MainBattery_NegTerminal_Post",
-     "=MainBattery_Placard",
-     "=MainBattery_PosTerminal_Post",
-     "=MainBattery_Top",
-     "=MainBattery_VentCap_1_1",
-     "=MainBattery_VentCap_1_2",
-     "=MainBattery_VentCap_2_1",
-     "=MainBattery_VentCap_2_2",
-     "=MainBattery_VentCap_3_1",
-     "=MainBattery_VentCap_3_2",
-     "=MainBattery_VentCap_4_1",
-     "=MainBattery_VentCap_4_2",
-     "=MainBattery_VentTube_joint1",
-     "=MainBattery_VentTube_joint2",
-     "=MainBattery_VentTube_seg1"
-    ],
-    "aux_battery": [
-     "=AuxBattery_Case",
-     "=AuxBattery_NegTerminal_Post",
-     "=AuxBattery_Placard",
-     "=AuxBattery_PosTerminal_Post",
-     "=AuxBattery_Top"
-    ],
-    "battery_master": [
-     "=BatteryMasterSolenoid_Body",
-     "=BatteryMasterSolenoid_Cap",
-     "=BatteryMasterSolenoid_PostA",
-     "=BatteryMasterSolenoid_PostB",
-     "=BatteryQuickDisconnect_Body",
-     "=BatteryQuickDisconnect_Grip"
-    ],
-    "starter_generators": [
-     "=StarterGen_Left_BrushCover_Top",
-     "=StarterGen_Left_CoolingShroud",
-     "=StarterGen_Left_DriveShaft",
-     "=StarterGen_Left_Housing",
-     "=StarterGen_Left_MountFlange",
-     "=StarterGen_Left_Nameplate",
-     "=StarterGen_Left_TerminalBox_Body",
-     "=StarterGen_Right_BrushCover_Top",
-     "=StarterGen_Right_CoolingShroud",
-     "=StarterGen_Right_DriveShaft",
-     "=StarterGen_Right_Housing",
-     "=StarterGen_Right_MountFlange",
-     "=StarterGen_Right_Nameplate",
-     "=StarterGen_Right_TerminalBox_Body",
-     "=StarterRelay_Left_Body",
-     "=StarterRelay_Left_Cap",
-     "=StarterRelay_Left_Placard",
-     "=StarterRelay_Right_Body",
-     "=StarterRelay_Right_Cap",
-     "=StarterRelay_Right_Placard"
-    ],
-    "main_distribution": [
-     "=BusBar_AUXBATT",
-     "=BusBar_BATTERY",
-     "=BusBar_ESS",
-     "=BusBar_LEFT",
-     "=BusBar_RIGHT",
-     "=DistBox_Body",
-     "=DistBox_Label_AUXBATT_BUS",
-     "=DistBox_Label_BATTERY_BUS",
-     "=DistBox_Label_DUALFED_BUS",
-     "=DistBox_Label_ESS_BUS",
-     "=DistBox_Label_LEFT_BUS",
-     "=DistBox_Label_RIGHT_BUS",
-     "=DistBox_Lid",
-     "=DualFedBus_Bar",
-     "=DualFedBus_Diode_Left",
-     "=DualFedBus_Diode_Right"
-    ],
-    "bus_tie": [
-     "=BusTieRelay_Body",
-     "=BusTieRelay_CoilCap",
-     "=BusTieRelay_Placard",
-     "=BusTieRelay_PostL",
-     "=BusTieRelay_PostR"
-    ],
-    "protection_and_gcu": [
-     "=GCU_Left_Case",
-     "=GCU_Left_Connector",
-     "=GCU_Left_Placard",
-     "=GCU_Right_Case",
-     "=GCU_Right_Connector",
-     "=GCU_Right_Placard",
-     "=RCCB_Left_Body",
-     "=RCCB_Left_Placard",
-     "=RCCB_Left_PostIn",
-     "=RCCB_Left_PostOut",
-     "=RCCB_Left_ResetButton",
-     "=RCCB_Right_Body",
-     "=RCCB_Right_Placard",
-     "=RCCB_Right_PostIn",
-     "=RCCB_Right_PostOut",
-     "=RCCB_Right_ResetButton"
-    ],
-    "cockpit_controls": [
-     "=CockpitElecPanel_Backing",
-     "=LoadMeter_L_Bezel",
-     "=LoadMeter_L_Case",
-     "=LoadMeter_L_Face",
-     "=LoadMeter_L_Placard",
-     "=LoadMeter_R_Bezel",
-     "=LoadMeter_R_Case",
-     "=LoadMeter_R_Face",
-     "=LoadMeter_R_Placard",
-     "=Sw_BATT_MASTER_Base",
-     "=Sw_BATT_MASTER_Bat",
-     "=Sw_BATT_MASTER_Placard",
-     "=Sw_BUS_TIE_Base",
-     "=Sw_BUS_TIE_Bat",
-     "=Sw_BUS_TIE_Placard",
-     "=Sw_EXT_PWR_Base",
-     "=Sw_EXT_PWR_Bat",
-     "=Sw_EXT_PWR_Placard",
-     "=Sw_GEN_L_Base",
-     "=Sw_GEN_L_Bat",
-     "=Sw_GEN_L_Placard",
-     "=Sw_GEN_R_Base",
-     "=Sw_GEN_R_Bat",
-     "=Sw_GEN_R_Placard",
-     "=Sw_INV_SELECT_Base",
-     "=Sw_INV_SELECT_Bat",
-     "=Sw_INV_SELECT_Placard",
-     "=VoltMeter_Bezel",
-     "=VoltMeter_Case",
-     "=VoltMeter_Face",
-     "=VoltMeter_Placard"
-    ],
-    "circuit_breaker_panel": [
-     "=CBPanel_Backing",
-     "=CBPanel_RowLabel_LEFT_BUS",
-     "=CBPanel_RowLabel_RIGHT_BUS",
-     "=CB_LEFT_BUS_10_Body",
-     "=CB_LEFT_BUS_10_Button",
-     "=CB_LEFT_BUS_11_Body",
-     "=CB_LEFT_BUS_11_Button",
-     "=CB_LEFT_BUS_12_Body",
-     "=CB_LEFT_BUS_12_Button",
-     "=CB_LEFT_BUS_13_Body",
-     "=CB_LEFT_BUS_13_Button",
-     "=CB_LEFT_BUS_14_Body",
-     "=CB_LEFT_BUS_14_Button",
-     "=CB_LEFT_BUS_1_Body",
-     "=CB_LEFT_BUS_1_Button",
-     "=CB_LEFT_BUS_2_Body",
-     "=CB_LEFT_BUS_2_Button",
-     "=CB_LEFT_BUS_3_Body",
-     "=CB_LEFT_BUS_3_Button",
-     "=CB_LEFT_BUS_4_Body",
-     "=CB_LEFT_BUS_4_Button",
-     "=CB_LEFT_BUS_5_Body",
-     "=CB_LEFT_BUS_5_Button",
-     "=CB_LEFT_BUS_6_Body",
-     "=CB_LEFT_BUS_6_Button",
-     "=CB_LEFT_BUS_7_Body",
-     "=CB_LEFT_BUS_7_Button",
-     "=CB_LEFT_BUS_8_Body",
-     "=CB_LEFT_BUS_8_Button",
-     "=CB_LEFT_BUS_9_Body",
-     "=CB_LEFT_BUS_9_Button",
-     "=CB_RIGHT_BUS_10_Body",
-     "=CB_RIGHT_BUS_10_Button",
-     "=CB_RIGHT_BUS_11_Body",
-     "=CB_RIGHT_BUS_11_Button",
-     "=CB_RIGHT_BUS_12_Body",
-     "=CB_RIGHT_BUS_12_Button",
-     "=CB_RIGHT_BUS_13_Body",
-     "=CB_RIGHT_BUS_13_Button",
-     "=CB_RIGHT_BUS_14_Body",
-     "=CB_RIGHT_BUS_14_Button",
-     "=CB_RIGHT_BUS_1_Body",
-     "=CB_RIGHT_BUS_1_Button",
-     "=CB_RIGHT_BUS_2_Body",
-     "=CB_RIGHT_BUS_2_Button",
-     "=CB_RIGHT_BUS_3_Body",
-     "=CB_RIGHT_BUS_3_Button",
-     "=CB_RIGHT_BUS_4_Body",
-     "=CB_RIGHT_BUS_4_Button",
-     "=CB_RIGHT_BUS_5_Body",
-     "=CB_RIGHT_BUS_5_Button",
-     "=CB_RIGHT_BUS_6_Body",
-     "=CB_RIGHT_BUS_6_Button",
-     "=CB_RIGHT_BUS_7_Body",
-     "=CB_RIGHT_BUS_7_Button",
-     "=CB_RIGHT_BUS_8_Body",
-     "=CB_RIGHT_BUS_8_Button",
-     "=CB_RIGHT_BUS_9_Body",
-     "=CB_RIGHT_BUS_9_Button"
-    ],
-    "inverters": [
-     "=AC_400FailFuse_Body",
-     "=AC_400FailFuse_Placard",
-     "=Bus_115VAC",
-     "=Bus_115VAC_Label",
-     "=Bus_26VAC",
-     "=Bus_26VAC_Label",
-     "=InverterRelay_Body",
-     "=InverterRelay_Cap",
-     "=InverterRelay_Placard",
-     "=Inverter_1_Case",
-     "=Inverter_1_Connector",
-     "=Inverter_1_Placard",
-     "=Inverter_1_TopVent",
-     "=Inverter_2_Case",
-     "=Inverter_2_Connector",
-     "=Inverter_2_Placard",
-     "=Inverter_2_TopVent"
-    ],
-    "external_power": [
-     "=ExtPowerRelay_Body",
-     "=ExtPowerRelay_Cap",
-     "=ExternalPower_HingedDoor",
-     "=ExternalPower_Housing",
-     "=ExternalPower_Pin_1",
-     "=ExternalPower_Pin_2",
-     "=ExternalPower_Pin_3",
-     "=ExternalPower_Placard"
-    ],
-    "power_cabling": [
-     "=Cable_BatteryBus_to_LeftBus_joint1",
-     "=Cable_BatteryBus_to_LeftBus_joint2",
-     "=Cable_BatteryBus_to_LeftBus_seg1",
-     "=Cable_BatteryBus_to_RightBus_joint1",
-     "=Cable_BatteryBus_to_RightBus_joint2",
-     "=Cable_BatteryBus_to_RightBus_seg1",
-     "=Cable_Battery_to_Ground_joint1",
-     "=Cable_Battery_to_Ground_joint2",
-     "=Cable_Battery_to_Ground_joint3",
-     "=Cable_Battery_to_Ground_seg1",
-     "=Cable_Battery_to_Ground_seg2",
-     "=Cable_Battery_to_MasterSolenoid_joint1",
-     "=Cable_Battery_to_MasterSolenoid_joint2",
-     "=Cable_Battery_to_MasterSolenoid_joint3",
-     "=Cable_Battery_to_MasterSolenoid_seg1",
-     "=Cable_Battery_to_MasterSolenoid_seg2",
-     "=Cable_BusTie_to_RightBus_joint1",
-     "=Cable_BusTie_to_RightBus_joint2",
-     "=Cable_BusTie_to_RightBus_seg1",
-     "=Cable_ExtPowerRelay_to_BatteryBus_joint1",
-     "=Cable_ExtPowerRelay_to_BatteryBus_joint2",
-     "=Cable_ExtPowerRelay_to_BatteryBus_joint3",
-     "=Cable_ExtPowerRelay_to_BatteryBus_joint4",
-     "=Cable_ExtPowerRelay_to_BatteryBus_seg1",
-     "=Cable_ExtPowerRelay_to_BatteryBus_seg2",
-     "=Cable_ExtPowerRelay_to_BatteryBus_seg3",
-     "=Cable_GCU_L_Field_joint1",
-     "=Cable_GCU_L_Field_joint2",
-     "=Cable_GCU_L_Field_seg1",
-     "=Cable_GCU_R_Field_joint1",
-     "=Cable_GCU_R_Field_joint2",
-     "=Cable_GCU_R_Field_seg1",
-     "=Cable_GPU_to_ExtPowerRelay_joint1",
-     "=Cable_GPU_to_ExtPowerRelay_joint2",
-     "=Cable_GPU_to_ExtPowerRelay_seg1",
-     "=Cable_GenL_to_RCCB_L_joint1",
-     "=Cable_GenL_to_RCCB_L_joint2",
-     "=Cable_GenL_to_RCCB_L_joint3",
-     "=Cable_GenL_to_RCCB_L_joint4",
-     "=Cable_GenL_to_RCCB_L_seg1",
-     "=Cable_GenL_to_RCCB_L_seg2",
-     "=Cable_GenL_to_RCCB_L_seg3",
-     "=Cable_GenR_to_RCCB_R_joint1",
-     "=Cable_GenR_to_RCCB_R_joint2",
-     "=Cable_GenR_to_RCCB_R_joint3",
-     "=Cable_GenR_to_RCCB_R_joint4",
-     "=Cable_GenR_to_RCCB_R_seg1",
-     "=Cable_GenR_to_RCCB_R_seg2",
-     "=Cable_GenR_to_RCCB_R_seg3",
-     "=Cable_Inverter1_AC_out_joint1",
-     "=Cable_Inverter1_AC_out_joint2",
-     "=Cable_Inverter1_AC_out_joint3",
-     "=Cable_Inverter1_AC_out_seg1",
-     "=Cable_Inverter1_AC_out_seg2",
-     "=Cable_Inverter2_AC_out_joint1",
-     "=Cable_Inverter2_AC_out_joint2",
-     "=Cable_Inverter2_AC_out_joint3",
-     "=Cable_Inverter2_AC_out_seg1",
-     "=Cable_Inverter2_AC_out_seg2",
-     "=Cable_LeftBus_to_BusTie_joint1",
-     "=Cable_LeftBus_to_BusTie_joint2",
-     "=Cable_LeftBus_to_BusTie_seg1",
-     "=Cable_LeftBus_to_CBPanel_joint1",
-     "=Cable_LeftBus_to_CBPanel_joint2",
-     "=Cable_LeftBus_to_CBPanel_joint3",
-     "=Cable_LeftBus_to_CBPanel_joint4",
-     "=Cable_LeftBus_to_CBPanel_seg1",
-     "=Cable_LeftBus_to_CBPanel_seg2",
-     "=Cable_LeftBus_to_CBPanel_seg3",
-     "=Cable_LeftBus_to_Inverter2_joint1",
-     "=Cable_LeftBus_to_Inverter2_joint2",
-     "=Cable_LeftBus_to_Inverter2_seg1",
-     "=Cable_MasterSolenoid_to_BatteryBus_joint1",
-     "=Cable_MasterSolenoid_to_BatteryBus_joint2",
-     "=Cable_MasterSolenoid_to_BatteryBus_joint3",
-     "=Cable_MasterSolenoid_to_BatteryBus_joint4",
-     "=Cable_MasterSolenoid_to_BatteryBus_seg1",
-     "=Cable_MasterSolenoid_to_BatteryBus_seg2",
-     "=Cable_MasterSolenoid_to_BatteryBus_seg3",
-     "=Cable_RCCB_L_to_LeftBus_joint1",
-     "=Cable_RCCB_L_to_LeftBus_joint2",
-     "=Cable_RCCB_L_to_LeftBus_seg1",
-     "=Cable_RCCB_R_to_RightBus_joint1",
-     "=Cable_RCCB_R_to_RightBus_joint2",
-     "=Cable_RCCB_R_to_RightBus_seg1",
-     "=Cable_RightBus_to_CBPanel_joint1",
-     "=Cable_RightBus_to_CBPanel_joint2",
-     "=Cable_RightBus_to_CBPanel_joint3",
-     "=Cable_RightBus_to_CBPanel_joint4",
-     "=Cable_RightBus_to_CBPanel_seg1",
-     "=Cable_RightBus_to_CBPanel_seg2",
-     "=Cable_RightBus_to_CBPanel_seg3",
-     "=Cable_RightBus_to_Inverter1_joint1",
-     "=Cable_RightBus_to_Inverter1_joint2",
-     "=Cable_RightBus_to_Inverter1_seg1",
-     "=Cable_Sw_BATT_MASTER_to_Solenoid_joint1",
-     "=Cable_Sw_BATT_MASTER_to_Solenoid_joint2",
-     "=Cable_Sw_BATT_MASTER_to_Solenoid_joint3",
-     "=Cable_Sw_BATT_MASTER_to_Solenoid_seg1",
-     "=Cable_Sw_BATT_MASTER_to_Solenoid_seg2",
-     "=Cable_Sw_BUS_TIE_to_Relay_joint1",
-     "=Cable_Sw_BUS_TIE_to_Relay_joint2",
-     "=Cable_Sw_BUS_TIE_to_Relay_joint3",
-     "=Cable_Sw_BUS_TIE_to_Relay_joint4",
-     "=Cable_Sw_BUS_TIE_to_Relay_seg1",
-     "=Cable_Sw_BUS_TIE_to_Relay_seg2",
-     "=Cable_Sw_BUS_TIE_to_Relay_seg3",
-     "=Cable_Sw_EXT_PWR_to_Relay_joint1",
-     "=Cable_Sw_EXT_PWR_to_Relay_joint2",
-     "=Cable_Sw_EXT_PWR_to_Relay_joint3",
-     "=Cable_Sw_EXT_PWR_to_Relay_joint4",
-     "=Cable_Sw_EXT_PWR_to_Relay_seg1",
-     "=Cable_Sw_EXT_PWR_to_Relay_seg2",
-     "=Cable_Sw_EXT_PWR_to_Relay_seg3",
-     "=Cable_Sw_GEN_L_to_Relay_joint1",
-     "=Cable_Sw_GEN_L_to_Relay_joint2",
-     "=Cable_Sw_GEN_L_to_Relay_joint3",
-     "=Cable_Sw_GEN_L_to_Relay_joint4",
-     "=Cable_Sw_GEN_L_to_Relay_seg1",
-     "=Cable_Sw_GEN_L_to_Relay_seg2",
-     "=Cable_Sw_GEN_L_to_Relay_seg3",
-     "=Cable_Sw_GEN_R_to_Relay_joint1",
-     "=Cable_Sw_GEN_R_to_Relay_joint2",
-     "=Cable_Sw_GEN_R_to_Relay_joint3",
-     "=Cable_Sw_GEN_R_to_Relay_joint4",
-     "=Cable_Sw_GEN_R_to_Relay_seg1",
-     "=Cable_Sw_GEN_R_to_Relay_seg2",
-     "=Cable_Sw_GEN_R_to_Relay_seg3",
-     "=Cable_Sw_INV_SELECT_to_Inverters_joint1",
-     "=Cable_Sw_INV_SELECT_to_Inverters_joint2",
-     "=Cable_Sw_INV_SELECT_to_Inverters_joint3",
-     "=Cable_Sw_INV_SELECT_to_Inverters_seg1",
-     "=Cable_Sw_INV_SELECT_to_Inverters_seg2",
-     "=Fuselage_Reference_Bar",
-     "=Sta_Battery",
-     "=Sta_Cockpit",
-     "=Sta_DistBox",
-     "=Sta_ExtPower",
-     "=Sta_Generators"
-    ]
-   },
-   "extraParts": []
-  },
-  {
-   "id": "pitot-static",
-   "file": "pitot_static_system.glb",
-   "source": "android-bundled",
-   "title": "Pitot-static system (Android training model)",
-   "shortTitle": "Pitot-static",
-   "description": "Android-bundled pitot-static training model: pitot mast and heater, static ports, water traps, alternate static selector, distribution manifold, pilot and copilot instruments and plumbing.",
-   "primaryFor": [
-    "INDICATIONS_ALERTING"
-   ],
-   "alternateFor": [],
-   "hidden": [],
-   "clips": {},
-   "groups": [
-    "world"
-   ],
-   "mediaPath": "models/systems-lab/pitot_static_system.glb",
-   "bytes": 192636,
-   "sha256": "25219c7278f40f75798f11f72472b014474f565eb892bb036e939c9ab098313d",
-   "nodes": 211,
-   "meshes": 210,
-   "triangles": 13288,
-   "animations": [],
-   "extensionsUsed": [],
-   "clipGroups": {},
-   "parts": {
-    "pitot_mast": [
-     "=Pitot_Tip",
-     "=Pitot_Tip_OpeningFront",
-     "=Pitot_Mast_Body",
-     "=Pitot_Mast_MountPlate"
-    ],
-    "pitot_heat": [
-     "=Pitot_Heater_Element",
-     "=Pitot_Heater_Wire_seg1",
-     "=Pitot_Heater_Wire_seg2",
-     "=Pitot_Heater_Wire_joint1",
-     "=Pitot_Heater_Wire_joint2",
-     "=Pitot_Heater_Wire_joint3"
-    ],
-    "static_ports": [
-     "=StaticPort_L_Plate",
-     "=StaticPort_L_Hole_0",
-     "=StaticPort_L_Hole_14",
-     "=StaticPort_L_Hole_28",
-     "=StaticPort_L_InternalFitting",
-     "=StaticPort_L_InternalPort_Elbow",
-     "=StaticPort_R_Plate",
-     "=StaticPort_R_Hole_0",
-     "=StaticPort_R_Hole_14",
-     "=StaticPort_R_Hole_28",
-     "=StaticPort_R_InternalFitting",
-     "=StaticPort_R_InternalPort_Elbow"
-    ],
-    "water_traps": [
-     "=Trap_StaticL_Can",
-     "=Trap_StaticL_TopCap",
-     "=Trap_StaticL_Bowl",
-     "=Trap_StaticL_DrainValve",
-     "=Trap_StaticL_InletPort",
-     "=Trap_StaticL_OutletPort",
-     "=Trap_StaticL_MountBracket",
-     "=Trap_StaticR_Can",
-     "=Trap_StaticR_TopCap",
-     "=Trap_StaticR_Bowl",
-     "=Trap_StaticR_DrainValve",
-     "=Trap_StaticR_InletPort",
-     "=Trap_StaticR_OutletPort",
-     "=Trap_StaticR_MountBracket",
-     "=Trap_Pitot_Can",
-     "=Trap_Pitot_TopCap",
-     "=Trap_Pitot_Bowl",
-     "=Trap_Pitot_DrainValve",
-     "=Trap_Pitot_InletPort",
-     "=Trap_Pitot_OutletPort",
-     "=Trap_Pitot_MountBracket"
-    ],
-    "alternate_static": [
-     "=AltStatic_Selector_Body",
-     "=AltStatic_Selector_HandleShaft",
-     "=AltStatic_Selector_HandleGrip",
-     "=AltStatic_Selector_Placard_NORMAL",
-     "=AltStatic_Selector_Placard_ALT",
-     "=AltStatic_Intake",
-     "=AltStatic_Intake_to_Selector_seg1",
-     "=AltStatic_Intake_to_Selector_seg2",
-     "=AltStatic_Intake_to_Selector_joint1",
-     "=AltStatic_Intake_to_Selector_joint2",
-     "=AltStatic_Intake_to_Selector_joint3"
-    ],
-    "distribution_manifold": [
-     "=StaticManifold_Body",
-     "=StaticManifold_Port_1",
-     "=StaticManifold_Port_2",
-     "=StaticManifold_Port_3",
-     "=StaticManifold_Port_4"
-    ],
-    "pilot_instruments": [
-     "=Pilot_ASI_Case",
-     "=Pilot_ASI_Bezel",
-     "=Pilot_ASI_Face",
-     "=Pilot_ASI_LabelTab",
-     "=Pilot_ASI_PitotPort",
-     "=Pilot_ASI_StaticPort",
-     "=Pilot_ALT_Case",
-     "=Pilot_ALT_Bezel",
-     "=Pilot_ALT_Face",
-     "=Pilot_ALT_LabelTab",
-     "=Pilot_ALT_StaticPort",
-     "=Pilot_VSI_Case",
-     "=Pilot_VSI_Bezel",
-     "=Pilot_VSI_Face",
-     "=Pilot_VSI_LabelTab",
-     "=Pilot_VSI_StaticPort"
-    ],
-    "copilot_instruments": [
-     "=CoPilot_ASI_Case",
-     "=CoPilot_ASI_Bezel",
-     "=CoPilot_ASI_Face",
-     "=CoPilot_ASI_LabelTab",
-     "=CoPilot_ASI_PitotPort",
-     "=CoPilot_ASI_StaticPort",
-     "=CoPilot_ALT_Case",
-     "=CoPilot_ALT_Bezel",
-     "=CoPilot_ALT_Face",
-     "=CoPilot_ALT_LabelTab",
-     "=CoPilot_ALT_StaticPort",
-     "=CoPilot_VSI_Case",
-     "=CoPilot_VSI_Bezel",
-     "=CoPilot_VSI_Face",
-     "=CoPilot_VSI_LabelTab",
-     "=CoPilot_VSI_StaticPort"
-    ],
-    "plumbing": [
-     "=Pitot_Heater_Wire_seg1",
-     "=Pitot_Heater_Wire_seg2",
-     "=Pitot_Heater_Wire_joint1",
-     "=Pitot_Heater_Wire_joint2",
-     "=Pitot_Heater_Wire_joint3",
-     "=AltStatic_Selector_Body",
-     "=AltStatic_Selector_HandleShaft",
-     "=AltStatic_Selector_HandleGrip",
-     "=AltStatic_Selector_Placard_NORMAL",
-     "=AltStatic_Selector_Placard_ALT",
-     "=Pitot_MastBase_to_Trap_seg1",
-     "=Pitot_MastBase_to_Trap_seg2",
-     "=Pitot_MastBase_to_Trap_joint1",
-     "=Pitot_MastBase_to_Trap_joint2",
-     "=Pitot_MastBase_to_Trap_joint3",
-     "=Pitot_Trap_to_PanelTee_seg1",
-     "=Pitot_Trap_to_PanelTee_seg2",
-     "=Pitot_Trap_to_PanelTee_seg3",
-     "=Pitot_Trap_to_PanelTee_joint1",
-     "=Pitot_Trap_to_PanelTee_joint2",
-     "=Pitot_Trap_to_PanelTee_joint3",
-     "=Pitot_Trap_to_PanelTee_joint4",
-     "=Pitot_Tee_to_PilotASI_seg1",
-     "=Pitot_Tee_to_PilotASI_seg2",
-     "=Pitot_Tee_to_PilotASI_seg3",
-     "=Pitot_Tee_to_PilotASI_joint1",
-     "=Pitot_Tee_to_PilotASI_joint2",
-     "=Pitot_Tee_to_PilotASI_joint3",
-     "=Pitot_Tee_to_PilotASI_joint4",
-     "=Pitot_Tee_to_CoPilotASI_seg1",
-     "=Pitot_Tee_to_CoPilotASI_seg2",
-     "=Pitot_Tee_to_CoPilotASI_seg3",
-     "=Pitot_Tee_to_CoPilotASI_joint1",
-     "=Pitot_Tee_to_CoPilotASI_joint2",
-     "=Pitot_Tee_to_CoPilotASI_joint3",
-     "=Pitot_Tee_to_CoPilotASI_joint4",
-     "=Static_L_Port_to_TrapL_seg1",
-     "=Static_L_Port_to_TrapL_seg2",
-     "=Static_L_Port_to_TrapL_joint1",
-     "=Static_L_Port_to_TrapL_joint2",
-     "=Static_L_Port_to_TrapL_joint3",
-     "=Static_R_Port_to_TrapR_seg1",
-     "=Static_R_Port_to_TrapR_seg2",
-     "=Static_R_Port_to_TrapR_joint1",
-     "=Static_R_Port_to_TrapR_joint2",
-     "=Static_R_Port_to_TrapR_joint3",
-     "=Static_TrapL_to_Manifold_seg1",
-     "=Static_TrapL_to_Manifold_seg2",
-     "=Static_TrapL_to_Manifold_joint1",
-     "=Static_TrapL_to_Manifold_joint2",
-     "=Static_TrapL_to_Manifold_joint3",
-     "=Static_TrapR_to_Manifold_seg1",
-     "=Static_TrapR_to_Manifold_seg2",
-     "=Static_TrapR_to_Manifold_joint1",
-     "=Static_TrapR_to_Manifold_joint2",
-     "=Static_TrapR_to_Manifold_joint3",
-     "=Static_Manifold_to_AltSelector_seg1",
-     "=Static_Manifold_to_AltSelector_seg2",
-     "=Static_Manifold_to_AltSelector_seg3",
-     "=Static_Manifold_to_AltSelector_joint1",
-     "=Static_Manifold_to_AltSelector_joint2",
-     "=Static_Manifold_to_AltSelector_joint3",
-     "=Static_Manifold_to_AltSelector_joint4",
-     "=AltStatic_Intake_to_Selector_seg1",
-     "=AltStatic_Intake_to_Selector_seg2",
-     "=AltStatic_Intake_to_Selector_joint1",
-     "=AltStatic_Intake_to_Selector_joint2",
-     "=AltStatic_Intake_to_Selector_joint3",
-     "=Static_Selector_to_PanelDist_seg1",
-     "=Static_Selector_to_PanelDist_seg2",
-     "=Static_Selector_to_PanelDist_seg3",
-     "=Static_Selector_to_PanelDist_joint1",
-     "=Static_Selector_to_PanelDist_joint2",
-     "=Static_Selector_to_PanelDist_joint3",
-     "=Static_Selector_to_PanelDist_joint4",
-     "=Static_Dist_to_Pilot_ASI_seg1",
-     "=Static_Dist_to_Pilot_ASI_seg2",
-     "=Static_Dist_to_Pilot_ASI_seg3",
-     "=Static_Dist_to_Pilot_ASI_joint1",
-     "=Static_Dist_to_Pilot_ASI_joint2",
-     "=Static_Dist_to_Pilot_ASI_joint3",
-     "=Static_Dist_to_Pilot_ASI_joint4",
-     "=Static_Dist_to_Pilot_ALT_seg1",
-     "=Static_Dist_to_Pilot_ALT_seg2",
-     "=Static_Dist_to_Pilot_ALT_seg3",
-     "=Static_Dist_to_Pilot_ALT_joint1",
-     "=Static_Dist_to_Pilot_ALT_joint2",
-     "=Static_Dist_to_Pilot_ALT_joint3",
-     "=Static_Dist_to_Pilot_ALT_joint4",
-     "=Static_Dist_to_Pilot_VSI_seg1",
-     "=Static_Dist_to_Pilot_VSI_seg2",
-     "=Static_Dist_to_Pilot_VSI_seg3",
-     "=Static_Dist_to_Pilot_VSI_joint1",
-     "=Static_Dist_to_Pilot_VSI_joint2",
-     "=Static_Dist_to_Pilot_VSI_joint3",
-     "=Static_Dist_to_Pilot_VSI_joint4",
-     "=Static_Dist_to_CoPilot_ASI_seg1",
-     "=Static_Dist_to_CoPilot_ASI_seg2",
-     "=Static_Dist_to_CoPilot_ASI_seg3",
-     "=Static_Dist_to_CoPilot_ASI_joint1",
-     "=Static_Dist_to_CoPilot_ASI_joint2",
-     "=Static_Dist_to_CoPilot_ASI_joint3",
-     "=Static_Dist_to_CoPilot_ASI_joint4",
-     "=Static_Dist_to_CoPilot_ALT_seg1",
-     "=Static_Dist_to_CoPilot_ALT_seg2",
-     "=Static_Dist_to_CoPilot_ALT_seg3",
-     "=Static_Dist_to_CoPilot_ALT_joint1",
-     "=Static_Dist_to_CoPilot_ALT_joint2",
-     "=Static_Dist_to_CoPilot_ALT_joint3",
-     "=Static_Dist_to_CoPilot_ALT_joint4",
-     "=Static_Dist_to_CoPilot_VSI_seg1",
-     "=Static_Dist_to_CoPilot_VSI_seg2",
-     "=Static_Dist_to_CoPilot_VSI_seg3",
-     "=Static_Dist_to_CoPilot_VSI_joint1",
-     "=Static_Dist_to_CoPilot_VSI_joint2",
-     "=Static_Dist_to_CoPilot_VSI_joint3",
-     "=Static_Dist_to_CoPilot_VSI_joint4",
-     "=BNut_1",
-     "=BNut_2",
-     "=BNut_3",
-     "=BNut_4",
-     "=BNut_5",
-     "=BNut_6",
-     "=BNut_7",
-     "=BNut_8",
-     "=BNut_9",
-     "=BNut_10"
-    ]
-   },
-   "extraParts": []
-  },
-  {
-   "id": "environmental-bleed",
-   "file": "environmental_bleed_training_mobile_no_draco.glb",
-   "source": "android-bundled",
-   "title": "Bleed air, boots, intake deflectors and cabin heat (Android training model)",
-   "shortTitle": "Environmental",
-   "description": "Android-bundled environmental training model: P3 bleed ports and ducts, de-ice boots, intake deflectors and cabin heat distribution on an aircraft context frame.",
-   "primaryFor": [
-    "ENVIRONMENTAL"
-   ],
-   "alternateFor": [],
-   "hidden": [],
-   "clips": {},
-   "groups": [],
-   "mediaPath": "models/systems-lab/environmental_bleed_training_mobile_no_draco.glb",
-   "bytes": 855172,
-   "sha256": "177c04debd1c95b7cabe34dc40d6c9620cec0fa4765dff067937d4d4ec8478bb",
-   "nodes": 21,
-   "meshes": 21,
-   "triangles": 33235,
-   "animations": [],
-   "extensionsUsed": [],
-   "clipGroups": {},
-   "parts": {
-    "bleed": [
-     "=bleed_duct_l",
-     "=bleed_duct_r",
-     "=bleed_port_l",
-     "=bleed_port_r",
-     "=bleed_valve_detail"
-    ],
-    "boots": [
-     "=boots_fin",
-     "=boots_hstab_l",
-     "=boots_hstab_r",
-     "=boots_wing_l",
-     "=boots_wing_r"
-    ],
-    "intake": [
-     "=intake_deflector_l",
-     "=intake_deflector_r"
-    ],
-    "cabin": [
-     "=cabin_duct",
-     "=cabin_mix_valve",
-     "=cabin_windshield_heat"
-    ]
-   },
-   "extraParts": []
-  }
- ]
+  ]
 }

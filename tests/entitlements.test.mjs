@@ -34,7 +34,7 @@ import { onRequestPost as oralExam } from "../functions/api/ai/oral-exam.js";
 import { onRequestGet as verify } from "../functions/api/web-access/verify.js";
 import { onRequestPost as webSession } from "../functions/api/web-access/session.js";
 import { createWebSession, createOwnerWebSession, SESSION_COOKIE } from "../functions/api/web-access/_session.js";
-import { activeLicense, envWithLicense, jsonRequest, mockFetch, jsonResponse } from "./helpers.mjs";
+import { activeLicense, envWithLicense, jsonRequest, mockFetch, jsonResponse, TEST_SERVICE_ACCOUNT_KEY } from "./helpers.mjs";
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const ORIGIN = "https://dhc6trainer.com";
@@ -259,9 +259,6 @@ test("signing in carries the tier too, so the first paint is right", async () =>
 
 /* ------------------------------------------------------- The AI oral exam */
 
-/* A throwaway RSA key so the service-account JWT signing path runs for real
-   rather than being stubbed around. Generated for this test file only. */
-const TEST_PRIVATE_KEY = "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCI1rw3FSEm6hgp\nqakiMMX8lSDaIEYTqJzo+nwrxEjuMKBib2yJb4glUhKizdZrZOC8WJEgNy+qnfQn\ndJpxpLh78XGxaStvDFrka469YlXL0a0tzX502oAysIgidOnY7762atygltxO5F4X\nUlAN9hEG1/YGyrbWFsT90+sHvZomrf/Gs55j/IspKgLSk4lT3L2QZj+W5HpKh+Vr\nm5DrqemTqxxhdocOq9g9jEbtSV5kCL8K+eUaoqZXihJjNqT6NiEbkuYnwbxar3b8\n+RRLfQh4+9GHxsolSzQbpmkSMH+U+ONfAzG65WQMIBEh2Fq3r/VCYrSd5KKWDzQe\nQQhaZ3oXAgMBAAECggEAPcTtJlI36liOurPW4NOyc7+fmkcqSvJ4jiSQC7OpljfG\nFlkk3e9GPk6LkgknqsfZOLwkGq4+qp5tmafllboc+vn07/hA/npNx0GUKAItJ3nJ\nWl0iIb6GUxtkAGXVL7OdW7vmRumCnmww2wcxkvPKINQ4vz0fhom1t7zDIfXhEWcd\n/WSe4PjevHEZ4d5Z6pGAL1yi9QdfJl0l8ShHHGUnRjhHLoarCvMh0zzE6E2q/B4K\nKgXqmGGnbVEFiAaF/Ejoj5ts8dEPRbKNRSugZz1wwQCbpf08H9MlO0ficemWP6YL\ni6TRmfmuDpv+F0+7SsezcLO2ARlwq3Z+YiOLNJ7jAQKBgQDAdj/8Koz3axH6OS3R\nufUorptIDRwixwovRCAqp4u7YHRCE7pFXtoDc+kfLhL9stTh8t+fhH0iYdeXe+gW\n4lNAUxLArooWdF0RxLF/50DHn9Cs5Qejhb2MFBTgQZJsftsO5kWJuLRstdHPYYex\nD0p7F+Yjkmwebzt5F9GTOsbXAQKBgQC2A4wdyDu5RRxwkik34qIpRd8tvxgCLOXD\nN+Q1QFafC/hmyA/p1w2QUXPn8tWEUyFnQl/HofTVKyQ35AFNE7zhyowXkLYl52np\nVtGQHi2ezucCOW9X3qFoTTyRgBwQOoynPzjueKM3uaE7tnpFpSswmWw8Vm142MRa\nzCEAjRspFwKBgGaC1YPfuiPSsMmhiQkrTix0DBtteC4B7CfO1n9BrIiKUIIdddqb\nMe4i3+mOpejhRshuj7OsYuZcTPPPuIfv1r3tQZDFpqFdK3FaXdytdPCe7AwbFV2A\nz7v7uj7UTkRhsRYXirRXYCqDEZSu8xJY/afgy+DojZQMVRYjnKoZ5W0BAoGAZLFR\nsqgzYit5sE0rwF8AlxSwgv5Uqd9svLMO7ObLBPH6WeIT66mtN0nYdVlCBhJ3SEjP\n9AEFEWjsgH8CuUFSHReQqPjFy/JaBVyiUrhfRJvx8KkVj+b6JFmWSGg3HkNFzMCN\nHmBe61UmfYJV4nGdkyVNW5P0vAYvmouTNlrZy8ECgYB1OW+uSye5qNCbJDTnFevV\nATDnIuyfXewspDrTbaw9kD6LdPV4+lawuUwEFpusffvUi4sYbFD+yvC+kMZj+oot\nQhzpMW/sOQgmk/0m5/GazqCJhmchbb9JLYyaRWyE4iENqv7xNyEO88uGBMMzxznI\nPGIQ4+tMHATgi0PgDjQ8yg==\n-----END PRIVATE KEY-----\n";
 
 const OPENAI_OK = () => jsonResponse({ output: [{ content: [{ text: "ask about the fuel system" }] }] });
 const examBody = { instructions: "Examine the candidate.", input: [{ role: "user", content: "ready" }] };
@@ -271,7 +268,7 @@ function examEnv(extra) {
     OPENAI_API_KEY: "sk-test",
     FIREBASE_PROJECT_ID: "dhc6-test",
     GOOGLE_PLAY_SERVICE_ACCOUNT_EMAIL: "svc@dhc6-test.iam.gserviceaccount.com",
-    GOOGLE_PLAY_SERVICE_ACCOUNT_PRIVATE_KEY: TEST_PRIVATE_KEY
+    GOOGLE_PLAY_SERVICE_ACCOUNT_PRIVATE_KEY: TEST_SERVICE_ACCOUNT_KEY
   }, extra || {});
 }
 
