@@ -35,11 +35,23 @@ export const WATERMARK_FIELD = "_wm";
 export function watermarkSeed(auth) {
   const payload = (auth && auth.payload) || {};
   if (auth && auth.role === "owner") return "owner:" + normalizeEmail(payload.email || "");
+  /*
+    Android has no licence key: its identity is the Firebase uid that Google
+    Play validation wrote entitlements against. Without this branch every
+    Android account would seed "license:" - the same empty string for all of
+    them - and so share one stamp, which would make a mobile leak attributable
+    to nobody while still looking like it worked.
+  */
+  if (auth && auth.client === "android" && auth.uid) return seedForFirebaseUid(auth.uid);
   return "license:" + String(payload.key || "").trim().toUpperCase();
 }
 
 export function seedForLicenseKey(key) {
   return "license:" + String(key || "").trim().toUpperCase();
+}
+
+export function seedForFirebaseUid(uid) {
+  return "firebase:" + String(uid || "").trim();
 }
 
 export function seedForOwnerEmail(email) {

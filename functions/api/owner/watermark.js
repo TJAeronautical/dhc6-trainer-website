@@ -20,7 +20,7 @@
 
 import { json, normalizeEmail, normalizeKey, getLicense, getLicenseByEmail, isExpired } from "../_shared.js";
 import { authorizeWebRequest } from "../web-access/_session.js";
-import { watermarkFromSeed, seedForLicenseKey, seedForOwnerEmail, WATERMARK_VERSION } from "../_watermark.js";
+import { watermarkFromSeed, seedForLicenseKey, seedForOwnerEmail, seedForFirebaseUid, WATERMARK_VERSION } from "../_watermark.js";
 
 const WATERMARK_PATTERN = /^[0-9a-f]{16}$/i;
 const SCAN_PAGE = 200;
@@ -56,6 +56,28 @@ export async function onRequestPost(context) {
   let body = {};
   try { body = await request.json(); } catch (error) {
     return json({ ok: false, error: "bad_json" }, 400);
+  }
+
+  /*
+    Forward, Android: a Firebase uid -> its stamp.
+
+    Stated plainly, because a half-working resolver is worse than an honest
+    one: an Android stamp cannot be found by the reverse walk below. That walk
+    recomputes a stamp per licence key, and an Android account has no licence
+    key - its seed is the Firebase uid, and there is no list of uids here to
+    walk. So the Android direction is forward only: you supply a uid you
+    suspect (Firebase console, or the Play order) and this says whether it
+    produced the stamp you are holding.
+  */
+  const firebaseUid = String(body.firebaseUid || "").trim();
+  if (firebaseUid) {
+    const stamp = await watermarkFromSeed(env, seedForFirebaseUid(firebaseUid));
+    return json({
+      ok: true,
+      version: WATERMARK_VERSION,
+      watermark: stamp,
+      account: { role: "subscriber", client: "android", firebaseUid: firebaseUid }
+    });
   }
 
   /* Forward: an account -> its stamp. */
@@ -108,5 +130,14 @@ export async function onRequestPost(context) {
     cursor = page.list_complete ? null : page.cursor;
   } while (cursor && scanned < SCAN_LIMIT);
 
-  return json({ ok: true, version: WATERMARK_VERSION, match: null, scanned: scanned });
+  /* No match among the licences. Say what that does and does not rule out:
+     an Android account is not in this store, so "not found" here is not
+     "not one of ours". */
+  return json({
+    ok: true,
+    version: WATERMARK_VERSION,
+    match: null,
+    scanned: scanned,
+    note: "No licence produced this stamp. Android accounts are not in the licence store - post { firebaseUid } to check one."
+  });
 }

@@ -50,11 +50,57 @@ test("every registry selector is well formed and every model has a media path, h
     }
   }
   const files = registry.models.map((m) => m.file);
-  for (const expected of ["PT6A27_ENGINE_REPLICA.glb", "DHC6_PT6A27_WOODWARD_CSU_REPLICA.glb", "DHC6_PT6A27_WOODWARD_OSG_REPLICA.glb", "THREE_BLADE_HARTZELL.glb", "FUEL_SYSTEM.glb", "DHC6_STARTER_GENERATOR_REPLICA.glb", "HYDRAULIC_SYSTEM_PACK_REPLICA.glb", "FLAP_SYSTEM.glb", "DHC6_TRIM_CONTROL.glb", "AIR-CONDITIONNG.glb", "DHC6_PT6A27_BLEED_VALVE_MASTER.glb", "DHC6_PTA27_OIL_TO_FUEL_HEATER_MASTER.glb", "DHC6_PT6A27_FUEL_PUMP_MASTER.glb", "DHC6_PT6A27_FCU_REPLICA.glb", "DHC6WHEELS.glb", "DHC6SKIS.glb", "DHC6FLOATS.glb", "DHC6_LANDPLANE_UNDERCARRIAGE_REPLICA.glb"]) {
+  for (const expected of ["PT6A27_ENGINE_REPLICA.glb", "DHC6_PT6A27_WOODWARD_CSU_REPLICA.glb", "DHC6_PT6A27_WOODWARD_OSG_REPLICA.glb", "THREE_BLADE_HARTZELL.glb", "FUEL_SYSTEM.glb", "DHC6_STARTER_GENERATOR_REPLICA.glb", "HYDRAULIC_SYSTEM_PACK_REPLICA.glb", "DHC6_FLAP_SYSTEM_REPLICA.glb", "DHC6_TRIM_REPLICA.glb", "AIR-CONDITIONNG.glb", "DHC6_PT6A27_BLEED_VALVE_REPLICA.glb", "DHC6_PTA27_OIL_TO_FUEL_HEATER_MASTER.glb", "DHC6_PT6A27_FUEL_PUMP_MASTER.glb", "DHC6_PT6A27_FCU_REPLICA.glb", "DHC6WHEELS.glb", "DHC6SKIS.glb", "DHC6FLOATS.glb", "DHC6_LANDPLANE_UNDERCARRIAGE_REPLICA.glb"]) {
     assert.ok(files.includes(expected), "reference-library model missing from registry: " + expected);
   }
   const bigOnes = registry.models.filter((m) => m.bytes > 25 * 1024 * 1024).map((m) => m.file);
   assert.deepEqual(bigOnes, ["PT6A27_ENGINE_REPLICA.glb", "DHC6_LANDPLANE_UNDERCARRIAGE_REPLICA.glb"], "models above the KV value limit must go to R2");
+});
+
+/*
+  How `flap-system` came to ship a 243 KB Android stub in place of the 7 MB
+  replica: the registry asked for FLAP_SYSTEM.glb, no such file existed in the
+  reference library, and Windows matched core-res/.../models/flap_system.glb
+  case-insensitively. The build logged HASH-CHANGED and published it anyway.
+
+  The test that would have caught it is not "does this filename look right" -
+  it is that no two entries can resolve to one file on a case-insensitive
+  filesystem, and that no two entries claim the same bytes.
+*/
+test("no two registry entries can resolve to the same file", () => {
+  const seen = new Map();
+  for (const model of registry.models) {
+    const key = model.file.toLowerCase();
+    assert.ok(!seen.has(key), "two entries resolve to " + model.file + " on a case-insensitive filesystem: " + seen.get(key) + " and " + model.id);
+    seen.set(key, model.id);
+  }
+  const hashes = new Map();
+  for (const model of registry.models) {
+    assert.ok(!hashes.has(model.sha256), "identical sha256 on " + hashes.get(model.sha256) + " and " + model.id + " - one was copied, not measured");
+    hashes.set(model.sha256, model.id);
+  }
+});
+
+/*
+  A `hidden` rule exists to drop donor geometry the replica carried in - a
+  pilot figure, a radio head. A rule that also catches something the same model
+  selects as a part is a contradiction: the part would be authored, requested
+  and then not drawn.
+*/
+test("a hidden rule never catches a part the same model selects", () => {
+  for (const model of registry.models) {
+    const hidden = (model.hidden || [])
+      .filter((s) => s[0] === "~")
+      .map((s) => ({ source: s, rule: new RegExp(s.slice(1), "i") }));
+    if (!hidden.length) continue;
+    const selectors = [].concat(...Object.values(model.parts || {}), ...(model.extraParts || []).map((e) => e.selectors));
+    for (const selector of selectors) {
+      const name = selector.replace(/^[=~]/, "");
+      for (const entry of hidden) {
+        assert.equal(entry.rule.test(name), false, model.id + ": hidden rule " + entry.source + " also catches the selected part " + selector);
+      }
+    }
+  }
 });
 
 /* --------------------------------------------------------- kotlin-lite */

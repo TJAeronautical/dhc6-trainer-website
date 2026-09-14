@@ -11,8 +11,22 @@
 
 import { json, STORED_FILE_CSP } from "../_shared.js";
 import { authorizeWebRequest } from "../web-access/_session.js";
+import { authorizeMobileRequest, hasMobileBearer } from "../_mobile_session.js";
+import { SYSTEMS_LAB_3D } from "../_entitlements.js";
 import { getMedia, headMedia, normalizeMediaPath, parseRange, readMediaIndex } from "./_store.js";
 import { watermarkFor, stampModel, stampModelStream } from "../_watermark.js";
+
+/*
+  The only thing an Android caller may read here: the Systems Lab models.
+
+  The Android client streams <base>/<model.mediaPath> and nothing else - it has
+  its own bundled posters, plates and atlases, and its registry already carries
+  every path, hash and size, so it never asks for the index. Scoping to what it
+  actually requests costs that client nothing and keeps a Firebase token away
+  from the cockpit imagery, the reference posters and, above all, the
+  offline-manifest that lists the whole library in one response.
+*/
+const ANDROID_MEDIA_PREFIX = "models/systems-lab/";
 
 const PROTECTED_HEADERS = {
   "Cache-Control": "private, no-store",
@@ -43,19 +57,72 @@ function mediaHeaders(meta, extra) {
   return headers;
 }
 
+/*
+  Either client may reach the media store, and each proves itself its own way.
+
+  The web session is tried first, and Firebase is consulted only when no
+  session was presented at all AND the caller actually sent a bearer. A session
+  that was presented and rejected - expired, revoked, entitlement lapsed - is
+  reported as such rather than silently retried as a different kind of caller;
+  otherwise a lapsed subscriber could get back in by attaching a Firebase
+  token, which is the same hole in a different coat.
+
+  Note what authorizeMobileRequest is asked for: SYSTEMS_LAB_3D, by name. A
+  valid Firebase token on its own buys nothing here - see _mobile_session.js.
+*/
+function withoutAuthorization(context) {
+  const request = context.request;
+  const headers = new Headers(request.headers);
+  headers.delete("Authorization");
+  return Object.assign({}, context, { request: new Request(request.url, { method: request.method, headers: headers }) });
+}
+
+async function authorizeMediaRequest(context) {
+  const web = await authorizeWebRequest(context);
+  if (web.ok) return web;
+  if (!hasMobileBearer(context.request)) return web;
+
+  /*
+    A bearer was sent and did not verify as a web session. Before treating the
+    caller as Android, give the cookie its own hearing.
+
+    Why this step exists: tokenFromRequest prefers the Authorization header over
+    the cookie, so a request carrying BOTH has its cookie ignored entirely - the
+    Firebase JWT is read as a web session token, fails, and reports
+    "session_invalid". Without this, a browser that attached a Firebase token
+    would be silently scoped down to the Systems Lab, and a lapsed subscriber's
+    session would look like no session at all rather than a lapsed one.
+  */
+  const cookieOnly = await authorizeWebRequest(withoutAuthorization(context));
+  if (cookieOnly.ok) return cookieOnly;
+  if (cookieOnly.error !== "session_invalid") return cookieOnly;
+
+  return authorizeMobileRequest(context, SYSTEMS_LAB_3D);
+}
+
+function androidScopeRefusal() {
+  return json({
+    ok: false,
+    error: "android_media_scope",
+    message: "An Android session may read the Systems Lab models only."
+  }, 403);
+}
+
 export async function onRequestGet(context) {
-  const auth = await authorizeWebRequest(context);
+  const auth = await authorizeMediaRequest(context);
   if (!auth.ok) return json({ ok: false, error: auth.error }, auth.status);
 
   const request = context.request;
   const method = request.method.toUpperCase();
   const url = new URL(request.url);
   const rawPath = url.pathname.replace(/^\/api\/media\/?/, "").replace(/\/+$/, "");
+  const android = auth.client === "android";
 
   /* Whether this account may take the whole imagery library to a device. */
   const paidUp = auth.role === "owner" || !(auth.record && auth.record.trial === true);
 
   if (rawPath === "index" || rawPath === "") {
+    if (android) return androidScopeRefusal();
     const index = await readMediaIndex(context.env);
     if (!index) return protectedJson({ ok: true, published: false, items: [], version: null, offlineDownload: paidUp });
     return protectedJson(Object.assign({ ok: true, published: true, offlineDownload: paidUp }, index));
@@ -77,6 +144,8 @@ export async function onRequestGet(context) {
     number for how large the published library is - not a guess.
   */
   if (rawPath === "offline-manifest") {
+    /* The one response that lists the entire library. Never for Android. */
+    if (android) return androidScopeRefusal();
     if (!paidUp) {
       return json({ ok: false, error: "trial_offline_unavailable" }, 403);
     }
@@ -92,6 +161,11 @@ export async function onRequestGet(context) {
     path = null;
   }
   if (!path) return json({ ok: false, error: "bad_media_path" }, 400);
+
+  /* Checked against the NORMALISED path, so no amount of percent-encoding or
+     dot segments can dress a poster up as a Systems Lab model. normalizeMediaPath
+     has already rejected traversal outright; this is the scope on top of it. */
+  if (android && path.indexOf(ANDROID_MEDIA_PREFIX) !== 0) return androidScopeRefusal();
 
   const head = await headMedia(context.env, path);
   if (!head) return json({ ok: false, error: "media_not_found" }, 404);
