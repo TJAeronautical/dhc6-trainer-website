@@ -16,6 +16,7 @@ import { quizHome, quizRun, performanceCalc, fuelPlan, weightBalance, competency
 import { logbook, logbookDetail, logbookExport } from "./js/screens/logbook.js";
 import { crmDrill } from "./js/screens/crmdrill.js";
 import { laterScreen, settings } from "./js/screens/misc.js";
+import { importScreen } from "./js/screens/import.js";
 import { libraryHub, librarySources, libraryPublished, libraryQrhDrafts } from "./js/screens/library.js";
 import { systemsLabHome, systemsLabDetail } from "./js/screens/systemslab.js";
 import { systemsHome, systemDetail } from "./js/screens/systems2d.js";
@@ -61,7 +62,7 @@ route("/knowledge/definitions", definitions);
 route("/knowledge/search", knowledgeSearch);
 route("/library/home", libraryHub);
 route("/library/sources", librarySources);
-route("/library/import", laterScreen("import", "Android's Import runs a PDF text-extraction pipeline (PdfImportViewModel, QrhCandidateExtractor, ProcedureDocumentCandidateExtractor) that turns a manual into draft procedures and knowledge cards in the on-device Room database. That authoring pipeline stays in the app. To keep a document and read it in the browser, upload it under Library -> Sources."));
+route("/library/import", importScreen);
 route("/library/published", libraryPublished);
 route("/library/qrh-drafts", libraryQrhDrafts);
 route("/systems/home", systemsHome);
