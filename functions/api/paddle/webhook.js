@@ -24,6 +24,7 @@ import {
   planFromConfiguredPrice,
   activationLimitFromPlan
 } from "../_shared.js";
+import { sendWelcomeEmail } from "../_welcome-email.js";
 
 async function readKey(env, subscriptionId) {
   if (!subscriptionId) return null;
@@ -259,11 +260,18 @@ export async function onRequestPost(context) {
       if (email && !record.email) record.email = email;
     }
 
+    /*
+      The buyer gets their key. Attempted before the write so the outcome is
+      stored with the licence in one put, and guarded inside sendWelcomeEmail
+      so a mail failure can never make this handler non-2xx - Paddle retries
+      anything that is not, and a retried purchase event is worse than a
+      missing email.
+    */
+    const mailed = await sendWelcomeEmail(env, record, new URL(request.url).origin);
+
     await writeLicense(env, record);
     await markEventSeen(env, eventId);
-    // Paddle sends the receipt email; surface the key there or via your own
-    // transactional email using record.key + record.email.
-    return json({ ok: true, duplicate: duplicate, licenseKey: record.key });
+    return json({ ok: true, duplicate: duplicate, licenseKey: record.key, welcomeEmail: mailed.sent });
   }
 
   /* Refunded in full, or charged back -> revoke. Placed before the renewal
