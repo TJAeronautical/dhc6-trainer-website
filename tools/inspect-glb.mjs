@@ -245,6 +245,36 @@ export function checkSelectors(model, nodeNames) {
   return { model: model.id, file: model.file, total: all.length, dead: dead };
 }
 
+/* ------------------------------------------------------------------ renames */
+
+/*
+  A model that was re-exported under a NEW name reads as two separate problems
+  - an entry pointing at a file that is gone, and a file nobody uses - when it
+  is really one: a rename. The entry's selectors are the valuable part, so the
+  question worth asking is whether they still resolve against the new file.
+
+  --rename OLD.glb=NEW.glb answers it without editing anything: the entry is
+  treated as pointing at NEW for the length of the run.
+*/
+export function parseRenames(argv) {
+  const out = new Map();
+  (argv || []).forEach(function (token, i) {
+    if (token !== "--rename") return;
+    const pair = String((argv[i + 1] || "")).split("=");
+    if (pair.length === 2 && pair[0].trim() && pair[1].trim()) out.set(pair[0].trim(), pair[1].trim());
+  });
+  return out;
+}
+
+export function applyRenames(registry, renames) {
+  if (!renames || !renames.size) return registry;
+  return Object.assign({}, registry, {
+    models: (registry.models || []).map(function (model) {
+      return renames.has(model.file) ? Object.assign({}, model, { file: renames.get(model.file), renamedFrom: model.file }) : model;
+    })
+  });
+}
+
 /* --------------------------------------------------------------------- cli */
 
 export function samePath(a, b) {
@@ -275,7 +305,8 @@ function main() {
     console.error("Give it something to read:\n" +
       '  node tools/inspect-glb.mjs --dir "C:\\...\\DHC6_REFERENCE_LIBRARY\\System-Lab"\n' +
       "  node tools/inspect-glb.mjs --file one.glb --names\n" +
-      "Optional: --registry tools/data/systems-lab-models.json  --names  --match <text>  --json <out>");
+      "Optional: --registry tools/data/systems-lab-models.json  --names  --match <text>  --json <out>\n" +
+      "          --rename OLD.glb=NEW.glb   (repeatable; checks whether the old selectors survive the new file)");
     process.exitCode = 2;
     return;
   }
@@ -327,7 +358,13 @@ function main() {
       console.log("\nCould not read the registry at " + registryPath + ": " + error.message);
       return;
     }
-    const result = reconcile(registry, measured);
+    const renames = parseRenames(process.argv);
+    const effective = applyRenames(registry, renames);
+    if (renames.size) {
+      console.log("\n--- treating " + renames.size + " entr" + (renames.size === 1 ? "y" : "ies") + " as renamed ---");
+      renames.forEach(function (to, from) { console.log("  " + from + "  ->  " + to); });
+    }
+    const result = reconcile(effective, measured);
     console.log("\n--- registry v" + registry.version + " against these files ---");
 
     if (!result.missing.length && !result.unused.length && !result.mismatch.length) {
@@ -351,7 +388,7 @@ function main() {
       every authored pin on it still works.
     */
     const checked = [];
-    (registry.models || []).forEach(function (model) {
+    (effective.models || []).forEach(function (model) {
       const actual = measured[model.file];
       if (!actual || !actual.ok) return;
       checked.push(checkSelectors(model, actual.nodeNames));
@@ -366,7 +403,8 @@ function main() {
       console.log("  Every authored selector still resolves. The re-export kept the node names.");
     }
     broken.forEach(function (c) {
-      console.log("\n  " + c.model + "  (" + c.dead.length + " of " + c.total + " dead)");
+      const via = (effective.models.find(function (m) { return m.id === c.model; }) || {}).renamedFrom;
+      console.log("\n  " + c.model + (via ? "  [renamed from " + via + "]" : "") + "  (" + c.dead.length + " of " + c.total + " dead)");
       c.dead.forEach(function (d) {
         console.log("      " + d.where.padEnd(28) + d.selector);
       });
