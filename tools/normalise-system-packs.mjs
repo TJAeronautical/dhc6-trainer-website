@@ -169,6 +169,88 @@ export function normalisePack(pack) {
   return { pack: out, changed: changed, notes: notes, gaps: gaps };
 }
 
+/* ------------------------------------------------------------- the schema
+
+   The question the first run could not answer.
+
+   Every gap the renames leave behind is `rationale` or `regulatoryStatus`.
+   Whether that matters depends entirely on one thing: does
+   assets/schema/system_description.schema.json REQUIRE them? If they are
+   optional, the renames finish the job and the gap list is a note for later.
+   If they are required, each one genuinely blocks the pack from parsing and
+   there is authoring to do.
+
+   Guessing either way would be useless, so this reads the real schema. It is
+   not a full JSON Schema validator - it extracts the `required` arrays and the
+   regulatoryStatus enum, which is what decides the question.
+*/
+export function findSchema(assetsRoot) {
+  const candidates = [
+    path.join(assetsRoot, "schema", "system_description.schema.json"),
+    path.join(assetsRoot, "schemas", "system_description.schema.json"),
+    path.join(assetsRoot, "system_description.schema.json")
+  ];
+  return candidates.find(function (file) { return fs.existsSync(file); }) || null;
+}
+
+/*
+  Walk a schema for the object that describes an array member, wherever the
+  author nested it. Schemas get restructured; hunting for the shape rather than
+  a fixed path means a moved definition is found instead of silently reported
+  as "no requirements".
+*/
+export function requirementsFor(schema, arrayKey, marker) {
+  let found = null;
+  const seen = new Set();
+  const walk = function (node) {
+    if (found || !node || typeof node !== "object" || seen.has(node)) return;
+    seen.add(node);
+    if (Array.isArray(node)) { node.forEach(walk); return; }
+
+    const items = node[arrayKey] && node[arrayKey].items;
+    const props = items && items.properties;
+    if (props && marker.some(function (key) { return Object.prototype.hasOwnProperty.call(props, key); })) {
+      found = items;
+      return;
+    }
+    Object.keys(node).forEach(function (key) { walk(node[key]); });
+  };
+  walk(schema);
+  if (!found) return null;
+  return {
+    required: Array.isArray(found.required) ? found.required.slice() : [],
+    properties: Object.keys(found.properties || {}),
+    enums: Object.keys(found.properties || {}).reduce(function (out, key) {
+      const values = found.properties[key] && found.properties[key].enum;
+      if (Array.isArray(values)) out[key] = values.slice();
+      return out;
+    }, {})
+  };
+}
+
+export function readSchemaRules(schema) {
+  return {
+    controls: requirementsFor(schema, "controls", ["label", "name"]),
+    limits: requirementsFor(schema, "limits", ["name", "parameter", "value"])
+  };
+}
+
+/* Split the gap list by whether the schema actually demands the field. */
+export function classifyGaps(gaps, rules) {
+  const required = function (group) {
+    const set = rules && rules[group];
+    return set && set.required ? set.required : null;
+  };
+  return (gaps || []).map(function (gap) {
+    const group = gap.path.indexOf("limits[") === 0 ? "limits" : "controls";
+    const field = gap.path.slice(gap.path.lastIndexOf(".") + 1);
+    const list = required(group);
+    /* Unknown is not the same as optional, and must not read as reassurance. */
+    const blocking = list === null ? null : list.indexOf(field) >= 0;
+    return Object.assign({}, gap, { field: field, blocking: blocking });
+  });
+}
+
 /* ------------------------------------------------------ the Android side
 
    Two of the phase-5 findings are not in the JSON at all - they are in Kotlin,
@@ -288,6 +370,15 @@ function main() {
     : found.files;
 
   const write = has("write");
+
+  /* The schema decides whether the leftover gaps matter at all. */
+  let rules = null;
+  const schemaPath = findSchema(assetsRoot);
+  if (schemaPath) {
+    try { rules = readSchemaRules(JSON.parse(fs.readFileSync(schemaPath, "utf8").replace(/^\uFEFF/, ""))); }
+    catch (error) { rules = null; }
+  }
+
   let changedCount = 0;
   let gapCount = 0;
   const stillIncomplete = [];
@@ -327,13 +418,44 @@ function main() {
   console.log("\n" + changedCount + " pack" + (changedCount === 1 ? "" : "s") + " " + (write ? "rewritten" : "would be rewritten"));
 
   if (stillIncomplete.length) {
-    console.log("\n--- Still incomplete after renaming: " + gapCount + " field" + (gapCount === 1 ? "" : "s") + " in " + stillIncomplete.length + " pack" + (stillIncomplete.length === 1 ? "" : "s") + " ---");
-    console.log("No rename can produce these. They need authoring, or the schema needs to");
-    console.log("make them optional. Nothing here has been guessed.\n");
-    stillIncomplete.forEach(function (entry) {
-      console.log("  " + entry.name);
-      entry.gaps.forEach(function (gap) { console.log("      " + gap.path + "  -  " + gap.why); });
+    const classified = stillIncomplete.map(function (entry) {
+      return { name: entry.name, gaps: classifyGaps(entry.gaps, rules) };
     });
+    const blocking = classified.reduce(function (n, e) {
+      return n + e.gaps.filter(function (g) { return g.blocking === true; }).length;
+    }, 0);
+    const unknown = rules === null || !rules.limits;
+
+    console.log("\n--- Fields no rename can produce: " + gapCount + " in " + stillIncomplete.length + " pack" + (stillIncomplete.length === 1 ? "" : "s") + " ---");
+
+    if (unknown) {
+      console.log("  Could not read the schema" + (schemaPath ? " at " + schemaPath : "") + ", so whether these");
+      console.log("  block parsing is unknown. Not assuming they are optional.");
+    } else if (blocking === 0) {
+      /* The answer that changes everything: the renames were the whole job. */
+      console.log("  NONE OF THEM BLOCK PARSING. The schema at");
+      console.log("  " + schemaPath);
+      console.log("  requires only: " + rules.limits.required.join(", ") + " on a limit" +
+        (rules.controls ? ", " + rules.controls.required.join(", ") + " on a control" : "") + ".");
+      console.log("  So --write finishes the job and these are a note for later, not a blocker.");
+    } else {
+      console.log("  " + blocking + " of them are REQUIRED by the schema and genuinely block parsing.");
+      console.log("  The rest are optional and can wait.");
+    }
+    console.log("  Nothing here has been guessed.\n");
+
+    classified.forEach(function (entry) {
+      const show = unknown ? entry.gaps : entry.gaps.filter(function (g) { return g.blocking !== false; });
+      if (!show.length) return;
+      console.log("  " + entry.name);
+      show.forEach(function (gap) {
+        console.log("      " + (gap.blocking === true ? "BLOCKING  " : "") + gap.path + "  -  " + gap.why);
+      });
+    });
+
+    if (!unknown && blocking === 0) {
+      console.log("  (every gap is optional, so none are listed individually)");
+    }
   }
 
   const kotlinRoot = arg("kotlin", process.env.DHC6_ANDROID_KOTLIN || "");

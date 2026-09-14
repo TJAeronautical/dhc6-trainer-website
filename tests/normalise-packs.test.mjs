@@ -20,6 +20,7 @@ import { fileURLToPath } from "node:url";
 
 import {
   normalisePack, normalisePositions, basenameGaps, samePath, isDirectRun,
+  readSchemaRules, requirementsFor, classifyGaps, findSchema,
   CONTROL_RENAMES, LIMIT_RENAMES, UNAUTHORED_LIMIT_FIELDS, REGULATORY_VALUES
 } from "../tools/normalise-system-packs.mjs";
 import { controlLabel, controlPositions, limitName, limitQualifier, regulatoryLabel } from "../app/js/logic/systems2d.js";
@@ -387,4 +388,117 @@ test("a repository with no packs says so instead of reporting success", () => {
   assert.equal(result.status, 1);
   assert.match(result.err, /No system-description packs found/);
   assert.match(result.err, /Looked in/, "and it must say where it looked");
+});
+
+/* ----------------------------------------------------- reading the schema
+
+   The first real run left 154 gaps, every one of them `rationale` or
+   `regulatoryStatus`. Whether that is a day's authoring or nothing at all
+   depends on one fact: does the schema require them? Guessing either way would
+   be useless, so the tool reads the schema and says.
+*/
+
+const SCHEMA = {
+  type: "object",
+  properties: {
+    controls: { type: "array", items: { type: "object", required: ["label"], properties: { label: {}, positions: {} } } },
+    limits: {
+      type: "array",
+      items: {
+        type: "object",
+        required: ["name", "value"],
+        properties: {
+          name: {}, value: {}, condition: {}, rationale: {},
+          regulatoryStatus: { enum: ["AFM_APPROVED", "OPERATOR_GUIDANCE", "MANUFACTURER_RECOMMENDED"] }
+        }
+      }
+    }
+  }
+};
+
+test("the schema's own requirements are read, not assumed", () => {
+  const rules = readSchemaRules(SCHEMA);
+  assert.deepEqual(rules.limits.required, ["name", "value"]);
+  assert.deepEqual(rules.controls.required, ["label"]);
+  assert.deepEqual(rules.limits.enums.regulatoryStatus, REGULATORY_VALUES,
+    "the tool and the schema must agree on the allowed values");
+});
+
+test("a moved definition is found rather than reported as no requirements", () => {
+  /* Schemas get restructured. Hunting for the shape means a definition that
+     moved under $defs is still found, instead of the tool quietly concluding
+     nothing is required - which would read as reassurance. */
+  const nested = { $defs: { pack: { properties: SCHEMA.properties } }, $ref: "#/$defs/pack" };
+  const rules = readSchemaRules(nested);
+  assert.deepEqual(rules.limits.required, ["name", "value"]);
+});
+
+test("gaps are split by whether the schema actually demands them", () => {
+  const rules = readSchemaRules(SCHEMA);
+  const gaps = classifyGaps([
+    { path: "limits[0].rationale", why: "x" },
+    { path: "limits[0].regulatoryStatus", why: "y" },
+    { path: "limits[0].name", why: "z" },
+    { path: "controls[0].label", why: "w" }
+  ], rules);
+
+  assert.equal(gaps.find(function (g) { return g.field === "rationale"; }).blocking, false);
+  assert.equal(gaps.find(function (g) { return g.field === "regulatoryStatus"; }).blocking, false);
+  assert.equal(gaps.find(function (g) { return g.field === "name"; }).blocking, true);
+  assert.equal(gaps.find(function (g) { return g.field === "label"; }).blocking, true);
+});
+
+test("a required regulatoryStatus is reported as blocking", () => {
+  const strict = JSON.parse(JSON.stringify(SCHEMA));
+  strict.properties.limits.items.required = ["name", "value", "regulatoryStatus"];
+  const gaps = classifyGaps([{ path: "limits[0].regulatoryStatus", why: "y" }], readSchemaRules(strict));
+  assert.equal(gaps[0].blocking, true);
+});
+
+test("an unreadable schema is unknown, never 'optional'", () => {
+  /*
+    The dangerous reassurance. If the schema cannot be read, saying "nothing
+    blocks parsing" would send somebody off to rebuild packs that still will
+    not load. null means unknown and the report says so.
+  */
+  const gaps = classifyGaps([{ path: "limits[0].regulatoryStatus", why: "y" }], null);
+  assert.equal(gaps[0].blocking, null);
+  assert.notEqual(gaps[0].blocking, false);
+
+  assert.equal(requirementsFor({ type: "object" }, "limits", ["name"]), null);
+  assert.equal(readSchemaRules({}).limits, null);
+});
+
+test("findSchema looks where the schema actually lives", () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "dhc6-schema-"));
+  assert.equal(findSchema(dir), null);
+  fs.mkdirSync(path.join(dir, "schema"), { recursive: true });
+  const file = path.join(dir, "schema", "system_description.schema.json");
+  fs.writeFileSync(file, "{}");
+  assert.equal(findSchema(dir), file);
+});
+
+test("the run says plainly whether the renames finish the job", () => {
+  const repo = fixtureRepo();
+  const schemaDir = path.join(repo.dir, "core-res", "src", "main", "assets", "schema");
+  fs.mkdirSync(schemaDir, { recursive: true });
+  const schemaFile = path.join(schemaDir, "system_description.schema.json");
+
+  fs.writeFileSync(schemaFile, JSON.stringify(SCHEMA));
+  const optional = run(["--android", repo.dir]);
+  assert.match(optional.out, /NONE OF THEM BLOCK PARSING/);
+  assert.match(optional.out, /--write finishes the job/);
+
+  const strict = JSON.parse(JSON.stringify(SCHEMA));
+  strict.properties.limits.items.required = ["name", "value", "regulatoryStatus"];
+  fs.writeFileSync(schemaFile, JSON.stringify(strict));
+  const blocked = run(["--android", repo.dir]);
+  assert.match(blocked.out, /REQUIRED by the schema and genuinely block parsing/);
+  assert.match(blocked.out, /BLOCKING  limits\[0\]\.regulatoryStatus/);
+  assert.doesNotMatch(blocked.out, /NONE OF THEM BLOCK/);
+
+  fs.rmSync(schemaFile);
+  const unknown = run(["--android", repo.dir]);
+  assert.match(unknown.out, /Not assuming they are optional/);
+  assert.doesNotMatch(unknown.out, /NONE OF THEM BLOCK PARSING/);
 });
