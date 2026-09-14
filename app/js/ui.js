@@ -8,6 +8,30 @@ import { h, STATUS_LABEL, tileUrl, navigate } from "./core.js";
 
 export function text(tag, cls, value) { return h(tag, { class: cls, text: value }); }
 
+/*
+  Repaint an element's children, dropping the ones that are not there.
+
+  This exists because of a bug that reached production: `replaceChildren()`
+  takes `(Node or DOMString)...`, so a JavaScript `null` is not skipped - it is
+  converted to the STRING "null" and inserted as a text node. Every screen here
+  builds its children with `cond ? node : null`, which is exactly right inside
+  h() (it filters them) and exactly wrong as a direct argument.
+
+  It showed up on the Oral Exam because its refusal card is null on first
+  paint, so the word appeared under the status pill every single time. It was
+  latent on three other screens - Import, QRH manual edit and Aircraft State -
+  waiting for a conditional to be false at the wrong moment.
+
+  A test walks every replaceChildren call in the app and fails on a nullable
+  argument, because remembering to call this is not a plan.
+*/
+export function paint(root, nodes) {
+  root.replaceChildren.apply(root, (Array.isArray(nodes) ? nodes : [nodes]).filter(function (node) {
+    return node != null && node !== false;
+  }));
+  return root;
+}
+
 /* ScreenScaffold: header row (bubbles/back), optional headlineSmall title, then content. */
 export function screen(opts, children) {
   const cls = ["screen", opts.library ? "library" : "", opts.variant || ""].filter(Boolean).join(" ");

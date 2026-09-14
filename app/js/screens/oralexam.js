@@ -28,7 +28,7 @@
 */
 
 import { h, Content, feature, Entitlements, currentVariant, variantLabel, tierLabel } from "../core.js";
-import { screen, blueCard, backBubble, matButton, outlinedButton, statusPill, notice, contentUnavailable, selectableChip } from "../ui.js";
+import { screen, blueCard, backBubble, matButton, outlinedButton, statusPill, notice, contentUnavailable, selectableChip, paint } from "../ui.js";
 import {
   MAX_QUESTIONS, OPENING_TURN, systemsIn, systemLabel, pickUnits, toRequest,
   replyText, refusalFor, appendTurn, questionsAsked, atLimit
@@ -215,12 +215,12 @@ export async function oralExam(ctx) {
 
   function render() {
     if (!started) {
-      root.replaceChildren(
+      paint(root, [
         h("div", { class: "row wrap gap-8" }, [statusPill(f.status)]),
         refusal ? refusalCard() : null,
         topicPicker(),
         h("p", { class: "t-body-s c-ter mt-10", text: DISCLAIMER })
-      );
+      ]);
       return;
     }
 
@@ -232,7 +232,7 @@ export async function oralExam(ctx) {
       return !(index === 0 && turn.role === "candidate");
     });
 
-    root.replaceChildren(
+    paint(root, [
       h("div", { class: "row between gap-8 wrap" }, [
         h("span", { class: "t-label-m c-sec", text: (chosen ? systemLabel(chosen) : "Every system") + " · " + variantLabel(variant) }),
         h("span", { class: "t-label-m c-sec", text: "Question " + Math.min(asked, MAX_QUESTIONS) + " of " + MAX_QUESTIONS })
@@ -250,7 +250,7 @@ export async function oralExam(ctx) {
         ])
         : (refusal ? null : answerBox()),
       h("p", { class: "t-body-s c-ter mt-10", text: DISCLAIMER })
-    );
+    ]);
   }
 
   render();

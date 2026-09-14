@@ -23,6 +23,7 @@ import { json } from "../_shared.js";
 import { readJson, verifyFirebaseUser, readCurrentEntitlements } from "../_mobile_shared.js";
 import { authorizeWebRequest } from "../web-access/_session.js";
 import { AI_TRAINER, hasEntitlement, tierLabel, lowestTierWith } from "../_entitlements.js";
+import { chargeExamQuestion } from "./_spend.js";
 
 const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
 const DEFAULT_MODEL = "gpt-4.1-mini";
@@ -51,7 +52,7 @@ async function authorize(context) {
   const web = await authorizeWebRequest(context);
   if (web.ok) {
     if (!hasEntitlement(web, AI_TRAINER)) return { ok: false, response: refusal() };
-    return { ok: true, via: "web" };
+    return { ok: true, via: "web", auth: web };
   }
 
   /* No session presented at all - this is the Android path. A session that was
@@ -81,7 +82,9 @@ async function authorize(context) {
   }
 
   if (entitlements.indexOf(AI_TRAINER) < 0) return { ok: false, response: refusal() };
-  return { ok: true, via: "play" };
+  /* The auth shape the budget counts against. An Android caller has no licence
+     key, so its identity is the Firebase uid - see _account.js. */
+  return { ok: true, via: "play", auth: { ok: true, role: "subscriber", client: "android", uid: firebase.uid } };
 }
 
 export async function onRequestPost(context) {
@@ -111,6 +114,27 @@ export async function onRequestPost(context) {
 
   if (!payload.instructions || payload.input.length === 0) {
     return json({ ok: false, error: "invalid_oral_exam_payload" }, 400);
+  }
+
+  /*
+    Charged here, after the payload is known good and before a penny is spent.
+    A malformed request must not cost the caller their budget, and a refused
+    one must not cost the operator a call.
+  */
+  const budget = await chargeExamQuestion(env, auth.auth);
+  if (!budget.ok) {
+    const headers = budget.retryAfterSeconds ? { "Retry-After": String(budget.retryAfterSeconds) } : undefined;
+    const body = { ok: false, error: budget.error };
+    if (budget.limit) { body.limit = budget.limit; body.window = budget.window; }
+    return new Response(JSON.stringify(body), {
+      status: budget.status || 429,
+      headers: Object.assign({ "Content-Type": "application/json", "Cache-Control": "no-store" }, headers || {})
+    });
+  }
+  if (budget.unavailable) {
+    /* A budget that has stopped counting is worth knowing about before the
+       bill arrives, rather than after. */
+    console.warn("oral-exam: the spend budget could not be read or written; this call was allowed uncounted");
   }
 
   const response = await fetch(OPENAI_RESPONSES_URL, {
