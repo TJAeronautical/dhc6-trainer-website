@@ -30,7 +30,7 @@
 import { h, Content, feature, Entitlements, currentVariant, variantLabel, tierLabel } from "../core.js";
 import { screen, blueCard, backBubble, matButton, outlinedButton, statusPill, notice, contentUnavailable, selectableChip, paint } from "../ui.js";
 import {
-  MAX_QUESTIONS, OPENING_TURN, systemsIn, systemLabel, pickUnits, toRequest,
+  MAX_QUESTIONS, MAX_TURN_CHARS, OPENING_TURN, systemsIn, systemLabel, pickUnits, toRequest,
   replyText, refusalFor, appendTurn, questionsAsked, atLimit, questionCap, questionCapForCount
 } from "../logic/oralexam.js";
 
@@ -194,6 +194,9 @@ export async function oralExam(ctx) {
       "data-answer": "true",
       "aria-label": "Your answer",
       placeholder: "Your answer",
+      /* The endpoint refuses a longer turn (413). Stopping it at the keyboard
+         means nobody types a long answer and then loses it to a refusal. */
+      maxlength: String(MAX_TURN_CHARS),
       style: "width:100%;resize:vertical"
     });
     const submit = function () {

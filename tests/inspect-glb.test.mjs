@@ -352,6 +352,157 @@ test("a model with no selectors is not reported as broken", async () => {
   assert.deepEqual(result.dead, []);
 });
 
+/* ------------------------------------------- what kind of dead (phase 52) */
+
+/*
+  The first real run reported 259 dead selectors, and 24 of them were the
+  library getting cleaner. Reading that by eye is how a genuine broken pin gets
+  lost in a list of non-events, so the tool has to make the distinction itself.
+*/
+
+test("a dead pin and a dead hygiene rule are not the same finding", async () => {
+  const { severityOf } = await import("../tools/inspect-glb.mjs");
+  assert.equal(severityOf("parts.overspeed_governor"), "broken", "a pin that never resolves is a dot that does nothing");
+  assert.equal(severityOf("extraParts[fuel_plumbing]"), "broken");
+  assert.equal(severityOf("hidden"), "inert", "a rule with nothing left to hide is not a fault");
+});
+
+test("a selector location nobody has thought of yet errs toward broken", async () => {
+  const { severityOf } = await import("../tools/inspect-glb.mjs");
+  /* The dangerous direction is calling something inert that a pilot can tap. */
+  assert.equal(severityOf("hidden.groups"), "broken");
+  assert.equal(severityOf("parts.hidden"), "broken");
+  assert.equal(severityOf(undefined), "broken");
+});
+
+test("an entry whose pins all survive is safe to repoint; one with a dead pin is not", async () => {
+  const { checkSelectors, repointVerdict } = await import("../tools/inspect-glb.mjs");
+
+  const cleaned = repointVerdict(checkSelectors(
+    { id: "fcu", file: "f.glb", parts: { body: ["FCU_BODY"] }, hidden: ["~ARCHIVE", "~DONOR"] },
+    ["FCU_BODY"]
+  ));
+  assert.equal(cleaned.broken.length, 0);
+  assert.equal(cleaned.inert.length, 2, "both hygiene rules are dead, and neither is a fault");
+  assert.equal(cleaned.safe, true, "numbers alone are enough to repoint this one");
+
+  const holed = repointVerdict(checkSelectors(
+    { id: "osg", file: "o.glb", parts: { governor: ["OSG_MAIN_CAST", "OSG_COVER"] }, hidden: ["~ARCHIVE"] },
+    ["OSG_COVER"]
+  ));
+  assert.equal(holed.broken.length, 1);
+  assert.equal(holed.broken[0].selector, "OSG_MAIN_CAST");
+  assert.equal(holed.inert.length, 1);
+  assert.equal(holed.safe, false, "repointing this publishes a pin that does nothing");
+});
+
+test("a fully intact entry is safe and reports nothing to re-author", async () => {
+  const { checkSelectors, repointVerdict } = await import("../tools/inspect-glb.mjs");
+  const verdict = repointVerdict(checkSelectors(
+    { id: "trim", file: "t.glb", parts: { wheel: ["TRIM_WHEEL"] } },
+    ["TRIM_WHEEL", "OTHER"]
+  ));
+  assert.deepEqual([verdict.broken.length, verdict.inert.length, verdict.safe], [0, 0, true]);
+});
+
+test("the run tells you which entries to hold back, not just what is dead", async () => {
+  /*
+    The output has to end in a decision. "259 dead" is a measurement; "these
+    eleven are safe to repoint and these three are not" is the thing the next
+    step actually needs.
+  */
+  const source = fs.readFileSync(path.join(root, "tools", "inspect-glb.mjs"), "utf8");
+  assert.match(source, /repoint verdict/, "the verdict section must be printed");
+  assert.match(source, /SAFE \(/);
+  assert.match(source, /HOLD \(/);
+  assert.match(source, /broken reference/, "the summary must count live references separately from inert ones");
+  assert.match(source, /inert entr/);
+});
+
+/* ---------------------------------------------- clips are references too */
+
+/*
+  The check that nearly did not exist. A registry entry names animation CLIPS as
+  well as nodes, and clipGroupsForModel() drives the Lab's animation buttons off
+  the DECLARED list - so a model whose node names all survived can still have
+  lost every clip it offers. In this re-export hydraulic-pack went 82 clips to
+  1: judged on node names alone it looks perfectly safe to repoint.
+*/
+
+test("a declared clip the file no longer has is a button that plays nothing", async () => {
+  const { checkClips } = await import("../tools/inspect-glb.mjs");
+  const result = checkClips(
+    { id: "pack", file: "p.glb", animations: ["FLOW_A", "FLOW_B", "FLOW_C"] },
+    ["FLOW_A"]
+  );
+  assert.deepEqual(result.dead.map((d) => d.selector), ["FLOW_B", "FLOW_C"]);
+  assert.ok(result.dead.every((d) => d.where === "animations"));
+});
+
+test("a clip group that catches nothing is inert, a dead clip is not", async () => {
+  const { checkClips, repointVerdict, checkSelectors } = await import("../tools/inspect-glb.mjs");
+  const model = {
+    id: "csu", file: "c.glb",
+    parts: { head: ["CSU_HEAD"] },
+    animations: ["ANIM_ALIVE", "ANIM_GONE"],
+    clips: { ANIM_ALIVE: "Alive", ANIM_GONE: "Gone" },
+    clipGroups: { "Governor operation": ["~ALIVE"], "Archive sweep": ["~NOTHING_HERE"] }
+  };
+  const verdict = repointVerdict(
+    checkSelectors(model, ["CSU_HEAD"]),
+    checkClips(model, ["ANIM_ALIVE"])
+  );
+  assert.deepEqual(verdict.broken.map((d) => d.selector), ["ANIM_GONE"], "only the playable one is broken");
+  assert.deepEqual(verdict.inert.map((d) => d.where).sort(), ["clipGroups[Archive sweep]", "clips"]);
+  assert.equal(verdict.safe, false, "one dead animation is enough to hold the entry back");
+});
+
+test("an entry whose nodes survive but whose clips did not is never called safe", async () => {
+  /*
+    This is the exact shape of hydraulic-pack, and the reason the verdict has to
+    look at both. Getting it wrong publishes eighty buttons that do nothing.
+  */
+  const { checkClips, checkSelectors, repointVerdict } = await import("../tools/inspect-glb.mjs");
+  const model = { id: "hydraulic-pack", file: "h.glb", parts: { reservoir: ["RESERVOIR"] }, animations: ["FLOW_1", "FLOW_2"] };
+  const nodesOnly = repointVerdict(checkSelectors(model, ["RESERVOIR"]));
+  assert.equal(nodesOnly.safe, true, "on node names alone it looks fine - which is the trap");
+  const both = repointVerdict(checkSelectors(model, ["RESERVOIR"]), checkClips(model, ["FLOW_1"]));
+  assert.equal(both.safe, false);
+});
+
+test("clip selectors are matched with the app's matcher, not the node one", async () => {
+  const { checkClips } = await import("../tools/inspect-glb.mjs");
+  const lab = await import("../app/js/logic/systemslab.js");
+  assert.equal(typeof lab.clipSelectorMatches, "function", "the app must own the one implementation");
+
+  /*
+    The semantics genuinely differ: a bare node selector matches on the "name_"
+    prefix, a bare clip selector is exact. Matching clips with the node matcher
+    would call a group alive that the app renders empty.
+  */
+  assert.equal(lab.selectorMatches("FLOW", "FLOW_1"), true, "node selectors match on the prefix");
+  assert.equal(lab.clipSelectorMatches("FLOW", "FLOW_1"), false, "clip selectors do not");
+
+  const dead = checkClips({ id: "m", file: "m.glb", clipGroups: { Flow: ["FLOW"] } }, ["FLOW_1"]);
+  assert.equal(dead.dead.length, 1, "the group is empty in the app, so it must read as dead here");
+});
+
+test("the shipped registry's clips are in the shape this check reads", async () => {
+  const { clipsOf } = await import("../tools/inspect-glb.mjs");
+  const registry = JSON.parse(fs.readFileSync(path.join(root, "tools", "data", "systems-lab-models.json"), "utf8"));
+  let referenced = 0;
+  registry.models.forEach((model) => {
+    clipsOf(model).forEach((entry) => {
+      referenced++;
+      assert.equal(typeof entry.selector, "string", model.id + " produced a non-string clip reference");
+      assert.ok(entry.where, model.id + " produced a clip reference with no location");
+    });
+    (model.animations || []).forEach((name) => assert.equal(typeof name, "string"));
+    Object.values(model.clipGroups || {}).forEach((list) => assert.ok(Array.isArray(list), model.id + " clipGroups must map to lists"));
+  });
+  assert.ok(referenced > 100, "the registry really does carry clip references - found " + referenced);
+});
+
 test("the shipped registry's selectors are all well formed for this check", () => {
   /* Guards the reader, not the models: an entry shape selectorsOf() cannot see
      is a selector nobody checks. */

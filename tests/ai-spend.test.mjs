@@ -9,7 +9,11 @@
 
 import test from "node:test";
 import assert from "node:assert/strict";
-import { onRequestPost as oralExam } from "../functions/api/ai/oral-exam.js";
+import {
+  onRequestPost as oralExam,
+  MAX_INSTRUCTIONS_CHARS, MAX_TURN_CHARS, MAX_INPUT_ITEMS, MAX_INPUT_CHARS
+} from "../functions/api/ai/oral-exam.js";
+import { toRequest, UNITS_PER_SESSION } from "../app/js/logic/oralexam.js";
 import { chargeExamQuestion, burstLimit, dailyLimit, BURST_LIMIT, DAILY_LIMIT } from "../functions/api/ai/_spend.js";
 import { accountIdFor, accountSeed } from "../functions/api/_account.js";
 import { onRequestGet as logbookGet } from "../functions/api/logbook/index.js";
@@ -156,6 +160,97 @@ test("a refused call costs nothing", async () => {
   assert.equal((await callExam(env, headers)).status, 200);
   assert.equal((await callExam(env, headers)).status, 200);
   assert.equal((await callExam(env, headers)).status, 429);
+});
+
+/* ------------------------------------------- the size of what gets forwarded */
+
+/*
+  The budget counts CALLS. Input tokens are billed by the character, and
+  `instructions` is supplied by the client by design - so until phase 52 the
+  size of a call was entirely the caller's choice. Eighty calls a day is a
+  sensible ceiling on questions and no ceiling at all on spend.
+*/
+
+test("an oversized answer is refused, and refused before it is charged", async () => {
+  const env = examEnv({ AI_BURST_LIMIT: 2 });
+  const headers = await subscriberHeaders();
+
+  const huge = await callExam(env, headers, upstream(), {
+    instructions: "Examine the candidate.",
+    input: [{ role: "user", content: "x".repeat(MAX_TURN_CHARS + 1) }]
+  });
+  assert.equal(huge.status, 413);
+  assert.equal(huge.body.error, "oral_exam_payload_too_large");
+  assert.equal(huge.body.reason, "turn");
+  assert.equal(huge.body.limit, MAX_TURN_CHARS);
+
+  /* The whole budget must still be there: a refused call costs nothing. */
+  assert.equal((await callExam(env, headers)).status, 200);
+  assert.equal((await callExam(env, headers)).status, 200);
+  assert.equal((await callExam(env, headers)).status, 429);
+});
+
+test("an answer right at the limit is accepted", async () => {
+  const env = examEnv();
+  const headers = await subscriberHeaders();
+  const ok = await callExam(env, headers, upstream(), {
+    instructions: "Examine the candidate.",
+    input: [{ role: "user", content: "x".repeat(MAX_TURN_CHARS) }]
+  });
+  assert.equal(ok.status, 200, "the boundary must be inclusive, or the textarea's maxlength is one short");
+});
+
+test("instructions cannot be used to post megabytes on the operator's key", async () => {
+  const env = examEnv();
+  const headers = await subscriberHeaders();
+  const flood = await callExam(env, headers, upstream(), {
+    instructions: "x".repeat(MAX_INSTRUCTIONS_CHARS + 1),
+    input: [{ role: "user", content: "ready" }]
+  });
+  assert.equal(flood.status, 413);
+  assert.equal(flood.body.reason, "instructions");
+});
+
+test("a transcript cannot be padded past the ceiling, by item count or by total", async () => {
+  const env = examEnv();
+  const headers = await subscriberHeaders();
+
+  const many = await callExam(env, headers, upstream(), {
+    instructions: "Examine the candidate.",
+    input: new Array(MAX_INPUT_ITEMS + 1).fill({ role: "user", content: "hi" })
+  });
+  assert.equal(many.status, 413);
+  assert.equal(many.body.reason, "input_items");
+
+  /* Every turn legal on its own, and the sum still has to be bounded. */
+  const perItem = Math.floor(MAX_INPUT_CHARS / MAX_INPUT_ITEMS) + 1;
+  assert.ok(perItem <= MAX_TURN_CHARS, "this test only proves anything while each turn is individually legal");
+  const fat = await callExam(env, headers, upstream(), {
+    instructions: "Examine the candidate.",
+    input: new Array(MAX_INPUT_ITEMS).fill({ role: "user", content: "x".repeat(perItem) })
+  });
+  assert.equal(fat.status, 413);
+  assert.equal(fat.body.reason, "input_total");
+});
+
+test("a real exam payload is nowhere near any of the limits", async () => {
+  /*
+    A cap that a genuine twelve-unit session could reach is a cap that refuses
+    customers, so this measures the real thing rather than trusting the number.
+  */
+  const units = new Array(UNITS_PER_SESSION).fill(null).map((_, i) => ({
+    title: "Question " + i + " about the fuel system on this aircraft?",
+    content: "The approved answer, written out at the length the decks actually use, with a little room to spare.",
+    sourceTitle: "Fuel System deck",
+    sectionRef: "AFM 2.4." + i
+  }));
+  const request = toRequest(units, [{ role: "candidate", text: "A full spoken answer from a candidate." }]);
+  assert.ok(request.instructions.length < MAX_INSTRUCTIONS_CHARS / 2,
+    "a real grounding block is " + request.instructions.length + " characters against a limit of " + MAX_INSTRUCTIONS_CHARS);
+
+  const env = examEnv();
+  const headers = await subscriberHeaders();
+  assert.equal((await callExam(env, headers, upstream(), request)).status, 200);
 });
 
 test("an unreadable budget does not lock a paying subscriber out", async () => {

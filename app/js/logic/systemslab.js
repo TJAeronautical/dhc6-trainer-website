@@ -74,6 +74,20 @@ export function pinsForModel(pack, system, model) {
   return pins;
 }
 
+/*
+  Clip selectors are NOT node selectors, and the difference is load-bearing:
+  a clip name is matched exactly unless it is a "~regex", where a node name
+  also matches on the "name_" / "name." / "name " / "name|" prefixes. Exported
+  so that anything asking "does this clip selector resolve" - the GLB
+  inspector, for one - asks with these semantics rather than a second
+  implementation that agrees with them right up until it doesn't.
+*/
+export function clipSelectorMatches(selector, clipName) {
+  if (!selector) return false;
+  if (selector[0] === "~") { const re = selectorRegex(selector.slice(1)); return re ? re.test(String(clipName || "")) : false; }
+  return selector === clipName;
+}
+
 /* Animation clip groups: registry clipGroups (label → selectors over clip
    names) or one entry per distinct clip label. */
 export function clipGroupsForModel(model, clipNames) {
@@ -83,7 +97,7 @@ export function clipGroupsForModel(model, clipNames) {
   Object.keys(configured).forEach(function (label) {
     const selectors = configured[label];
     const clips = names.filter(function (name) {
-      return selectors.some(function (s) { return s[0] === "~" ? (selectorRegex(s.slice(1)) || /$^/).test(name) : s === name; });
+      return selectors.some(function (s) { return clipSelectorMatches(s, name); });
     });
     if (clips.length) groups.push({ label: label, clips: clips });
   });

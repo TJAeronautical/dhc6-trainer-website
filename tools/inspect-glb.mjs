@@ -39,7 +39,7 @@ import { fileURLToPath } from "node:url";
 /* The app's own matcher, so "does this selector resolve" is answered with the
    same semantics the Technical Lab uses rather than a second implementation
    that agrees with it right up until it doesn't. */
-import { selectorMatches } from "../app/js/logic/systemslab.js";
+import { selectorMatches, clipSelectorMatches } from "../app/js/logic/systemslab.js";
 
 export const GLB_MAGIC = 0x46546c67;        /* "glTF" */
 export const CHUNK_JSON = 0x4e4f534a;
@@ -245,6 +245,121 @@ export function checkSelectors(model, nodeNames) {
   return { model: model.id, file: model.file, total: all.length, dead: dead };
 }
 
+/*
+  A dead selector is not one thing, and reporting it as one thing cost a whole
+  read of the last run.
+
+  `parts` and `extraParts` are PINS. A dead one is a dot on the model that a
+  pilot can tap and that does nothing - visible, wrong, and silent.
+
+  `hidden` is a HYGIENE RULE. It exists to keep archive, donor, placeholder and
+  label nodes out of the view. A dead one means the junk it was written to hide
+  is no longer in the file: the rule is inert, and the export got cleaner. That
+  is the opposite of a fault.
+
+  The first run of this tool reported 32 dead selectors on a library where 24
+  of them were cleanups. Anything that does not resolve to exactly "hidden" is
+  classed as broken, so a shape nobody has thought of yet errs toward being
+  looked at rather than dismissed.
+*/
+export function severityOf(where) {
+  const w = String(where);
+  /* Inert: nothing a user can activate depends on it.
+       hidden        a rule whose junk the export already removed
+       clips         a label for a clip that is gone; the label is simply unused
+       clipGroups[]  a group with no live clips, which the app skips entirely
+     Everything else - a `parts` pin, an `extraParts` pin, a declared animation -
+     is something the Lab offers and that would do nothing. */
+  if (w === "hidden" || w === "clips") return "inert";
+  if (w.indexOf("clipGroups[") === 0) return "inert";
+  return "broken";
+}
+
+/* ------------------------------------------------------------ clips */
+
+/*
+  The other kind of dead reference, and the one that nearly slipped through.
+
+  A registry entry does not only name nodes. It names ANIMATION CLIPS, in three
+  places, and `clipGroupsForModel` drives the Lab's animation buttons from
+  `model.animations` - the DECLARED list, not the file's. So a declared clip
+  the file no longer contains is a button that plays nothing: the same failure
+  as a dead pin, in a field the node-selector check never looked at.
+
+  This matters right now rather than in theory. In the re-exported library
+  hydraulic-pack went from 82 clips to 1, woodward-csu from 19 to 1 and
+  woodward-osg from 5 to 1. Judged on node names alone all three look safe to
+  repoint, and repointing them would publish eighty-odd buttons that do
+  nothing.
+
+    animations   the declared clip list; the app plays from this
+    clips        clip name -> label, used when no clipGroups are configured
+    clipGroups   label -> selectors over clip names (exact, or ~regex)
+
+  A `groups` entry names node groups and nothing in the app reads it, so a
+  stale one is inert and is not reported.
+*/
+export function clipsOf(model) {
+  const out = [];
+  ((model && model.animations) || []).forEach(function (name) {
+    out.push({ where: "animations", selector: name });
+  });
+  Object.keys((model && model.clips) || {}).forEach(function (name) {
+    out.push({ where: "clips", selector: name });
+  });
+  Object.keys((model && model.clipGroups) || {}).forEach(function (label) {
+    out.push({ where: "clipGroups[" + label + "]", selector: (model.clipGroups[label] || []).join(" | ") });
+  });
+  return out;
+}
+
+export function checkClips(model, animationNames) {
+  const names = animationNames || [];
+  const dead = [];
+
+  ((model && model.animations) || []).forEach(function (name) {
+    if (names.indexOf(name) < 0) dead.push({ where: "animations", selector: name });
+  });
+  Object.keys((model && model.clips) || {}).forEach(function (name) {
+    if (names.indexOf(name) < 0) dead.push({ where: "clips", selector: name });
+  });
+  /* A group whose selectors catch nothing renders as an empty animation group.
+     Matched with the app's own clip matcher, which is not the node matcher. */
+  Object.keys((model && model.clipGroups) || {}).forEach(function (label) {
+    const selectors = model.clipGroups[label] || [];
+    const alive = names.some(function (name) {
+      return selectors.some(function (s) { return clipSelectorMatches(s, name); });
+    });
+    if (!alive) dead.push({ where: "clipGroups[" + label + "]", selector: selectors.join(" | ") });
+  });
+
+  return { model: model.id, file: model.file, total: clipsOf(model).length, dead: dead };
+}
+
+/*
+  Whether a registry entry can safely be repointed at the file it was checked
+  against.
+
+  This is the decision the measurements exist to serve. Updating bytes, hashes
+  and counts is arithmetic; it is also the moment every broken pin on that
+  model goes live. An entry whose selectors all survived can be repointed on
+  the numbers alone. An entry with broken pins must have them re-authored
+  FIRST, because today the old file is still in R2 and those pins still work.
+*/
+export function repointVerdict(check, clipCheck) {
+  const dead = (check.dead || []).concat((clipCheck && clipCheck.dead) || []);
+  const broken = dead.filter(function (d) { return severityOf(d.where) === "broken"; });
+  const inert = dead.filter(function (d) { return severityOf(d.where) === "inert"; });
+  return {
+    model: check.model,
+    file: check.file,
+    total: check.total + ((clipCheck && clipCheck.total) || 0),
+    broken: broken,
+    inert: inert,
+    safe: broken.length === 0
+  };
+}
+
 /* ------------------------------------------------------------------ renames */
 
 /*
@@ -388,26 +503,59 @@ function main() {
       every authored pin on it still works.
     */
     const checked = [];
+    const verdicts = [];
     (effective.models || []).forEach(function (model) {
       const actual = measured[model.file];
       if (!actual || !actual.ok) return;
-      checked.push(checkSelectors(model, actual.nodeNames));
+      const nodes = checkSelectors(model, actual.nodeNames);
+      checked.push(nodes);
+      /* Clips are checked in the same breath, because a model whose node names
+         all survived can still have lost every animation it declares. */
+      verdicts.push(repointVerdict(nodes, checkClips(model, actual.animations)));
     });
-    const broken = checked.filter(function (c) { return c.dead.length; });
+    const withDead = verdicts.filter(function (v) { return v.broken.length || v.inert.length; });
+    const totalBroken = verdicts.reduce(function (n, v) { return n + v.broken.length; }, 0);
+    const totalInert = verdicts.reduce(function (n, v) { return n + v.inert.length; }, 0);
 
-    console.log("\n--- authored selectors against these files ---");
-    const totalSelectors = checked.reduce(function (n, c) { return n + c.total; }, 0);
-    console.log("  " + totalSelectors + " selectors across " + checked.length + " model" + (checked.length === 1 ? "" : "s") +
-      ", " + broken.reduce(function (n, c) { return n + c.dead.length; }, 0) + " no longer match any node.");
-    if (!broken.length) {
+    console.log("\n--- authored selectors and clips against these files ---");
+    const totalSelectors = verdicts.reduce(function (n, v) { return n + v.total; }, 0);
+    console.log("  " + totalSelectors + " authored references across " + verdicts.length + " model" + (verdicts.length === 1 ? "" : "s") + ".");
+    console.log("  " + totalBroken + " broken reference" + (totalBroken === 1 ? "" : "s") +
+      ", " + totalInert + " inert entr" + (totalInert === 1 ? "y" : "ies") + ".");
+    if (!totalBroken && !totalInert) {
       console.log("  Every authored selector still resolves. The re-export kept the node names.");
+    } else {
+      console.log("  Broken = a pin or an animation the Lab offers that would do nothing.");
+      console.log("  Inert  = a hygiene rule, label or group whose target this export no longer");
+      console.log("           contains. That is the library getting cleaner, not a fault.");
     }
-    broken.forEach(function (c) {
-      const via = (effective.models.find(function (m) { return m.id === c.model; }) || {}).renamedFrom;
-      console.log("\n  " + c.model + (via ? "  [renamed from " + via + "]" : "") + "  (" + c.dead.length + " of " + c.total + " dead)");
-      c.dead.forEach(function (d) {
+
+    withDead.forEach(function (v) {
+      const via = (effective.models.find(function (m) { return m.id === v.model; }) || {}).renamedFrom;
+      console.log("\n  " + v.model + (via ? "  [renamed from " + via + "]" : "") +
+        "  (" + v.broken.length + " broken, " + v.inert.length + " inert, of " + v.total + ")");
+      v.broken.forEach(function (d) {
         console.log("      " + d.where.padEnd(28) + d.selector);
       });
+      if (v.inert.length) {
+        const names = v.inert.slice(0, 6).map(function (d) { return d.selector; }).join(", ");
+        console.log("      " + "(inert)".padEnd(28) + names + (v.inert.length > 6 ? ", +" + (v.inert.length - 6) + " more" : ""));
+      }
+    });
+
+    /*
+      The line that turns measurements into a decision. Repointing an entry is
+      the moment its broken pins go live, and today the OLD file is still the
+      one being served, with its pins working.
+    */
+    const safe = verdicts.filter(function (v) { return v.safe; });
+    const hold = verdicts.filter(function (v) { return !v.safe; });
+    console.log("\n--- repoint verdict ---");
+    console.log("  SAFE (" + safe.length + "): numbers can be updated as measured; every pin and clip survives.");
+    if (safe.length) console.log("      " + safe.map(function (v) { return v.model; }).join(", "));
+    console.log("  HOLD (" + hold.length + "): re-author these FIRST. Repointing now would publish dead pins or buttons.");
+    hold.forEach(function (v) {
+      console.log("      " + v.model.padEnd(24) + v.broken.length + " reference" + (v.broken.length === 1 ? "" : "s") + " would be dead");
     });
 
     console.log("\n  Nothing was written. These are measurements to author from.");

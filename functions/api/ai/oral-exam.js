@@ -29,6 +29,33 @@ const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
 const DEFAULT_MODEL = "gpt-4.1-mini";
 const MAX_OUTPUT_TOKENS = 600;
 
+/*
+  How big a payload this endpoint will forward.
+
+  `instructions` is supplied by the CLIENT, deliberately - the Android
+  examiner's brief is not the browser's, and the grounding block rides in it.
+  That design decision has a cost nobody had priced: the size of what gets
+  forwarded is entirely the caller's choice, the budget in _spend.js counts
+  CALLS rather than tokens, and input tokens are billed. A subscriber holding
+  AI_TRAINER could post megabytes eighty times a day on the operator's key
+  without once exceeding the rate limit.
+
+  MAX_OUTPUT_TOKENS has always bounded the reply. Nothing bounded the question.
+
+  These numbers are far above any real exam - a twelve-unit grounding block is
+  a few thousand characters, and a spoken answer is a few hundred - and far
+  below a bill. Refused, never truncated: a silently shortened answer is one
+  the examiner marks against material the candidate did not send.
+*/
+export const MAX_INSTRUCTIONS_CHARS = 32768;
+export const MAX_TURN_CHARS = 8192;
+export const MAX_INPUT_ITEMS = 80;
+export const MAX_INPUT_CHARS = 131072;
+
+function tooLarge(reason, limit) {
+  return json({ ok: false, error: "oral_exam_payload_too_large", reason: reason, limit: limit }, 413);
+}
+
 function refusal() {
   const needed = lowestTierWith(AI_TRAINER);
   return json({
@@ -114,6 +141,26 @@ export async function onRequestPost(context) {
 
   if (!payload.instructions || payload.input.length === 0) {
     return json({ ok: false, error: "invalid_oral_exam_payload" }, 400);
+  }
+
+  /*
+    Bounded before it is charged and before it is forwarded, so an oversized
+    payload costs neither the caller their budget nor the operator a call.
+  */
+  if (payload.instructions.length > MAX_INSTRUCTIONS_CHARS) {
+    return tooLarge("instructions", MAX_INSTRUCTIONS_CHARS);
+  }
+  if (payload.input.length > MAX_INPUT_ITEMS) {
+    return tooLarge("input_items", MAX_INPUT_ITEMS);
+  }
+  let inputChars = 0;
+  for (const item of payload.input) {
+    const content = item && typeof item.content === "string" ? item.content : "";
+    if (content.length > MAX_TURN_CHARS) return tooLarge("turn", MAX_TURN_CHARS);
+    inputChars += content.length;
+  }
+  if (inputChars > MAX_INPUT_CHARS) {
+    return tooLarge("input_total", MAX_INPUT_CHARS);
   }
 
   /*
