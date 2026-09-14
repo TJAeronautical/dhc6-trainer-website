@@ -113,10 +113,50 @@ test("a saturated zoom button is disabled rather than silently inert", () => {
   assert.match(screenSrc, /applied\.scale >= applied\.max/);
 });
 
-test("every zoom control re-renders so the disabled state can update", () => {
-  const controls = screenSrc.match(/(Zoom -|Zoom \+|"Reset")[\s\S]{0,160}?applyFocus\(([a-z]*)\)/g) || [];
+test("every zoom control refreshes the disabled state, without rebuilding the screen", () => {
+  const controls = screenSrc.match(/(Zoom -|Zoom \+|"Reset")[\s\S]{0,170}?applyFocus\(([A-Za-z]*)\)/g) || [];
   assert.equal(controls.length, 3, "expected Zoom -, Reset and Zoom + to each call applyFocus");
-  controls.forEach((c) => assert.match(c, /applyFocus\(render\)/, "a zoom control does not re-render: " + c));
+  controls.forEach((c) => assert.match(c, /applyFocus\(syncZoom\)/,
+    "a zoom control must refresh via syncZoom, not a full render: " + c));
+});
+
+/* ------------------------------------------------- the screen must not jump */
+
+test("selecting a target or zooming never rebuilds the whole screen", () => {
+  // root.replaceChildren() empties the page for an instant. The height collapses,
+  // the browser clamps scrollTop to 0, and the reader is thrown to the top --
+  // which is exactly what Trevor saw after the zoom fix landed.
+  const interactive = screenSrc.slice(screenSrc.indexOf("function syncSelection()"));
+  const rebuilds = interactive.match(/(?<!function )\brender\(\)/g) || [];
+  assert.equal(rebuilds.length, 1,
+    "render() may only be CALLED once, for the initial build; found " + rebuilds.length);
+  assert.doesNotMatch(screenSrc, /selectableChip\([^)]*function \(\) \{ selected = i;/,
+    "the chip handler mutates and full-renders again");
+  assert.match(screenSrc, /function selectTarget\(index\)/);
+  ["elChips", "elCardTitle", "elCardSubtitle", "elHeaderPill", "elPrev", "elNext"].forEach((ref) => {
+    assert.ok(screenSrc.includes(ref), "lost the in-place reference " + ref);
+  });
+});
+
+test("the canvas is never detached by a selection change", () => {
+  // surface.root lives in the card syncSelection does not touch. If it were
+  // moved, the WebGL/2D context would be torn down and rebuilt on every chip.
+  const sync = screenSrc.slice(screenSrc.indexOf("function syncSelection()"), screenSrc.indexOf("function syncZoom()"));
+  assert.ok(!sync.includes("surface.root"), "syncSelection moves the canvas");
+  assert.ok(!sync.includes("blueCard("), "syncSelection rebuilds a whole card");
+});
+
+test("selection still updates everything that depends on it", () => {
+  const sync = screenSrc.slice(screenSrc.indexOf("function syncSelection()"), screenSrc.indexOf("function syncZoom()"));
+  // Each of these showed the selected target and would otherwise go stale.
+  assert.match(sync, /elChips\.replaceChildren/);
+  assert.match(sync, /elHeaderPill\.textContent/);
+  assert.match(sync, /elCardTitle\.textContent/);
+  assert.match(sync, /elCardSubtitle\.textContent/);
+  assert.match(sync, /elSummaryTarget\.textContent/);
+  assert.match(sync, /elPhaseTabs\.forEach/, "the phase links carry ?focusTarget and must follow the selection");
+  assert.match(sync, /elPrev\.disabled/);
+  assert.match(sync, /elNext\.disabled/);
 });
 
 test("focusRegion reports what it applied instead of returning nothing", () => {

@@ -458,9 +458,67 @@ export async function frozenSnapshot(ctx) {
     }).catch(function () { if (then) then(); /* overlay */ });
   }
 
+  /* Selecting a target or pressing a zoom button used to rebuild the whole
+     screen. replaceChildren() empties `root` first, so for an instant the page
+     had almost no height, the browser clamped scrollTop to 0, and the view
+     jumped to the top — taking the canvas out of the document and putting it
+     back on the way. Only the parts that actually change are touched now, and
+     none of them is the card holding the canvas, so the page never changes
+     height and the scroll position stays where the reader left it. */
+  let elChips = null, elPhaseTabs = [], elHeaderPill = null, elCardTitle = null, elCardSubtitle = null,
+    elSummaryTarget = null, elPrev = null, elNext = null, elZoomMinus = null, elZoomPlus = null;
+
+  function phaseHref(p) {
+    return "#/scenario/focus/" + encodeURIComponent(procedureId) + "/" + p +
+      (targets.length ? "?focusTarget=" + encodeURIComponent(targets[selected]) : "");
+  }
+
+  function chipNodes() {
+    return targets.map(function (t, i) {
+      return selectableChip(displayFocusTarget(t), i === selected, function () { selectTarget(i); });
+    });
+  }
+
+  function syncSelection() {
+    const region = currentRegion();
+    if (elChips) elChips.replaceChildren.apply(elChips, chipNodes());
+    if (elHeaderPill) elHeaderPill.textContent = targets.length ? displayFocusTarget(targets[selected]) : "No target";
+    if (elCardTitle) elCardTitle.textContent = targets.length ? displayFocusTarget(targets[selected]) : "Frozen Snapshot";
+    if (elCardSubtitle) elCardSubtitle.textContent = region ? region.label : "Selected focus area";
+    if (elSummaryTarget) elSummaryTarget.textContent = "Focus target  " + displayFocusTarget(targets[selected]);
+    elPhaseTabs.forEach(function (a, i) { a.setAttribute("href", phaseHref(PHASES[i])); });
+    if (elPrev) elPrev.disabled = selected <= 0;
+    if (elNext) elNext.disabled = selected >= targets.length - 1;
+  }
+
+  function syncZoom() {
+    if (elZoomMinus) elZoomMinus.disabled = zoomAt.atMin;
+    if (elZoomPlus) elZoomPlus.disabled = zoomAt.atMax;
+  }
+
+  function selectTarget(index) {
+    if (index < 0 || index >= targets.length) return;
+    selected = index;
+    zoom = 1;
+    syncSelection();
+    applyFocus(syncZoom);
+  }
+
   function render() {
     const region = currentRegion();
     const lines = summaryLines(state.snapshot, false);
+    elHeaderPill = h("span", { class: "pill info", text: targets.length ? displayFocusTarget(targets[selected]) : "No target" });
+    elPhaseTabs = PHASES.map(function (p) {
+      return h("a", { class: "btn outlined" + (phase === p ? " selected" : ""), href: phaseHref(p), text: p });
+    });
+    elChips = h("div", { class: "row gap-8 wrap mt-8 scroll-x" }, chipNodes());
+    elCardTitle = h("div", { class: "t-title-m w-semi c-white", text: targets.length ? displayFocusTarget(targets[selected]) : "Frozen Snapshot" });
+    elCardSubtitle = h("div", { class: "t-body-s c-ter mt-4", text: region ? region.label : "Selected focus area" });
+    elZoomMinus = outlinedButton("Zoom -", function () { zoom = Math.max(ZOOM_MIN, zoom / ZOOM_STEP); applyFocus(syncZoom); }, { block: true, disabled: zoomAt.atMin });
+    elZoomPlus = primaryButton("Zoom +", function () { zoom = Math.min(ZOOM_MAX, zoom * ZOOM_STEP); applyFocus(syncZoom); }, { block: true, disabled: zoomAt.atMax });
+    elSummaryTarget = targets.length ? h("div", { class: "t-body-s c-sec", text: "Focus target  " + displayFocusTarget(targets[selected]) }) : null;
+    elPrev = outlinedButton("Previous", function () { selectTarget(selected - 1); }, { block: true, disabled: selected <= 0 });
+    elNext = outlinedButton("Next", function () { selectTarget(selected + 1); }, { block: true, disabled: selected >= targets.length - 1 });
     root.replaceChildren(
       h("div", { class: "row between wrap gap-8" }, [
         bubble("light", "Back", { onClick: function () { window.history.back(); } }),
@@ -473,36 +531,29 @@ export async function frozenSnapshot(ctx) {
         h("div", { class: "t-body-s c-ter mt-6", text: "This screen keeps focus review static first. Enter the cockpit only when you need live interaction." }),
         h("div", { class: "row gap-8 equal-row mt-10" }, [
           h("span", { class: "pill info", text: targets.length + " focus targets" }),
-          h("span", { class: "pill info", text: targets.length ? displayFocusTarget(targets[selected]) : "No target" })
+          elHeaderPill
         ])
       ]),
-      h("div", { class: "row gap-8 equal-row" }, PHASES.map(function (p) {
-        return h("a", { class: "btn outlined" + (phase === p ? " selected" : ""), href: "#/scenario/focus/" + encodeURIComponent(procedureId) + "/" + p + (targets.length ? "?focusTarget=" + encodeURIComponent(targets[selected]) : ""), text: p });
-      })),
+      h("div", { class: "row gap-8 equal-row" }, elPhaseTabs),
       targets.length ? blueCard([
         h("div", { class: "t-title-s w-semi c-white", text: "Procedure focus" }),
         h("div", { class: "t-body-s c-ter mt-4", text: "Targets are derived from the active checklist lines for this drill." }),
-        h("div", { class: "row gap-8 wrap mt-8 scroll-x" }, targets.map(function (t, i) {
-          return selectableChip(displayFocusTarget(t), i === selected, function () { selected = i; zoom = 1; applyFocus(render); render(); });
-        }))
+        elChips
       ]) : null,
       blueCard([
-        h("div", { class: "t-title-m w-semi c-white", text: targets.length ? displayFocusTarget(targets[selected]) : "Frozen Snapshot" }),
-        h("div", { class: "t-body-s c-ter mt-4", text: region ? region.label : "Selected focus area" }),
+        elCardTitle,
+        elCardSubtitle,
         h("div", { class: "mt-10" }, surface.root),
         h("div", { class: "row gap-8 equal-row mt-10" }, [
-          outlinedButton("Zoom -", function () { zoom = Math.max(ZOOM_MIN, zoom / ZOOM_STEP); applyFocus(render); }, { block: true, disabled: zoomAt.atMin }),
-          outlinedButton("Reset", function () { zoom = 1; applyFocus(render); }, { block: true }),
-          primaryButton("Zoom +", function () { zoom = Math.min(ZOOM_MAX, zoom * ZOOM_STEP); applyFocus(render); }, { block: true, disabled: zoomAt.atMax })
+          elZoomMinus,
+          outlinedButton("Reset", function () { zoom = 1; applyFocus(syncZoom); }, { block: true }),
+          elZoomPlus
         ])
       ]),
       h("div", { class: "snapshot-summary" }, [h("div", { class: "t-body-m w-semi c-white", text: phaseSummaryText(phase, state.snapshot) })]
-        .concat(targets.length ? [h("div", { class: "t-body-s c-sec", text: "Focus target  " + displayFocusTarget(targets[selected]) })] : [])
+        .concat(elSummaryTarget ? [elSummaryTarget] : [])
         .concat(lines.map(function (l) { return h("div", { class: "t-body-s c-sec", text: l[0] + "  " + l[1] }); }))),
-      h("div", { class: "row gap-8 equal-row" }, [
-        outlinedButton("Previous", function () { if (selected > 0) { selected -= 1; zoom = 1; applyFocus(render); render(); } }, { block: true, disabled: selected <= 0 }),
-        outlinedButton("Next", function () { if (selected < targets.length - 1) { selected += 1; zoom = 1; applyFocus(render); render(); } }, { block: true, disabled: selected >= targets.length - 1 })
-      ]),
+      h("div", { class: "row gap-8 equal-row" }, [elPrev, elNext]),
       h("div", { class: "row gap-8 equal-row" }, [
         primaryButton("Open Cockpit", function () {
           rememberCockpitResume("/scenario/run/" + encodeURIComponent(procedureId) + "/" + phase, bundle.title, procedureId);
@@ -523,6 +574,6 @@ export async function frozenSnapshot(ctx) {
     );
   }
   render();
-  applyFocus();
+  applyFocus(syncZoom);
   return screen({ ariaLabel: "Focus snapshot" }, [root]);
 }
