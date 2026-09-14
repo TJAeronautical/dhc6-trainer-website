@@ -373,3 +373,75 @@ function selectorsOfFor(model) {
   (model.extraParts || []).forEach((e) => { n += (e.selectors || []).length; });
   return n;
 }
+
+/* ------------------------------------------------------------------ renames */
+
+/*
+  A model re-exported under a NEW name reads as two separate problems — an entry
+  pointing at a file that is gone, and a file nobody uses — when it is really
+  one. The entry's selectors are the valuable part, so the question worth asking
+  is whether they survive the new file. --rename asks it without editing
+  anything.
+*/
+test("a rename is parsed, repeatable, and junk is ignored", async () => {
+  const { parseRenames } = await import("../tools/inspect-glb.mjs");
+  const renames = parseRenames([
+    "node", "tool", "--rename", "FUEL_SYSTEM.glb=DHC6_FUEL_SYSTEM_FULL_REPLICA.glb",
+    "--rename", "AIR-CONDITIONNG.glb=DHC6_AIR_CONDITIONING_SYSTEM_REPLICA.glb",
+    "--rename", "no-equals-sign",
+    "--rename", "=only-a-target.glb",
+    "--rename"
+  ]);
+  assert.equal(renames.size, 2, "two well-formed pairs, and nothing invented from the malformed ones");
+  assert.equal(renames.get("FUEL_SYSTEM.glb"), "DHC6_FUEL_SYSTEM_FULL_REPLICA.glb");
+  assert.deepEqual(parseRenames([]).size, 0);
+  assert.deepEqual(parseRenames(undefined).size, 0);
+});
+
+test("a renamed entry keeps its selectors and is checked against the new file", async () => {
+  const { applyRenames, reconcile, checkSelectors } = await import("../tools/inspect-glb.mjs");
+
+  const registry = { version: 2, models: [{
+    id: "fuel-system", file: "FUEL_SYSTEM.glb",
+    bytes: 1, sha256: "f".repeat(64), nodes: 1, meshes: 1, triangles: 1,
+    parts: { tank: ["CENTRE_TANK"], pump: ["BOOST_PUMP"] }
+  }] };
+  const renames = new Map([["FUEL_SYSTEM.glb", "DHC6_FUEL_SYSTEM_FULL_REPLICA.glb"]]);
+  const effective = applyRenames(registry, renames);
+
+  assert.equal(effective.models[0].file, "DHC6_FUEL_SYSTEM_FULL_REPLICA.glb");
+  assert.equal(effective.models[0].renamedFrom, "FUEL_SYSTEM.glb", "the rename is recorded so a dead selector can be attributed");
+  assert.deepEqual(effective.models[0].parts, registry.models[0].parts, "selectors are the valuable part and must survive untouched");
+  assert.equal(registry.models[0].file, "FUEL_SYSTEM.glb", "the original registry is not mutated");
+
+  /* Before the rename the entry reads as missing and the file as unused - two
+     problems. After it, neither. */
+  const measured = { "DHC6_FUEL_SYSTEM_FULL_REPLICA.glb": Object.assign(summarise(glb(SIMPLE)), { sha256: "g".repeat(64) }) };
+  const before = reconcile(registry, measured);
+  assert.equal(before.missing.length, 1);
+  assert.equal(before.unused.length, 1);
+  const after = reconcile(effective, measured);
+  assert.equal(after.missing.length, 0);
+  assert.equal(after.unused.length, 0);
+
+  /* And the real question: do the old selectors resolve against the new file? */
+  const survived = checkSelectors(effective.models[0], ["CENTRE_TANK", "BOOST_PUMP"]);
+  assert.deepEqual(survived.dead, []);
+  const broken = checkSelectors(effective.models[0], ["CENTRE_TANK"]);
+  assert.deepEqual(broken.dead.map((d) => d.selector), ["BOOST_PUMP"]);
+});
+
+test("with no renames the registry is passed through unchanged", async () => {
+  const { applyRenames } = await import("../tools/inspect-glb.mjs");
+  const registry = { version: 2, models: [{ id: "a", file: "A.glb" }] };
+  assert.equal(applyRenames(registry, new Map()), registry);
+  assert.equal(applyRenames(registry, null), registry);
+});
+
+test("the usage banner mentions every flag the tool honours", () => {
+  const src = fs.readFileSync(path.join(root, "tools", "inspect-glb.mjs"), "utf8");
+  const banner = src.slice(src.indexOf("Give it something to read"), src.indexOf("process.exitCode = 2"));
+  ["--dir", "--file", "--registry", "--names", "--match", "--json", "--rename"].forEach((flagName) => {
+    assert.ok(banner.includes(flagName), "a flag nobody is told about is a flag nobody uses: " + flagName);
+  });
+});
