@@ -65,6 +65,34 @@ if (mediaDirs.length) {
     }
   };
 }
+/* Library documents: an in-memory R2 double for WEB_LIBRARY, so uploads and
+   downloads can be exercised locally. Ephemeral — it dies with the process. */
+{
+  const objects = new Map();
+  env.WEB_LIBRARY = {
+    async head(key) {
+      const o = objects.get(key); if (!o) return null;
+      return { key, size: o.bytes.byteLength, etag: "dev-" + o.bytes.byteLength, httpEtag: '"dev-' + o.bytes.byteLength + '"', httpMetadata: { contentType: o.contentType } };
+    },
+    async get(key, options) {
+      const o = objects.get(key); if (!o) return null;
+      let start = 0; let end = o.bytes.byteLength - 1;
+      if (options && options.range) { start = options.range.offset || 0; end = options.range.length ? start + options.range.length - 1 : end; }
+      const slice = o.bytes.slice(start, end + 1);
+      return {
+        key, size: o.bytes.byteLength, etag: "dev-" + o.bytes.byteLength, httpEtag: '"dev-' + o.bytes.byteLength + '"',
+        httpMetadata: { contentType: o.contentType },
+        body: new ReadableStream({ start(c) { c.enqueue(new Uint8Array(slice)); c.close(); } }),
+        range: options && options.range ? { offset: start, length: slice.byteLength } : undefined
+      };
+    },
+    async put(key, value, options) {
+      const bytes = value instanceof ArrayBuffer ? new Uint8Array(value) : new Uint8Array(value);
+      objects.set(key, { bytes, contentType: (options && options.httpMetadata && options.httpMetadata.contentType) || "application/octet-stream" });
+    },
+    async delete(key) { objects.delete(key); }
+  };
+}
 const devLicense = { key: "DHC6-TEST-TEST-TEST", email: "pilot@example.com", status: "active", plan: "premium_annual", subscriptionId: "sub_dev", customerId: "ctm_dev", createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-01-01T00:00:00Z", expiresAt: "2099-01-01T00:00:00Z", activationLimit: 3, activations: [] };
 kv.set("license:" + devLicense.key, JSON.stringify(devLicense));
 kv.set("email:" + devLicense.email, devLicense.key);

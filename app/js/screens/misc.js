@@ -1,30 +1,10 @@
 /*
-  Library hub (LibraryHubScreen — read-only), Systems / Import placeholders and
-  SETTINGS (SettingsScreen). The AIRCRAFT tab lives in screens/aircraftstate.js.
+  Generic "coming later" screens and SETTINGS (SettingsScreen).
+  The Library moved to screens/library.js when it became a real document store;
+  the AIRCRAFT tab lives in screens/aircraftstate.js.
 */
 import { h, Store, Content, APP_VERSION, currentVariant, variantLabel, variantSubtitle, VARIANTS, feature, clearContentCache } from "../core.js";
 import { screen, blueCard, libraryDivider, backBubble, bubble, statusPill, settingsSection, navCard, toggleCard, ICONS, outlinedButton } from "../ui.js";
-
-/* -------------------------------------------------------------- Library hub */
-export async function libraryHub(ctx) {
-  ctx.setTopbar({ title: "Library", subtitle: "Sources · Import · Published", back: "#/dashboard" });
-  function card(title, body, buttonLabel, href, status) {
-    return blueCard([
-      h("div", { class: "row between" }, [h("div", { class: "t-title-m c-white", text: title }), statusPill(status)]),
-      h("div", { class: "t-body-s c-white mt-10", text: body }),
-      h("div", { class: "mt-10" }, h("a", { class: "bubble light", href: href, text: buttonLabel }))
-    ]);
-  }
-  return screen({ title: "Library", library: true, header: [bubble("light", "Back", { href: "#/dashboard" })] }, [
-    h("p", { class: "t-body-m c-white", text: "Read-only source index and published training content. Knowledge import is visible here, but opens only for authorised accounts." }),
-    h("div", { class: "mt-4" }), libraryDivider(), h("div", { class: "mt-4" }),
-    card("Import", "Protected import entry for owner or content-authoring accounts. Free and guest accounts remain read-only here.", "Unlock Import", "#/library/import", "later"),
-    h("div", { class: "mt-4" }),
-    card("Sources", "Imported PDFs, source documents, and promoted content in the shared source index.", "Open Sources", "#/library/sources", "later"),
-    h("div", { class: "mt-4" }),
-    card("Published", "Trusted runtime-ready content only.", "Open Published", "#/library/published", "later")
-  ]);
-}
 
 /* ------------------------------------------------- Generic later screens */
 export function laterScreen(id, extra) {
