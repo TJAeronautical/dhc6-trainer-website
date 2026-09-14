@@ -169,6 +169,11 @@
     setText(message, "Sign in to open the subscriber web app.", false);
   } else if (params.get("status") === "signed-out") {
     setText(message, "You have been signed out.", true);
+  } else if (params.get("status") === "offline-expired") {
+    /* Reached only when this device has gone 30 days without reaching the
+       server. Nothing has been deleted - anything recorded offline is still
+       on the device and syncs once this account signs back in. */
+    setText(message, "This device has been offline for 30 days. Sign in once to carry on — your offline drills are still saved here and will sync.", true);
   }
 
   completeEmailLink().then(function (done) {
