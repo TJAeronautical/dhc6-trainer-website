@@ -32,6 +32,20 @@
     "not_found_handling": "single-page-application",
     "run_worker_first": true
   },
+  // Outbound email (Cloudflare Email Service). Sends the welcome message that
+  // carries a new subscriber's licence key - see functions/api/_welcome-email.js.
+  //
+  // Before this works in production: Cloudflare dashboard -> Compute -> Email
+  // Service -> Email Sending -> Onboard Domain -> dhc6trainer.com. Cloudflare
+  // adds the SPF, DKIM, DMARC and bounce MX records itself; the domain must be
+  // on Cloudflare DNS, which it is. Requires the Workers Paid plan.
+  //
+  // Unset WELCOME_EMAIL_FROM defaults to noreply@dhc6trainer.com.
+  "send_email": [
+    {
+      "name": "EMAIL"
+    }
+  ],
   "kv_namespaces": [
     {
       "binding": "LICENSES",
