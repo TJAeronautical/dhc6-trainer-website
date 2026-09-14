@@ -16,7 +16,12 @@
   <link rel="icon" href="assets/favicon-32.png" type="image/png">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
   <link rel="manifest" href="assets/site.webmanifest">
-  <link rel="preload" href="assets/screenshots/web-phone-dashboard.webp" as="image" type="image/webp">
+  <!-- The hero reel's first frame, which is the LCP element. It used to point at
+       web-phone-dashboard.webp, which the page never renders - that file is only
+       the og:image, and social crawlers fetch it themselves. Every visitor was
+       downloading 100 KB at high priority, ahead of the image they were actually
+       waiting to see. -->
+  <link rel="preload" href="assets/screenshots/reel-1-dashboard.webp" as="image" type="image/webp">
   <link rel="stylesheet" href="assets/site-redesign.css">
   <script type="application/ld+json">
   {"@context":"https://schema.org","@type":"SoftwareApplication","name":"DHC-6 Trainer","applicationCategory":"EducationalApplication","operatingSystem":"Android, Windows, Web","description":"DHC-6 Twin Otter study platform for QRH drills, MCC callouts, procedures, cockpit familiarisation, systems and performance practice.","url":"https://dhc6trainer.com/"}
