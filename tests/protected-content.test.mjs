@@ -77,9 +77,16 @@ test("billing status never reveals a licence key from an email alone", async () 
   assert.equal(body.license.customerId, undefined);
   assert.equal(body.license.subscriptionId, undefined);
   assert.equal(body.license.activations, undefined);
-  assert.equal(body.license.keyHint, "DHC6-••••-••••-JKLM");
   assert.equal(body.license.status, "active");
   assert.equal(JSON.stringify(body).includes("DHC6-ABCD-EFGH-JKLM"), false);
+
+  /* Not even a fragment of the key from an email alone. This used to return
+     the last four characters as a hint, which handed a quarter of the key to
+     anyone who knew an address and bought the customer nothing - a partial key
+     is unusable, and the status and plan above already confirm the lookup
+     found their account. */
+  assert.equal(body.license.keyHint, undefined, "no part of the key from an email alone");
+  assert.ok(!JSON.stringify(body).includes("JKLM"), "not the last group either");
 });
 
 test("billing status returns full details with the licence key or a signed-in web session", async () => {
