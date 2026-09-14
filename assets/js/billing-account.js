@@ -177,7 +177,15 @@ async function loadBillingStatus() {
     return null;
   }
   renderAccount(data.license);
-  billingSetMessage(data.license.masked ? "Subscription found. Enter the licence key to unlock devices, billing and downloads." : "Billing status loaded. Your licence key is shown on the right.", true);
+  /*
+    "Enter the licence key" is the wrong instruction for somebody who has just
+    bought and has never been given one - and since the key is deliberately
+    never returned from an email alone, that was every first-time buyer. Name
+    the way to get it rather than asking for something they may not hold.
+  */
+  billingSetMessage(data.license.masked
+    ? "Subscription found. The licence key is never shown from an email alone: open the Web App page, request a one-time sign-in link to this address, open it on this device, then load your subscription again to see the full key."
+    : "Billing status loaded. Your licence key is shown on the right.", true);
   return data.license;
 }
 
