@@ -16,6 +16,9 @@ export async function onRequestGet(context) {
     role: auth.role,
     plan: auth.plan,
     email: auth.payload.email,
+    /* When the paid period ends. The browser caps its offline window by this,
+       so lapsing ends offline access rather than granting another 30 days. */
+    entitledUntil: auth.entitledUntil || null,
     expiresAt: auth.expiresAt
   });
 }

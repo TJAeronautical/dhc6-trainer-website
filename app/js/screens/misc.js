@@ -165,7 +165,7 @@ export async function settings(ctx) {
         start offline works and this says so again - with the 30-day limit
         stated, because a limit nobody is told about is just a surprise.
       */
-      navCard("Works without a connection", "The app opens and runs with no signal: procedures, QRH, checklists, drills, flashcards, limitations, MEL and the calculators are all kept on this device. Diagrams and cockpit imagery are an optional download below; 3D models always need a connection. Sign in at least once every 30 days to keep offline access.", { icon: ICONS.info }),
+      navCard("Works without a connection", "The app opens and runs with no signal: procedures, QRH, checklists, drills, flashcards, limitations, MEL and the calculators are all kept on this device. Diagrams and cockpit imagery are an optional download below; 3D models always need a connection. Offline access runs until the end of your paid period, or 30 days from your last sign-in, whichever comes first.", { icon: ICONS.info }),
       offlineImageryCard(ctx, render),
       blueCard([
         h("div", { class: "t-body-s c-sec", text: "Content packs: " + (manifest.published === false ? "not published yet" : (manifest.packs || []).length + " packs · version " + (manifest.version || "—")) }),
