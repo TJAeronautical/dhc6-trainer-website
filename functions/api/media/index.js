@@ -9,7 +9,7 @@
   its own Cache API copy keyed by ETag and clears it on sign-out / lapse.
 */
 
-import { json } from "../_shared.js";
+import { json, STORED_FILE_CSP } from "../_shared.js";
 import { authorizeWebRequest } from "../web-access/_session.js";
 import { getMedia, headMedia, normalizeMediaPath, parseRange, readMediaIndex } from "./_store.js";
 
@@ -18,6 +18,11 @@ const PROTECTED_HEADERS = {
   "Vary": "Cookie, Authorization, Range",
   "X-Robots-Tag": "noindex, nofollow",
   "X-Content-Type-Options": "nosniff",
+  /* The media store holds build-produced assets rather than uploads, so there is
+     no injection path into it today. It serves image/svg+xml all the same, and a
+     store that can return an executable document should not rely on who happens
+     to fill it. Same header as the Library: see STORED_FILE_CSP. */
+  "Content-Security-Policy": STORED_FILE_CSP,
   "Accept-Ranges": "bytes"
 };
 

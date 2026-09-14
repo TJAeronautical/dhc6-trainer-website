@@ -65,15 +65,26 @@ export async function onRequestPost(context) {
         })
       });
       if (!response.ok) {
+        /*
+          A send failure must NOT change the response. This branch is reachable
+          only when the email belongs to an active subscriber, so returning a
+          distinct error here inverts the whole point of the endpoint: the
+          generic "if an active subscription exists" message would mean "not a
+          customer" and an error would mean "customer". One Firebase outage, or
+          a single bounced address, would turn this into a subscriber oracle.
+
+          The operator signal is kept where it cannot leak: the console, which
+          reaches the Workers log. The globally-unconfigured case is still
+          reported to the caller at the top of this handler, before any email is
+          looked up, so that diagnostic costs nothing.
+        */
         let data = {};
         try { data = await response.json(); } catch (error) { data = {}; }
         const message = String((data.error && data.error.message) || "");
-        if (/OPERATION_NOT_ALLOWED|UNAUTHORIZED_DOMAIN|INVALID_CONTINUE_URI|MISSING_CONTINUE_URI/.test(message)) {
-          return json({ ok: false, error: "email_link_not_configured", firebase: message }, 503);
-        }
-        return json({ ok: false, error: "email_link_send_failed" }, 502);
+        console.warn("request-link: Firebase sendOobCode failed (" + response.status + "): " + (message || "no message"));
+      } else {
+        await env.LICENSES.put(perEmailKey, String(sent + 1), { expirationTtl: 60 * 60 });
       }
-      await env.LICENSES.put(perEmailKey, String(sent + 1), { expirationTtl: 60 * 60 });
     }
   }
 

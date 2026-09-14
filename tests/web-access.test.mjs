@@ -229,12 +229,61 @@ test("request-link is enumeration-safe and only emails active subscribers", asyn
     assert.equal(invalid.status, 400);
   } finally { fetchMock.restore(); }
 
-  const disabled = mockFetch(async () => jsonResponse({ error: { message: "OPERATION_NOT_ALLOWED" } }, 400));
+});
+
+test("a failed send does not turn request-link into a subscriber oracle", async () => {
+  const env = envWithLicense();
+
+  /* The reference answer: what a NON-subscriber gets. Every other case below
+     has to match this byte for byte, or the endpoint tells you who is a
+     customer by how it fails. */
+  const quiet = mockFetch(async () => jsonResponse({ data: [] }));
+  let baselineStatus, baselineBody;
+  try {
+    const response = await requestLinkPost({ request: jsonRequest("https://dhc6trainer.com/api/web-access/request-link", { email: "nobody@example.com" }), env: Object.assign({}, env, { PADDLE_API_KEY: "" }) });
+    baselineStatus = response.status;
+    baselineBody = await response.text();
+  } finally { quiet.restore(); }
+
+  /* Each of these is reachable ONLY for an active subscriber, because the send
+     is attempted only on that branch. Firebase misconfigured, Firebase down,
+     and the address itself rejected. */
+  const failures = [
+    { label: "Firebase sign-in method disabled", body: { error: { message: "OPERATION_NOT_ALLOWED" } }, status: 400 },
+    { label: "domain not authorised", body: { error: { message: "UNAUTHORIZED_DOMAIN" } }, status: 400 },
+    { label: "Firebase unavailable", body: { error: { message: "INTERNAL_ERROR" } }, status: 500 },
+    { label: "address rejected", body: { error: { message: "INVALID_RECIPIENT_EMAIL" } }, status: 400 }
+  ];
+
+  for (const failure of failures) {
+    const broken = mockFetch(async (url) => (/sendOobCode/.test(url)
+      ? jsonResponse(failure.body, failure.status)
+      : jsonResponse({ data: [] })));
+    try {
+      const response = await requestLinkPost({ request: jsonRequest("https://dhc6trainer.com/api/web-access/request-link", { email: "pilot@example.com" }), env });
+      assert.equal(response.status, baselineStatus, failure.label + ": status must match a non-subscriber's");
+      assert.equal(await response.text(), baselineBody, failure.label + ": body must match a non-subscriber's");
+    } finally { broken.restore(); }
+  }
+
+  /* And the internal Firebase wording never reaches the caller. */
+  const leaky = mockFetch(async (url) => (/sendOobCode/.test(url)
+    ? jsonResponse({ error: { message: "UNAUTHORIZED_DOMAIN" } }, 400)
+    : jsonResponse({ data: [] })));
   try {
     const response = await requestLinkPost({ request: jsonRequest("https://dhc6trainer.com/api/web-access/request-link", { email: "pilot@example.com" }), env });
-    assert.equal(response.status, 503);
-    assert.equal((await response.json()).error, "email_link_not_configured");
-  } finally { disabled.restore(); }
+    const text = await response.text();
+    assert.ok(!/UNAUTHORIZED_DOMAIN|firebase/i.test(text), "no Firebase internals in the response");
+  } finally { leaky.restore(); }
+
+  /* The globally-unconfigured case still reports to the caller, because it is
+     decided before any email is looked up and so cannot distinguish anyone. */
+  const unconfigured = await requestLinkPost({
+    request: jsonRequest("https://dhc6trainer.com/api/web-access/request-link", { email: "pilot@example.com" }),
+    env: Object.assign({}, env, { FIREBASE_WEB_API_KEY: "" })
+  });
+  assert.equal(unconfigured.status, 503);
+  assert.equal((await unconfigured.json()).error, "email_link_not_configured");
 });
 
 test("link-session verifies the Firebase code, email verification and an active licence", async () => {
