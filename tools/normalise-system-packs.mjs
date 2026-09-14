@@ -33,6 +33,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { readAssetBasenames, readSystemTaxonomy } from "./lib/systems-2d.mjs";
 
 function arg(name, fallback) {
@@ -344,7 +345,46 @@ function main() {
   }
 }
 
-/* Importable for the tests; runs only when invoked directly. */
-if (process.argv[1] && path.resolve(process.argv[1]) === path.resolve(new URL(import.meta.url).pathname)) {
+/*
+  Do two spellings name the same file?
+
+  This is the part that was broken, so it is the part worth testing. The entry
+  guard compared process.argv[1] against `new URL(import.meta.url).pathname`,
+  which on Windows is "/C:/Android%20Studio/..." - a leading slash, forward
+  slashes and a percent-encoded space - against argv's
+  "C:\Android Studio\...". They never matched, main() never ran, and node exited
+  0: three commands, no output, no error, no packs normalised. On Linux the two
+  spellings happen to agree, which is exactly why every test passed.
+
+  Normalising all four differences means the guard now holds whichever spelling
+  it is handed, rather than depending on one call being written correctly. And
+  it can be tested with Windows inputs from any platform, which a regex over
+  this file's own source could not do honestly.
+*/
+export function samePath(a, b) {
+  const norm = function (value) {
+    let text = String(value == null ? "" : value);
+    try { text = decodeURIComponent(text); } catch (error) { /* leave as-is */ }
+    return text
+      .replace(/\\/g, "/")
+      .replace(/^\/(?=[A-Za-z]:)/, "")
+      .replace(/\/+$/, "")
+      .toLowerCase();
+  };
+  const left = norm(a);
+  return Boolean(left) && left === norm(b);
+}
+
+export function isDirectRun(argv1, metaUrl) {
+  if (!argv1) return false;
+  let here;
+  try { here = fileURLToPath(metaUrl); } catch (error) { here = String(metaUrl).replace(/^file:\/\//, ""); }
+  /* Resolve only a relative argv - `node tools/x.mjs` - since path.resolve
+     cannot normalise a foreign platform's absolute path. */
+  const invoked = path.isAbsolute(argv1) || /^[A-Za-z]:[\\/]/.test(argv1) ? argv1 : path.resolve(argv1);
+  return samePath(invoked, here);
+}
+
+if (isDirectRun(process.argv[1], import.meta.url)) {
   main();
 }

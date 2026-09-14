@@ -19,7 +19,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
-  normalisePack, normalisePositions, basenameGaps,
+  normalisePack, normalisePositions, basenameGaps, samePath, isDirectRun,
   CONTROL_RENAMES, LIMIT_RENAMES, UNAUTHORED_LIMIT_FIELDS, REGULATORY_VALUES
 } from "../tools/normalise-system-packs.mjs";
 import { controlLabel, controlPositions, limitName, limitQualifier, regulatoryLabel } from "../app/js/logic/systems2d.js";
@@ -278,4 +278,113 @@ test("the Android half is reported, never edited", () => {
   assert.doesNotMatch(section.slice(0, section.indexOf("function main")), /writeFileSync/,
     "nothing in the Kotlin path may write");
   assert.match(source, /apply and test them in Android Studio/);
+});
+
+/* ------------------------------------------------- the command line itself
+
+   These exist because the unit tests above all passed while the tool did
+   nothing at all when run. The entry guard compared process.argv[1] against
+   `new URL(import.meta.url).pathname`, which on Windows is
+   "/C:/Android%20Studio/..." - leading slash, percent-encoded space - so it
+   never matched, main() never ran, and node exited 0. Three commands, no
+   output, no error, no packs normalised.
+
+   Importing a module is precisely the case where main() is supposed NOT to
+   run, so no amount of testing the exported functions could have caught it.
+   The only way is to actually run the thing.
+*/
+
+import { spawnSync } from "node:child_process";
+import os from "node:os";
+
+const TOOL = path.join(root, "tools", "normalise-system-packs.mjs");
+
+function fixtureRepo() {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "dhc6-packs-"));
+  const packs = path.join(dir, "core-res", "src", "main", "assets", "systems", "descriptions");
+  fs.mkdirSync(packs, { recursive: true });
+  fs.writeFileSync(path.join(packs, "fuel.json"), JSON.stringify(NON_CONFORMING, null, 2) + "\n");
+  fs.writeFileSync(path.join(packs, "electrical.json"), JSON.stringify(CONFORMING, null, 2) + "\n");
+  return { dir: dir, packs: packs };
+}
+
+function run(args) {
+  const result = spawnSync(process.execPath, [TOOL].concat(args), { encoding: "utf8" });
+  return { status: result.status, out: String(result.stdout || ""), err: String(result.stderr || "") };
+}
+
+test("running the tool actually runs it", () => {
+  /* THE test. If the entry guard breaks again, this is what says so. */
+  const repo = fixtureRepo();
+  const result = run(["--android", repo.dir]);
+
+  assert.notEqual(result.out.trim(), "", "no output at all means main() never ran");
+  assert.match(result.out, /DRY RUN - nothing will be written/);
+  assert.match(result.out, /fuel\.json/);
+  assert.match(result.out, /controls\[0\]: name -> label/);
+  assert.match(result.out, /1 pack would be rewritten/);
+  assert.equal(result.status, 0);
+});
+
+test("the entry guard survives a Windows path", () => {
+  /*
+    The exact pair that failed in production. argv gives backslashes and a bare
+    drive letter; the URL gives a leading slash, forward slashes and %20. On
+    Linux those two spellings agree, so this is the only way to test it here.
+  */
+  const argv = "C:\\Android Studio\\dhc6-trainer-website\\tools\\normalise-system-packs.mjs";
+  const url = "file:///C:/Android%20Studio/dhc6-trainer-website/tools/normalise-system-packs.mjs";
+  assert.equal(isDirectRun(argv, url), true, "this returned false, so the tool did nothing at all");
+
+  /* And the raw pathname spelling is normalised too, so no single call has to
+     be written correctly for the guard to hold. */
+  assert.equal(samePath(argv, "/C:/Android%20Studio/dhc6-trainer-website/tools/normalise-system-packs.mjs"), true);
+});
+
+test("the guard still says no when it should", () => {
+  const url = "file:///C:/Android%20Studio/tools/normalise-system-packs.mjs";
+  assert.equal(isDirectRun("C:\\Android Studio\\tools\\something-else.mjs", url), false);
+  assert.equal(isDirectRun("", url), false, "no argv[1] is not a direct run");
+  assert.equal(isDirectRun(null, url), false);
+  assert.equal(samePath("", ""), false, "two empties are not the same file");
+  assert.equal(samePath("/a/b", "/a/b/"), true, "a trailing slash is not a different file");
+  assert.equal(samePath("/a/b", "/a/c"), false);
+});
+
+test("a dry run leaves every file untouched", () => {
+  const repo = fixtureRepo();
+  const before = fs.readFileSync(path.join(repo.packs, "fuel.json"), "utf8");
+  run(["--android", repo.dir]);
+  assert.equal(fs.readFileSync(path.join(repo.packs, "fuel.json"), "utf8"), before);
+  assert.equal(fs.existsSync(path.join(repo.packs, "fuel.json.bak")), false);
+});
+
+test("--write rewrites the pack and keeps the original beside it", () => {
+  const repo = fixtureRepo();
+  const before = fs.readFileSync(path.join(repo.packs, "fuel.json"), "utf8");
+  const result = run(["--android", repo.dir, "--write"]);
+  assert.match(result.out, /APPLYING/);
+
+  const after = JSON.parse(fs.readFileSync(path.join(repo.packs, "fuel.json"), "utf8"));
+  assert.equal(after.controls[0].label, "Boost pump");
+  assert.equal(after.limits[0].name, "Max fuel imbalance");
+  assert.equal(fs.readFileSync(path.join(repo.packs, "fuel.json.bak"), "utf8"), before,
+    "the .bak must be the original, byte for byte");
+
+  /* And the conforming pack is not rewritten, so it gets no .bak either. */
+  assert.equal(fs.existsSync(path.join(repo.packs, "electrical.json.bak")), false);
+});
+
+test("it refuses to guess where the repository is", () => {
+  const result = run([]);
+  assert.equal(result.status, 1);
+  assert.match(result.err, /Missing --android/);
+});
+
+test("a repository with no packs says so instead of reporting success", () => {
+  const empty = fs.mkdtempSync(path.join(os.tmpdir(), "dhc6-empty-"));
+  const result = run(["--android", empty]);
+  assert.equal(result.status, 1);
+  assert.match(result.err, /No system-description packs found/);
+  assert.match(result.err, /Looked in/, "and it must say where it looked");
 });
