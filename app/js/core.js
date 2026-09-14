@@ -136,6 +136,9 @@ export const Store = {
       next.unshift(entry);
       return next.slice(0, 300);
     });
+    /* An event rather than a direct call: core.js is imported by everything,
+       and importing the sync client here would close a cycle. */
+    try { document.dispatchEvent(new CustomEvent("dhc6:logbook-changed")); } catch (error) { /* no DOM in tests */ }
   },
   logbook: function () { return Store.get("logbook") || []; },
   srsRecords: function () { return Store.get("srsRecords") || {}; },
@@ -145,6 +148,9 @@ export const Store = {
   clearProgress: function () {
     Store.set("recent", []); Store.set("attempts", []); Store.set("logbook", []); Store.set("srsRecords", {});
     Store.set("checklistProgress", {}); Store.set("flashcardStats", {}); Store.set("pinnedProcedures", []); Store.set("cockpitResume", null);
+    /* The account's synced copy goes too. Without this the next pull would put
+       every entry the user just asked to delete straight back. */
+    try { document.dispatchEvent(new CustomEvent("dhc6:logbook-cleared")); } catch (error) { /* no DOM in tests */ }
   }
 };
 
@@ -371,7 +377,7 @@ export const FEATURES = [
   { id: "performance", title: "Performance", route: "#/training/performance", status: "available", desc: "Seaplane take-off / landing distance interpolation, VREF and reference speeds (PerformanceCalculator)." },
   { id: "fuel", title: "Fuel Planning", route: "#/training/fuel-plan", status: "available", desc: "45-min reserve, trip, alternate, contingency and tank split (FuelPlanCalculator)." },
   { id: "wb", title: "Weight and Balance", route: "#/training/weight-balance", status: "available", desc: "Load sheet, seat map, CG arm / %MAC and envelope chart (WeightBalanceCalculator)." },
-  { id: "logbook", title: "Debrief Logbook", route: "#/training/logbook", status: "partial", desc: "Search, filters, five sort modes, the Scenario Debrief detail screen and a printable export (LogbookScreen / LogbookDetailScreen / LogbookPdfExporter). Still Partial because entries live in this browser only — cloud sync with the Android logbook comes later." },
+  { id: "logbook", title: "Debrief Logbook", route: "#/training/logbook", status: "available", desc: "Search, filters, five sort modes, the Scenario Debrief detail screen and a printable export (LogbookScreen / LogbookDetailScreen / LogbookPdfExporter). Entries sync to the signed-in account through /api/logbook, so they follow the account between browsers and devices and survive cleared site data." },
   { id: "readiness", title: "Check Ride Readiness", route: "#/training/competency-dashboard", status: "available", desc: "Drill currency, score trend and overdue procedures, weighted Emergency 40% / Abnormal 35% / Normal 25% (CompetencyDashboardScreen + CompetencyAnalyzer). Computed from this browser's logbook, as Android computes it from the device logbook." },
   { id: "oral-exam", title: "Oral Exam - Premium", route: "#/training/oral-exam", status: "later", desc: "AI examiner (needs a web-session-gated proxy for /api/ai/oral-exam)." },
   { id: "crm", title: "CRM Drill", route: "#/training/crm-drill", status: "available", desc: "PF/PM callout pacing over four source procedures, eight drills, with the other seat spoken aloud (CrmDrillScreen). The scenario MCC flow drill under AIRCRAFT runs the same crew-flow steps against the cockpit." },

@@ -39,7 +39,31 @@
         window.indexedDB.deleteDatabase("dhc6-protected-content");
       }
       try { window.localStorage.removeItem(HINT_KEY); } catch (error) { /* ignore */ }
+      clearAccountProgress();
     } catch (error) { /* best effort */ }
+  }
+
+  /*
+    The app's own state lives in localStorage, and the training data in it now
+    belongs to a signed-in account: logbook entries sync to /api/logbook and the
+    readiness dashboard is computed from them. Leaving that behind on sign-out
+    would show one subscriber the previous subscriber's attempts on a shared
+    machine, and the next sync would merge them into that account for good.
+
+    Only the per-account data is removed. Display preferences — variant, theme,
+    sound — are this browser's, not the account's, and are left alone.
+  */
+  var APP_STATE_KEY = "dhc6.app.v1";
+  var ACCOUNT_KEYS = ["logbook", "attempts", "recent", "srsRecords", "checklistProgress", "flashcardStats", "cockpitResume", "pinnedProcedures", "favorites"];
+  function clearAccountProgress() {
+    try {
+      var raw = window.localStorage.getItem(APP_STATE_KEY);
+      if (!raw) return;
+      var state = JSON.parse(raw);
+      if (!state || typeof state !== "object") return;
+      ACCOUNT_KEYS.forEach(function (key) { delete state[key]; });
+      window.localStorage.setItem(APP_STATE_KEY, JSON.stringify(state));
+    } catch (error) { /* ignore */ }
   }
 
   async function verify() {

@@ -31,13 +31,16 @@ export async function studyHome(ctx) {
     blueCard([h("div", { class: "t-title-m w-bold", text: "Search" }), h("div", { class: "mt-10" }, study({ title: "Search", subtitle: "Find study items across systems, flashcards, source references, and published knowledge.", art: "dhc6_tile_safety", color: S, href: "#/knowledge/search", status: feature("search").status }))]),
     h("div", { class: "mt-4" }),
     blueCard([h("div", { class: "t-title-m w-bold", text: "Library" }), h("div", { class: "grid-2 mt-10" }, [
-      study({ title: "Sources", subtitle: "Manuals, imported PDFs, images, extraction review, and publishing sources.", art: "dhc6_tile_apron_departure", color: L, href: "#/library/sources", status: "later" }),
-      study({ title: "Import", subtitle: "Protected document import for authorised content accounts.", art: "procedure_tile_qrh", color: L, href: "#/library/import", status: "later" })
+      study({ title: "Sources", subtitle: "Manuals, imported PDFs, images, extraction review, and publishing sources.", art: "dhc6_tile_apron_departure", color: L, href: "#/library/sources", status: feature("library").status }),
+      study({ title: "Import", subtitle: "Protected document import for authorised content accounts.", art: "procedure_tile_qrh", color: L, href: "#/library/import", status: feature("import").status })
     ])]),
     h("div", { class: "mt-4" }),
     blueCard([h("div", { class: "t-title-m w-bold", text: "Knowledge" }), h("div", { class: "grid-2 wide-3 mt-10" }, [
       study({ title: "Systems", subtitle: "2D system diagrams, PNG references, system notes, aircraft manual structure, limitations and operations references.", art: "dhc6_tile_cockpit_panel", color: K, href: "#/systems/home", status: "available" }),
-      study({ title: "Technical Lab", subtitle: "3D model lab only: PT6, propeller, hydraulic pack and aircraft variant models with part highlights.", art: "system_lab_tile", color: K, href: "#/systems/lab", status: "later" }),
+      /* Hardcoded "later" here while the registry and the dashboard both called
+         it available: the Study home was telling a subscriber a finished,
+         shipped screen was not built yet. Read the status, do not restate it. */
+      study({ title: "Technical Lab", subtitle: "3D model lab only: PT6, propeller, hydraulic pack and aircraft variant models with part highlights.", art: "system_lab_tile", color: K, href: "#/systems/lab", status: feature("technical-lab").status }),
       study({ title: "Definitions", subtitle: "Acronyms used in the app: MCC, CRM, QRH, AFM, POH, MEL, MMEL, SOP, CAS, SRS, ATA and more.", art: "dhc6_tile_safety", color: K, href: "#/knowledge/definitions" }),
       study({ title: "Flashcards", subtitle: "Q&A, image cards, and memory prompts from the published study library.", art: "dhc6_tile_engine_cutaway", color: K, href: "#/study/flashcards", status: feature("study-cards").status }),
       study({ title: "SRS Study", subtitle: dueCount > 0 ? dueCount + " card" + (dueCount === 1 ? "" : "s") + " due today. Review with 1-5 recall scoring." : "No due cards right now. Open the SRS queue to review new study cards.", art: "dhc6_tile_safety", color: K, href: "#/study/srs" }),
