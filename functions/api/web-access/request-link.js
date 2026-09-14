@@ -21,10 +21,45 @@ import { recoverLicenseFromPaddle } from "../billing/status.js";
 const SEND_OOB_URL = "https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode";
 const TRUSTED_ORIGINS = new Set(["https://dhc6trainer.com", "https://www.dhc6trainer.com"]);
 
-function continueUrlFor(request) {
+/*
+  Completing an email link needs two things: the code from the URL, and the
+  address it was issued for. Firebase puts only the code in the link, so the
+  address has to come from somewhere - and the original design took it from
+  localStorage on the device that asked for the link.
+
+  That is the wrong device. Sign-in links are read on a phone; the request is
+  made on a desktop. The phone's localStorage is empty, so the page fell back
+  to window.prompt() - which several in-app browsers, Gmail's among them,
+  suppress without raising anything. The link then failed silently on the one
+  device most people open it from.
+
+  Instead the server remembers the address itself, under a random handle it
+  puts in the continue URL. The handle authenticates nothing: it names an
+  address, and the Firebase code is still what proves the reader controls it.
+  No endpoint turns a handle back into an address, so it cannot be used to
+  read a subscriber's email either.
+*/
+const INTENT_PREFIX = "linkintent:";
+const INTENT_TTL_SECONDS = 30 * 60;
+
+function newIntentId() {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  let out = "";
+  for (let i = 0; i < bytes.length; i++) out += bytes[i].toString(16).padStart(2, "0");
+  return out;
+}
+
+export async function resolveLinkIntent(env, id) {
+  const handle = String(id || "").trim();
+  if (!env || !env.LICENSES || !/^[0-9a-f]{32}$/.test(handle)) return "";
+  return normalizeEmail(await env.LICENSES.get(INTENT_PREFIX + handle));
+}
+
+function continueUrlFor(request, intentId) {
   const origin = new URL(request.url).origin;
   const base = TRUSTED_ORIGINS.has(origin) ? origin : "https://dhc6trainer.com";
-  return base + "/web-app.html?mode=link";
+  return base + "/web-app.html?mode=link" + (intentId ? "&t=" + encodeURIComponent(intentId) : "");
 }
 
 export async function onRequestPost(context) {
@@ -54,13 +89,19 @@ export async function onRequestPost(context) {
     const perEmailKey = "ratelimit:request-link-email:" + email;
     const sent = Number((await env.LICENSES.get(perEmailKey)) || 0);
     if (sent < 3) {
+      /* Minted before the send and never returned to the caller, so the
+         response stays byte-identical whether or not a licence exists. An
+         unused handle simply expires. */
+      const intentId = newIntentId();
+      await env.LICENSES.put(INTENT_PREFIX + intentId, email, { expirationTtl: INTENT_TTL_SECONDS });
+
       const response = await fetch(SEND_OOB_URL + "?key=" + encodeURIComponent(env.FIREBASE_WEB_API_KEY), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           requestType: "EMAIL_SIGNIN",
           email: email,
-          continueUrl: continueUrlFor(request),
+          continueUrl: continueUrlFor(request, intentId),
           canHandleCodeInApp: true
         })
       });

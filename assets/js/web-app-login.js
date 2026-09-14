@@ -19,7 +19,31 @@
   const linkMessage = document.getElementById("email-link-message");
   const params = new URLSearchParams(window.location.search);
 
+  /* Captured before the address bar is cleaned, below. */
+  const linkCode = params.get("oobCode") || "";
+  const linkIntent = params.get("t") || "";
+  let linkPending = false;
+
   try { window.sessionStorage.removeItem(LEGACY_TOKEN_KEY); } catch (error) { /* ignore */ }
+
+  /*
+    A sign-in code works exactly once. Leaving it in the address bar means a
+    reload, a back-navigation or a restored tab spends it a second time, and
+    the second attempt is refused - which reads as "this link is broken" when
+    the link was fine and the first attempt is what used it up. Take it out of
+    the URL before using it, not after.
+  */
+  function stripOneTimeParams() {
+    if (!linkCode || !window.history || !window.history.replaceState) return;
+    try {
+      const url = new URL(window.location.href);
+      ["oobCode", "apiKey", "lang", "t", "continueUrl", "mode"].forEach(function (name) {
+        url.searchParams.delete(name);
+      });
+      url.searchParams.set("mode", "link");
+      window.history.replaceState(null, "", url.pathname + url.search + url.hash);
+    } catch (error) { /* an unchanged address bar is survivable; a spent code is not */ }
+  }
 
   function safeNext() {
     const next = params.get("next") || "";
@@ -128,6 +152,17 @@
     event.preventDefault();
     const linkButton = linkForm.querySelector("button[type=submit]");
     const email = document.getElementById("emailLinkAddress").value.trim();
+
+    /* Arrived here holding a code and only missing the address: finish that
+       sign-in rather than sending a second link and spending the first. */
+    if (linkPending) {
+      if (!email) { setText(linkMessage, "Enter the purchase email this link was sent to.", false); return; }
+      linkButton.disabled = true;
+      const outcome = await submitEmailLink(email);
+      if (outcome !== "done") linkButton.disabled = false;
+      return;
+    }
+
     linkButton.disabled = true;
     setText(linkMessage, "Requesting your sign-in link…", true);
     try {
@@ -141,28 +176,53 @@
     linkButton.disabled = false;
   });
 
-  async function completeEmailLink() {
-    const oobCode = params.get("oobCode");
-    if (!oobCode) return false;
-    let email = "";
-    try { email = window.localStorage.getItem(LINK_EMAIL_KEY) || ""; } catch (error) { email = ""; }
-    if (!email) email = window.prompt("Confirm the purchase email this sign-in link was sent to:") || "";
-    email = email.trim();
-    if (!email) {
-      setText(linkMessage, "Enter the purchase email to finish signing in with the link.", false);
-      return false;
-    }
+  async function submitEmailLink(email) {
     setText(linkMessage, "Verifying your sign-in link…", true);
-    const result = await postJson("/api/web-access/link-session", { email: email, oobCode: oobCode });
+    const result = await postJson("/api/web-access/link-session", {
+      email: email,
+      intent: linkIntent,
+      oobCode: linkCode
+    });
     if (!result.ok || !result.data.ok) {
-      setText(linkMessage, describeError(result.data.error, "This sign-in link is invalid or has expired. Request a new one."), false);
-      return false;
+      setText(linkMessage, describeError(result.data.error, "This sign-in link did not work. Each link can only be opened once — request a fresh one below."), false);
+      return "failed";
     }
     try { window.localStorage.removeItem(LINK_EMAIL_KEY); } catch (error) { /* ignore */ }
     rememberSession(result.data);
     setText(linkMessage, "Signed in. Opening the web app…", true);
     openApp();
-    return true;
+    return "done";
+  }
+
+  /*
+    The address is asked for in the page, never through window.prompt: Gmail's
+    in-app browser and several others suppress prompt() silently, which is
+    precisely where a link opened from an email tends to land.
+  */
+  function askForAddressInPage() {
+    linkPending = true;
+    const button = linkForm && linkForm.querySelector("button[type=submit]");
+    if (button) button.textContent = "Finish signing in";
+    setText(linkMessage, "Confirm the purchase email this link was sent to, then press Finish signing in.", true);
+    const field = document.getElementById("emailLinkAddress");
+    if (field) { try { field.focus(); } catch (error) { /* ignore */ } }
+  }
+
+  async function completeEmailLink() {
+    if (!linkCode) return "no-link";
+    stripOneTimeParams();
+
+    let email = "";
+    try { email = window.localStorage.getItem(LINK_EMAIL_KEY) || ""; } catch (error) { email = ""; }
+    email = email.trim();
+
+    /* The server-side handle covers the cross-device case; this only runs for
+       a link issued before that existed, opened away from its own browser. */
+    if (!email && !linkIntent) {
+      askForAddressInPage();
+      return "waiting";
+    }
+    return submitEmailLink(email);
   }
 
   if (params.get("status") === "signin-required") {
@@ -176,8 +236,16 @@
     setText(message, "This device has been offline for 30 days. Sign in once to carry on — your offline drills are still saved here and will sync.", true);
   }
 
-  completeEmailLink().then(function (done) {
-    if (!done) return verifyExisting();
+  /*
+    Only a visitor with no sign-in code falls through to an existing session.
+    Doing it after a failed link is what made a refused subscriber link open
+    the app as Owner: the real outcome was replaced by an unrelated session
+    that happened to be valid, and the reason was never shown to anyone.
+  */
+  completeEmailLink().then(function (outcome) {
+    if (outcome === "no-link") return verifyExisting();
     return true;
-  }).catch(function () { /* stay on the sign-in page */ });
+  }).catch(function () {
+    if (linkCode) setText(linkMessage, "This sign-in link could not be checked. Request a fresh one below.", false);
+  });
 })();
