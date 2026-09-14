@@ -343,3 +343,53 @@ test("the owner can check a Firebase uid against a stamp, and is told when a wal
   assert.equal(reverseBody.match, null);
   assert.match(reverseBody.note, /Android accounts are not in the licence store/);
 });
+
+/* ------------------------------------------- the contract the Android side reads */
+
+/*
+  ANDROID_CLIENT_CONTRACT.md exists because the same four website files were
+  proposed twice from the Android repository: once written straight into the
+  working tree, breaking npm test, and once re-sent after they had already been
+  reviewed, hardened and merged. Both times the proposal was built against a
+  picture of this repo that was five phases old, and there was no way for that
+  session to know because nothing here stated the contract.
+
+  A document nobody can verify rots into the same problem it was written to
+  solve, so the facts it states about the gate are checked against the gate.
+*/
+test("the Android contract document cannot drift from the code it describes", async () => {
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const url = await import("node:url");
+  const repo = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), "..");
+  const doc = fs.readFileSync(path.join(repo, "ANDROID_CLIENT_CONTRACT.md"), "utf8");
+  const media = fs.readFileSync(path.join(repo, "functions/api/media/index.js"), "utf8");
+  const entitlements = fs.readFileSync(path.join(repo, "functions/api/_entitlements.js"), "utf8");
+  const spend = fs.readFileSync(path.join(repo, "functions/api/ai/_spend.js"), "utf8");
+
+  /* The scope prefix, quoted verbatim in the endpoint table. */
+  const prefix = media.match(/const ANDROID_MEDIA_PREFIX = "([^"]+)"/);
+  assert.ok(prefix, "the endpoint must still declare a scope prefix");
+  assert.ok(doc.includes(prefix[1]), "the document quotes a path prefix the code no longer uses: " + prefix[1]);
+
+  /* The two entitlements it names, and the tier claim about the first. */
+  assert.ok(media.includes("SYSTEMS_LAB_3D") && doc.includes("SYSTEMS_LAB_3D"));
+  assert.ok(doc.includes("AI_TRAINER"));
+  assert.doesNotMatch(entitlements, /FREE_ENTITLEMENTS = \[[^\]]*SYSTEMS_LAB_3D/,
+    "the document says SYSTEMS_LAB_3D is PRO and up; FREE now grants it");
+  assert.ok(doc.includes('["BASIC_STUDY", "FLASHCARD_SELF_ENTRY"]'), "the FREE list it quotes must be the real one");
+  assert.match(entitlements, /FREE_ENTITLEMENTS = \["BASIC_STUDY", "FLASHCARD_SELF_ENTRY"\]/);
+
+  /* Every refusal code the table promises a client can branch on. */
+  ["firebase_token_invalid", "firebase_account_disabled", "entitlement_required",
+   "android_media_scope", "ai_rate_limited", "mobile_access_not_configured",
+   "entitlement_check_unavailable"].forEach((code) => {
+    assert.ok(doc.includes(code), "the document omits the refusal " + code);
+  });
+
+  /* The defaults it tells an operator they can change. */
+  assert.match(spend, /export const BURST_LIMIT = 15;/);
+  assert.match(spend, /export const DAILY_LIMIT = 80;/);
+  assert.ok(doc.includes("AI_BURST_LIMIT") && doc.includes("AI_DAILY_LIMIT"));
+  assert.ok(doc.includes("15 per 5 min") && doc.includes("80 per 24 h"), "the quoted defaults must be the real ones");
+});
