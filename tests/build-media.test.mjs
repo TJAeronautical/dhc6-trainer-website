@@ -161,6 +161,86 @@ test("the report and the index are always written, because they are what you rea
   } finally { fs.rmSync(ws.dir, { recursive: true, force: true }); }
 });
 
+/* ------------------------------------------- clips the file no longer has */
+
+/*
+  The guard that matters once a re-exported library is in hand. A stale hash
+  corrects itself on publish; a stale CLIP NAME does not, because the Lab plays
+  animations from the registry's list. Publishing hydraulic-pack while it still
+  declared 82 clips against a file with 1 would have put eighty-one dead
+  buttons in front of a pilot.
+*/
+
+function glbWithClips(names) {
+  const gltf = { asset: { version: "2.0" }, animations: names.map((n) => ({ name: n })) };
+  const json = Buffer.from(JSON.stringify(gltf), "utf8");
+  const pad = (4 - (json.length % 4)) % 4;
+  const jsonLen = json.length + pad;
+  const out = Buffer.alloc(12 + 8 + jsonLen, 0x20);
+  out.writeUInt32LE(0x46546c67, 0); out.writeUInt32LE(2, 4); out.writeUInt32LE(out.length, 8);
+  out.writeUInt32LE(jsonLen, 12); out.writeUInt32LE(0x4e4f534a, 16);
+  json.copy(out, 20);
+  return out;
+}
+
+test("a declared clip the file has lost stops the upload", () => {
+  const ws = workspace();
+  try {
+    const model = registry.models.find((m) => (m.animations || []).length);
+    assert.ok(model, "the shipped registry must have an entry that declares clips");
+    /* The file keeps one real clip and loses the rest - the exact shape of the
+       re-export, not an empty file. */
+    fs.writeFileSync(path.join(ws.ref, model.file), glbWithClips([model.animations[0], "SOMETHING_ELSE"]));
+
+    const result = build(ws);
+    if (model.animations.length < 2) return;   /* nothing was actually lost */
+    assert.equal(result.status, 1, "a build that would publish a dead button must fail");
+    assert.deepEqual(present(ws), [], "nothing publishable may be left behind");
+    assert.match(result.stderr, /NOTHING WAS WRITTEN TO UPLOAD/);
+    assert.match(result.stderr, /does not correct itself on publish/, "it must say why this differs from a hash change");
+    assert.match(result.stderr, new RegExp(model.id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  } finally { fs.rmSync(ws.dir, { recursive: true, force: true }); }
+});
+
+test("a file that has every declared clip publishes normally", () => {
+  const ws = workspace();
+  try {
+    registry.models.forEach((model) => {
+      if ((model.animations || []).length) {
+        fs.writeFileSync(path.join(ws.ref, model.file), glbWithClips(model.animations));
+      }
+    });
+    const result = build(ws);
+    assert.equal(result.status, 0, result.stderr);
+    assert.deepEqual(present(ws).sort(), UPLOADABLE.slice().sort());
+  } finally { fs.rmSync(ws.dir, { recursive: true, force: true }); }
+});
+
+test("--allow-missing also covers a deliberate publish of reduced clips", () => {
+  const ws = workspace();
+  try {
+    const model = registry.models.find((m) => (m.animations || []).length > 1);
+    fs.writeFileSync(path.join(ws.ref, model.file), glbWithClips([model.animations[0]]));
+    const result = build(ws, ["--allow-missing"]);
+    assert.equal(result.status, 0, result.stderr);
+    assert.deepEqual(present(ws).sort(), UPLOADABLE.slice().sort());
+  } finally { fs.rmSync(ws.dir, { recursive: true, force: true }); }
+});
+
+test("an entry that declares no clips is never reported as having lost any", () => {
+  const ws = workspace();
+  try {
+    /* Most entries declare nothing; a file full of clips they never named is
+       not a fault, and must not block a publish. */
+    registry.models.forEach((model) => {
+      if (!(model.animations || []).length) {
+        fs.writeFileSync(path.join(ws.ref, model.file), glbWithClips(["UNDECLARED_A", "UNDECLARED_B"]));
+      }
+    });
+    assert.equal(build(ws).status, 0);
+  } finally { fs.rmSync(ws.dir, { recursive: true, force: true }); }
+});
+
 test("a hash that changed is a warning, not a block", () => {
   /*
     A re-exported model still uploads coherently: the index records the FILE's

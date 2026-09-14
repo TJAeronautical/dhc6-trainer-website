@@ -28,6 +28,9 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
+/* The GLB reader, so the build can see what a model actually contains rather
+   than only how big it is. */
+import { summarise } from "./inspect-glb.mjs";
 
 function arg(name, fallback) {
   const index = process.argv.indexOf("--" + name);
@@ -52,10 +55,30 @@ const extraMediaDirs = String(arg("extra-media", "build/cockpit/media"))
 
 const registry = JSON.parse(fs.readFileSync(path.join(TOOLS_DIR, "data", "systems-lab-models.json"), "utf8"));
 
-function sha256File(file) {
-  const hash = crypto.createHash("sha256");
-  hash.update(fs.readFileSync(file));
-  return hash.digest("hex");
+function sha256File(bytes) {
+  return crypto.createHash("sha256").update(bytes).digest("hex");
+}
+
+/*
+  Which clips the registry promises that the file does not contain.
+
+  A stale sha or byte count corrects itself on publish - the index records what
+  was actually uploaded. A stale CLIP name does not: `clipGroupsForModel` drives
+  the Lab's animation buttons from the registry's `animations` list, so a clip
+  the file no longer has becomes a button that plays nothing, and uploading is
+  what makes it live.
+
+  This is the reason the re-exported library needs it today. hydraulic-pack went
+  from 82 clips to 1 and woodward-csu from 19 to 1; publishing either before its
+  entry is re-authored would put eighty-odd dead buttons in front of a pilot.
+*/
+function deadClipsIn(model, bytes) {
+  const declared = model.animations;
+  if (!Array.isArray(declared) || !declared.length) return [];
+  const read = summarise(bytes);
+  if (!read.ok) return [];          /* unreadable is the hash check's problem, not this one */
+  const actual = new Set(read.animations);
+  return declared.filter((name) => !actual.has(name));
 }
 
 function locate(model) {
@@ -76,6 +99,7 @@ const sh = ["#!/usr/bin/env bash", "# Upload the Technical Lab models to R2 (run
 let missing = 0;
 let mismatched = 0;
 let totalBytes = 0;
+const deadClips = [];
 
 for (const model of registry.models) {
   const file = locate(model);
@@ -84,12 +108,19 @@ for (const model of registry.models) {
     report.push("MISSING   " + model.file + "  (" + model.source + ")");
     continue;
   }
-  const bytes = fs.statSync(file).size;
-  const sha = sha256File(file);
+  /* Read once: the hash, the size and the clip check all come off these bytes. */
+  const buffer = fs.readFileSync(file);
+  const bytes = buffer.byteLength;
+  const sha = sha256File(buffer);
   const status = sha === model.sha256 ? "ok" : "HASH-CHANGED";
   if (status !== "ok") mismatched += 1;
+  const dead = deadClipsIn(model, buffer);
+  if (dead.length) deadClips.push({ id: model.id, file: model.file, clips: dead });
   totalBytes += bytes;
-  report.push(status.padEnd(12) + model.file.padEnd(48) + String(bytes).padStart(10) + "  " + file);
+  report.push((dead.length ? "DEAD-CLIPS" : status).padEnd(12) + model.file.padEnd(48) + String(bytes).padStart(10) + "  " + file);
+  if (dead.length) {
+    report.push("".padEnd(12) + dead.length + " declared clip(s) are not in this file, e.g. " + dead.slice(0, 2).join(", "));
+  }
   const mediaPath = model.mediaPath || (registry.mediaRoot + "/" + model.file);
   items.push({ path: mediaPath, bytes: bytes, sha256: sha, contentType: "model/gltf-binary", store: "r2", modelId: model.id, title: model.title });
   const key = bucket + "/" + R2_PREFIX + mediaPath;
@@ -166,6 +197,21 @@ const publishable = [
   path.join(outDir, "upload-media.ps1"),
   path.join(outDir, "upload-media.sh")
 ];
+
+if (deadClips.length && !allowMissing) {
+  const removed = publishable.filter((file) => fs.existsSync(file));
+  removed.forEach((file) => fs.rmSync(file));
+  const total = deadClips.reduce((n, entry) => n + entry.clips.length, 0);
+  console.error("\n" + total + " declared clip(s) across " + deadClips.length + " model(s) are not in the files — NOTHING WAS WRITTEN TO UPLOAD.");
+  console.error("  Unlike a changed hash, this does not correct itself on publish: the Lab plays animations");
+  console.error("  from the registry's list, so a clip the file has lost becomes a button that does nothing.");
+  deadClips.forEach((entry) => console.error("    " + entry.id.padEnd(24) + entry.clips.length + " dead"));
+  console.error("  Re-author those entries against the files first (tools/inspect-glb.mjs --json), or pass");
+  console.error("  --allow-missing if you intend to publish them as they are.");
+  if (removed.length) console.error("  Removed " + removed.length + " stale upload file(s) so they cannot be published by mistake.");
+  console.error("\nOutput → " + outDir);
+  process.exit(1);
+}
 
 if (missing && !allowMissing) {
   const removed = publishable.filter((file) => fs.existsSync(file));

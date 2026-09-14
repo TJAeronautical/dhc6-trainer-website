@@ -566,27 +566,31 @@
     },
     {
       "id": "fuel-system",
-      "file": "FUEL_SYSTEM.glb",
+      "file": "DHC6_FUEL_SYSTEM_FULL_REPLICA.glb",
       "source": "reference-library",
       "title": "Twin Otter fuel system",
       "shortTitle": "Fuel system",
-      "description": "Aircraft-context fuel system: forward and aft tanks with collector cells, boost pumps, ejectors, crossfeed, gascolators/filters, firewall shutoffs, flow transducers, engine-driven pumps, flow dividers and vent system.",
+      "description": "Aircraft-context fuel system on the airframe: forward and aft tanks with their numbered cells and collector cells, normal and standby boost pumps, transfer ejectors and manifold, capacitance probes, water drains, low-pressure and low-level switches. The engine fuel side - crossfeed, filter, firewall shutoff and flow divider - is not in this replica; see the FCU and engine-driven fuel pump models.",
       "primaryFor": [
         "FUEL"
       ],
       "alternateFor": [],
       "hidden": [],
-      "clips": {},
+      "clips": {
+        "DHC6_BOOST_PUMP_LOW_PRESSURE_INDICATION": "Boost pump low pressure indication"
+      },
       "groups": [
         "world"
       ],
-      "mediaPath": "models/systems-lab/FUEL_SYSTEM.glb",
-      "bytes": 18569432,
-      "sha256": "99d71dc3fd80bbfb00cc7b825a0f3fd655bfd15a643a27823909f9b3a1eba299",
-      "nodes": 418,
-      "meshes": 417,
-      "triangles": 243134,
-      "animations": [],
+      "mediaPath": "models/systems-lab/DHC6_FUEL_SYSTEM_FULL_REPLICA.glb",
+      "bytes": 4925488,
+      "sha256": "27711513743aebd90cc5514357f9867f201c74197d5d6ffd8cc2f171d001329c",
+      "nodes": 170,
+      "meshes": 165,
+      "triangles": 29598,
+      "animations": [
+        "DHC6_BOOST_PUMP_LOW_PRESSURE_INDICATION"
+      ],
       "extensionsUsed": [],
       "clipGroups": {},
       "parts": {
@@ -597,69 +601,83 @@
           "AftTank"
         ],
         "fwd_collector": [
-          "FwdTank_CollectorCell",
-          "FwdTank_FlapperValve"
+          "=NO.4 COLLECTOR CELL"
         ],
         "aft_collector": [
-          "AftTank_CollectorCell",
-          "AftTank_FlapperValve"
+          "=NO.5 COLLECTOR CELL"
         ],
         "fwd_boost": [
-          "FwdTank_BoostPump"
+          "=BOOST PUMPS [FORWARD NORMAL]",
+          "=BOOST PUMPS [FORWARD STANDBY]"
         ],
         "aft_boost": [
-          "AftTank_BoostPump"
+          "=BOOST PUMPS [AFT NORMAL]",
+          "=BOOST PUMPS [AFT STANDBY]"
         ],
         "fuel_ejector": [
-          "FwdTank_Ejector",
-          "AftTank_Ejector"
-        ],
-        "crossfeed_valve": [
-          "Crossfeed"
-        ],
-        "fuel_filter": [
-          "FuelFilter"
-        ],
-        "fuel_sov": [
-          "FirewallShutoff"
-        ],
-        "fcu": [
-          "FCUStub",
-          "EngineDrivenPump"
-        ],
-        "flow_divider": [
-          "FlowDivider"
+          "=TRANSFER FUEL [FORWARD EJECTOR]",
+          "=TRANSFER FUEL [AFT EJECTOR]",
+          "=TRANSFER FUEL [EJECTOR MANIFOLD]",
+          "EJECTOR_TRANSFER_MANIFOLD"
         ]
       },
       "extraParts": [
         {
-          "id": "fuel_plumbing",
-          "label": "Fuel lines",
+          "id": "fuel_tank_cells",
+          "label": "Tank cells",
           "selectors": [
-            "Line",
-            "BNut"
+            "~^NO\\.[0-9] CELL",
+            "=AFT TANK [NO.8, NO.7 AND NO.6 CELLS]"
           ]
         },
         {
-          "id": "vent_system",
-          "label": "Vent system",
+          "id": "tank_bulkheads",
+          "label": "Tank bulkheads",
           "selectors": [
-            "Vent",
-            "VentMast"
+            "=FWDTANK_AFTBULKHEAD",
+            "=AFTTANK_FWDBULKHEAD"
           ]
         },
         {
-          "id": "fuel_flow_transducers",
-          "label": "Fuel-flow transducers",
+          "id": "fuel_quantity_probes",
+          "label": "Capacitance probes",
           "selectors": [
-            "FuelFlowTransducer"
+            "~^CAPACITANCE PROBE"
           ]
         },
         {
-          "id": "thermal_relief",
-          "label": "Thermal relief valves",
+          "id": "fuel_supply_lines",
+          "label": "Fuel supply",
           "selectors": [
-            "ThermalReliefValve"
+            "~^FUEL SUPPLY"
+          ]
+        },
+        {
+          "id": "water_drains",
+          "label": "Water drains",
+          "selectors": [
+            "~^WATER DRAIN"
+          ]
+        },
+        {
+          "id": "low_pressure_switches",
+          "label": "Fuel low pressure switches",
+          "selectors": [
+            "~^FUEL LOW PRESS SW"
+          ]
+        },
+        {
+          "id": "low_level_float_switches",
+          "label": "Low-level float switches",
+          "selectors": [
+            "~^FUEL LOW-LEVEL FLOAT SWITCH"
+          ]
+        },
+        {
+          "id": "boost_pump_lights",
+          "label": "Boost pump low pressure lights",
+          "selectors": [
+            "~^BOOST PUMP LOW PRESSURE LIGHTS"
           ]
         }
       ]
