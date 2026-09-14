@@ -1,8 +1,17 @@
 (function () {
   "use strict";
 
-  // Emergency sales switch: keep account/licence services online while blocking all new checkouts.
-  const SUBSCRIPTIONS_SUSPENDED = true;
+  /*
+    Emergency sales switch: keep account/licence services online while blocking
+    all new checkouts. Flip to true to stop taking money without touching
+    anything else - existing subscribers keep their account tools, the web app
+    and renewals either way.
+
+    Must match SUBSCRIPTIONS_SUSPENDED in functions/api/billing/config.js. This
+    one hides the buttons; that one refuses to hand out the price ids, so the
+    server is the real gate and this is the courtesy.
+  */
+  const SUBSCRIPTIONS_SUSPENDED = false;
   const SUSPENSION_MESSAGE = "New subscriptions are temporarily unavailable. Existing subscribers can still manage their account and licence.";
 
   const LOCAL_SANDBOX_CONFIG = {
