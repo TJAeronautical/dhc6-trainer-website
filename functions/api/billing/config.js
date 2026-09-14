@@ -8,8 +8,17 @@
 
 import { json } from "../_shared.js";
 
-// Emergency sales switch. Existing billing, account and licence services remain available.
-const SUBSCRIPTIONS_SUSPENDED = true;
+/*
+  Emergency sales switch. Existing billing, account and licence services remain
+  available either way: suspending stops NEW checkouts only, never a renewal,
+  a licence validation, a device activation or the web app.
+
+  This is the real gate - with it true, `configured` is false and the price ids
+  never reach the browser, so a checkout cannot be started even by someone
+  calling the Paddle SDK directly. The matching flag in
+  assets/js/paddle-checkout.js only hides the buttons.
+*/
+const SUBSCRIPTIONS_SUSPENDED = false;
 
 const PRICE_ENV_KEYS = {
   premium: {
