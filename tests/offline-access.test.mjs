@@ -76,12 +76,22 @@ function runGate(options) {
     };
   };
 
+  const active = { postMessage: (m) => posted.push(m) };
+  const state = { registered: false };
+  const serviceWorker = {
+    /* `controller` is null on the load right after registration, which is the
+       case that used to swallow the request silently. */
+    controller: Object.prototype.hasOwnProperty.call(settings, "controller") ? settings.controller : active,
+    register: async () => { state.registered = true; return { active: active }; },
+    ready: Promise.resolve({ active: active })
+  };
+
   const sandbox = {
     window: windowMock,
     document: documentMock,
     navigator: {
       onLine: settings.failure !== "network",
-      serviceWorker: { controller: { postMessage: (m) => posted.push(m) } }
+      serviceWorker: serviceWorker
     },
     fetch: fetchImpl,
     CustomEvent: class { constructor(type, init) { this.type = type; this.detail = (init || {}).detail; } },
@@ -105,6 +115,7 @@ function runGate(options) {
     events: events,
     redirects: redirects,
     posted: posted,
+    get registered() { return state.registered; },
     session: () => sandbox.window.DHC6Session,
     accountState: () => {
       const raw = storage.get(APP_STATE_KEY);
@@ -210,6 +221,24 @@ test("a successful verify renews the window and asks for the shell to be cached"
   assert.ok(shell, "the shell is cached only after the session is known good");
   assert.ok(shell.urls.includes("/app/"), "including the document the app boots from");
   assert.ok(!shell.urls.some((u) => u.startsWith("/api/")), "and nothing from the API, ever");
+});
+
+test("the shell request survives a page that is not controlled yet", async () => {
+  /*
+    The other half of what Trevor saw. /app/ does not load site.js, so the app
+    shell page never registered a worker of its own, and this posted to
+    navigator.serviceWorker.controller - which is null on the load right after
+    registration. The message went nowhere, nothing was ever cached, and both
+    failures were silent.
+
+    serviceWorker.ready resolves to the active registration whether or not it
+    controls this page, so the ask lands on the first load too.
+  */
+  const gate = runGate({ controller: null });
+  await gate.settle();
+  const shell = gate.posted.find((m) => m && m.type === "cache-app-shell");
+  assert.ok(shell, "the shell is still requested with no controller on this page");
+  assert.equal(gate.registered, true, "and a worker is registered if the page never had one");
 });
 
 test("a different subscriber signing in on this device clears the previous one's work", async () => {
