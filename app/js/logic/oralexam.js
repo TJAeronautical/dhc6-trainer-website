@@ -51,6 +51,30 @@ export const MAX_QUESTIONS = 12;
    reading a list, and well inside the request budget. */
 export const UNITS_PER_SESSION = 12;
 
+/*
+  How many questions THIS session may ask, which is not always MAX_QUESTIONS.
+
+  The live topic list shows why: "Indications Alerting (2)". Pick it and the
+  examiner is handed two authored facts and told it may ask twelve questions.
+  It cannot do that honestly. It will either repeat itself or start reaching
+  past the material — and reaching past the material is the one thing this
+  feature is built not to do. A cap the content cannot support is pressure to
+  invent, applied by us.
+
+  So the promise follows the material: a two-unit topic is a two-question exam,
+  and it says so on the card before anybody taps Begin.
+*/
+export function questionCap(units) {
+  const available = Array.isArray(units) ? units.length : 0;
+  return Math.max(0, Math.min(MAX_QUESTIONS, available));
+}
+
+/* The same number, before a session exists — so the topic card can promise
+   honestly rather than promising twelve and delivering two. */
+export function questionCapForCount(count) {
+  return questionCap(new Array(Math.max(0, Number(count) || 0)));
+}
+
 export const EXAMINER_BRIEF = [
   "You are a DHC-6 Twin Otter type examiner conducting an oral examination for check-ride preparation.",
   "",
@@ -226,6 +250,8 @@ export function questionsAsked(turns) {
   return (turns || []).filter(function (turn) { return turn.role === "examiner"; }).length;
 }
 
-export function atLimit(turns) {
-  return questionsAsked(turns) >= MAX_QUESTIONS;
+/* `units` is what the session was actually given, so a thin topic finishes
+   when its material does rather than when a constant says so. */
+export function atLimit(turns, units) {
+  return questionsAsked(turns) >= (units === undefined ? MAX_QUESTIONS : questionCap(units));
 }

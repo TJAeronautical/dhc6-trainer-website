@@ -15,7 +15,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  MAX_QUESTIONS, UNITS_PER_SESSION, EXAMINER_BRIEF, OPENING_TURN,
+  MAX_QUESTIONS, UNITS_PER_SESSION, EXAMINER_BRIEF, OPENING_TURN, questionCap, questionCapForCount,
   systemsIn, systemLabel, pickUnits, unitBlock, groundingBlock, buildInstructions,
   toRequest, replyText, refusalFor, appendTurn, questionsAsked, atLimit
 } from "../app/js/logic/oralexam.js";
@@ -235,6 +235,47 @@ test("the cap counts questions asked, not turns taken", () => {
   assert.equal(atLimit(turns), true);
 });
 
+test("a thin topic asks as many questions as it has material, not twelve", () => {
+  /*
+    The live topic list is what exposed this: "Indications Alerting (2)". Pick
+    it and the examiner is handed two authored facts and told it may ask
+    twelve questions. It cannot do that honestly - it either repeats itself or
+    reaches past the material, and reaching past the material is the one thing
+    this feature exists not to do. A cap the content cannot support is
+    pressure to invent, applied by us.
+  */
+  assert.equal(questionCap([unit(), unit()]), 2);
+  assert.equal(questionCapForCount(2), 2);
+
+  let turns = [OPENING_TURN];
+  const thin = [unit({ id: "a" }), unit({ id: "b" })];
+  turns = appendTurn(turns, "examiner", "Q1");
+  turns = appendTurn(turns, "candidate", "A1");
+  assert.equal(atLimit(turns, thin), false, "one of two asked");
+  turns = appendTurn(turns, "examiner", "Q2");
+  assert.equal(atLimit(turns, thin), true, "and the session ends with the material");
+  assert.equal(atLimit(turns, undefined), false, "a full session would still have ten to go");
+});
+
+test("a topic with plenty of material still gets the full session", () => {
+  const many = [];
+  for (let i = 0; i < 40; i++) many.push(unit({ id: "u" + i }));
+  assert.equal(questionCap(many), MAX_QUESTIONS);
+  assert.equal(questionCapForCount(40), MAX_QUESTIONS);
+  assert.equal(questionCap([]), 0);
+  assert.equal(questionCapForCount(0), 0);
+  [null, undefined, "x", -3].forEach((junk) => assert.equal(questionCapForCount(junk), 0, "junk count: " + String(junk)));
+  assert.equal(questionCap(null), 0);
+});
+
+test("the topic card promises the cap, not the count, when they differ", () => {
+  const src = read("app/js/screens/oralexam.js");
+  assert.match(src, /questionCapForCount\(entry\.count\)/, "the chip must compute what it can honestly ask");
+  assert.match(src, /cap < MAX_QUESTIONS \? cap \+ \(cap === 1 \? " question" : " questions"\) : entry\.count/);
+  assert.match(src, /or fewer where a topic has less material/, "and the card says so before anybody taps Begin");
+  assert.match(src, /atLimit\(turns, units\)/, "the running session counts against its own cap");
+});
+
 test("appendTurn does not mutate the transcript it was given", () => {
   const before = [OPENING_TURN];
   const after = appendTurn(before, "examiner", "Q1");
@@ -345,7 +386,19 @@ test("no aviation figure is authored in this feature", () => {
   So this walks the whole app rather than the screen that happened to expose
   it. Remembering to use paint() is not a plan; this is.
 */
-test("no screen can hand a null to replaceChildren", async () => {
+/*
+  Every DOM method whose IDL signature is `(Node or DOMString)...`. All of them
+  convert a JavaScript null to the STRING "null" rather than skipping it;
+  replaceChildren is simply the one that reached production. Guarding only the
+  spelling that bit would leave the same defect available through append(), and
+  the next person would find it the way Trevor found this one.
+
+  Zero offenders outside replaceChildren today, so nothing needed fixing when
+  this was widened - the guard arriving before the bug rather than after.
+*/
+const NULL_STRINGIFYING_APIS = ["append", "prepend", "replaceChildren", "replaceWith", "before", "after"];
+
+test("no screen can hand a null to a DOM call that stringifies it", async () => {
   const fs = await import("node:fs");
   const path = await import("node:path");
   const url = await import("node:url");
@@ -382,7 +435,7 @@ test("no screen can hand a null to replaceChildren", async () => {
   const offenders = [];
   for (const file of walk(appRoot)) {
     const src = fs.readFileSync(file, "utf8");
-    const pattern = /\.replaceChildren\s*\(/g;
+    const pattern = new RegExp("\\.(" + NULL_STRINGIFYING_APIS.join("|") + ")\\s*\\(", "g");
     let match;
     while ((match = pattern.exec(src)) !== null) {
       const open = src.indexOf("(", match.index);
