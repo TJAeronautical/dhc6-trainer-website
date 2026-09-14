@@ -94,6 +94,40 @@ function statusFromPaddle(type, status) {
   return null;
 }
 
+/*
+  Refunds and chargebacks.
+
+  Paddle treats refunding and cancelling as different things: refunding a
+  transaction returns the money and leaves the subscription Active, so none of
+  the other branches fire and the licence stays active. That is exactly how a
+  refunded customer kept full access until it was spotted by hand - the money
+  went back and the product did not.
+
+  Full versus partial is Paddle's call, not ours, so this reads its answer
+  rather than comparing totals itself. A transaction Paddle marks "refunded"
+  was refunded in full; "partially_refunded" is a goodwill credit, a tax
+  correction or a proration, and must NOT cut off someone who is still paying.
+
+  A chargeback always revokes, which is the position the published Terms
+  already take ("keys associated with fraud, chargebacks, unauthorised
+  sharing").
+
+  The resulting status is deliberately its own value rather than "canceled":
+  every gate in the API is an allowlist on "active", so anything else denies
+  access, and keeping the real reason makes a support conversation possible.
+*/
+export function revocationFrom(type, data) {
+  const payload = data || {};
+  if (type === "transaction.updated" && String(payload.status || "").toLowerCase() === "refunded") {
+    return "refunded";
+  }
+  if (type === "adjustment.created" || type === "adjustment.updated") {
+    const action = String(payload.action || "").toLowerCase();
+    if (action === "chargeback") return "chargeback";
+  }
+  return null;
+}
+
 async function markEventSeen(env, eventId) {
   if (eventId) await env.LICENSES.put("event:" + eventId, "1", { expirationTtl: 2592000 });
 }
@@ -178,6 +212,22 @@ export async function onRequestPost(context) {
     // Paddle sends the receipt email; surface the key there or via your own
     // transactional email using record.key + record.email.
     return json({ ok: true, duplicate: duplicate, licenseKey: record.key });
+  }
+
+  /* Refunded in full, or charged back -> revoke. Placed before the renewal
+     branch so a status update can never quietly re-activate a refund. */
+  const revocation = revocationFrom(type, data);
+  if (revocation) {
+    const key = await readKey(env, subscriptionId);
+    const record = await getLicense(env, key);
+    if (record) {
+      record.status = revocation;
+      record.revokedAt = new Date().toISOString();
+      record.revokedReason = revocation;
+      await writeLicense(env, record);
+    }
+    await markEventSeen(env, eventId);
+    return json({ ok: true, duplicate: duplicate, revoked: revocation, licenseKey: record ? record.key : null });
   }
 
   // Renewal / period change -> push the expiry forward.

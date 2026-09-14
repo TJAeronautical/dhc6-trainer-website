@@ -47,20 +47,54 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: "invalid_credentials" }, 401);
   }
 
+  /*
+    Three quite different failures all end as "invalid_credentials" to the
+    caller, and that is deliberate: a sign-in endpoint must not tell an
+    attacker which half of a guess was wrong. But it left nobody - including
+    the owner - able to tell an expired code from an unverified account from a
+    lapsed subscription. Every branch below now says which it was in the log,
+    where operators can read it and attackers cannot.
+  */
+  const why = function (reason, detail) {
+    console.warn("link-session refused: " + reason + (detail ? " (" + detail + ")" : ""));
+  };
+
   const signIn = await firebaseJson(SIGN_IN_WITH_LINK_URL, env.FIREBASE_WEB_API_KEY, { email: email, oobCode: oobCode });
-  if (!signIn.ok || !signIn.data.idToken || normalizeEmail(signIn.data.email) !== email) {
+  if (!signIn.ok || !signIn.data.idToken) {
+    /* Firebase names it: INVALID_OOB_CODE (wrong, or already used - these
+       codes are single-use), EXPIRED_OOB_CODE, INVALID_EMAIL. */
+    why("firebase rejected the code", String((signIn.data.error && signIn.data.error.message) || "no message"));
+    return json({ ok: false, error: "invalid_credentials" }, 401);
+  }
+  if (normalizeEmail(signIn.data.email) !== email) {
+    why("the code belongs to a different address than the one submitted");
     return json({ ok: false, error: "invalid_credentials" }, 401);
   }
 
   const lookup = await firebaseJson(LOOKUP_URL, env.FIREBASE_WEB_API_KEY, { idToken: signIn.data.idToken });
   const user = lookup.ok && Array.isArray(lookup.data.users) ? lookup.data.users[0] : null;
-  if (!user || normalizeEmail(user.email) !== email || user.emailVerified !== true) {
+  if (!user) {
+    why("Firebase returned no account for the signed-in token");
+    return json({ ok: false, error: "invalid_credentials" }, 401);
+  }
+  if (normalizeEmail(user.email) !== email) {
+    why("the Firebase account address does not match the submitted one");
+    return json({ ok: false, error: "invalid_credentials" }, 401);
+  }
+  if (user.emailVerified !== true) {
+    /* Signing in by email link normally sets this, since clicking the link
+       proves control of the address. An account that predates the link flow
+       can still be unverified, and this fails closed on purpose. */
+    why("the Firebase account is not email-verified");
     return json({ ok: false, error: "invalid_credentials" }, 401);
   }
 
   const record = await getLicenseByEmail(env, email);
   const active = record && record.status === "active" && !isExpired(record) && normalizeEmail(record.email) === email;
-  if (!active) return json({ ok: false, error: "subscription_inactive" }, 403);
+  if (!active) {
+    why("no active licence for that address", record ? "status=" + record.status : "no licence record");
+    return json({ ok: false, error: "subscription_inactive" }, 403);
+  }
 
   const session = await createWebSession(env.LICENSE_SIGNING_SECRET, record);
   return sessionResponse(session, record.plan || "desktop", "subscriber");
