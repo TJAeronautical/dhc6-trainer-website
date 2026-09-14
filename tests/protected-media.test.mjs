@@ -172,7 +172,15 @@ test("owners can read media and the index reports unpublished when nothing is st
   const response = await media({ request: get("/api/media/models/x.glb", { Authorization: "Bearer " + owner.token }), env });
   assert.equal(response.status, 200);
   const index = await media({ request: get("/api/media/index", { Authorization: "Bearer " + owner.token }), env });
-  assert.deepEqual(await index.json(), { ok: true, published: false, items: [], version: null });
+  /* Asserted field by field rather than as a whole object: this test is about
+     an empty store reporting itself honestly, and it should not fail every
+     time the index learns to say something new (offlineDownload, and whatever
+     comes after it). Those have their own tests. */
+  const empty = await index.json();
+  assert.equal(empty.ok, true);
+  assert.equal(empty.published, false);
+  assert.deepEqual(empty.items, []);
+  assert.equal(empty.version, null);
 });
 
 /* ------------------------------------------------------- cockpit imagery */

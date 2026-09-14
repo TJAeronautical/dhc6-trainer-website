@@ -83,6 +83,45 @@ function periodEndFrom(data) {
   );
 }
 
+/*
+  Is this subscription inside a free trial right now?
+
+  Returns true while Paddle says "trialing", false the moment money actually
+  moves, and null when the event says nothing either way - so a status update
+  about something unrelated cannot silently promote a trial to paid, or demote
+  a paying customer back to trial.
+*/
+export function grandTotal(data) {
+  const totals = data && data.details && data.details.totals;
+  if (!totals) return null;
+  const raw = totals.grand_total !== undefined ? totals.grand_total : totals.total;
+  const amount = Number(raw);
+  return Number.isFinite(amount) ? amount : null;
+}
+
+export function onTrial(type, data) {
+  const payload = data || {};
+  const status = String(payload.status || "").toLowerCase();
+  if (status === "trialing") return true;
+
+  /*
+    A completed transaction is not the same as money changing hands. Paddle
+    opens a free trial with a transaction of exactly zero, marked Paid - so
+    treating "transaction.completed" as proof of payment would clear the trial
+    flag on day one and hand over the very thing it guards. Read the amount.
+  */
+  if (type === "transaction.completed" || type === "transaction.paid") {
+    const paid = grandTotal(payload);
+    if (paid === null) return null;
+    return paid > 0 ? false : true;
+  }
+
+  /* Paddle reporting the subscription plainly active is what a trial becomes
+     when it converts. */
+  if (status === "active") return false;
+  return null;
+}
+
 function statusFromPaddle(type, status) {
   if (type === "subscription.canceled") return "canceled";
   if (type === "subscription.paused") return "paused";
@@ -168,6 +207,17 @@ export async function onRequestPost(context) {
   const nextBilledAt = periodEndFrom(data);
   const paddleStatus = statusFromPaddle(type, data.status);
   const plan = planFrom(data, env);
+  /*
+    A trial is an active subscription - statusFromPaddle flattens "trialing"
+    to "active" on purpose, and that stays: a trial user should be able to use
+    everything the app does online.
+
+    But the licence has to remember which it is, because "active" alone cannot
+    tell a paying subscriber from someone on day one of a free week, and the
+    offline library is a download worth keeping behind a payment that has
+    actually happened. A real payment clears it.
+  */
+  const trialing = onTrial(type, data);
 
   const duplicate = eventId ? Boolean(await env.LICENSES.get("event:" + eventId)) : false;
 
@@ -187,6 +237,7 @@ export async function onRequestPost(context) {
         key: key,
         email: email,
         status: paddleStatus || "active",
+        trial: trialing === true,
         plan: plan,
         priceId: priceIdFrom(data),
         subscriptionId: subscriptionId,
@@ -199,6 +250,7 @@ export async function onRequestPost(context) {
       };
     } else {
       record.status = paddleStatus || "active";
+      if (trialing !== null) record.trial = trialing;
       record.plan = plan || record.plan;
       record.priceId = priceIdFrom(data) || record.priceId;
       record.customerId = customerId || record.customerId;
@@ -244,6 +296,8 @@ export async function onRequestPost(context) {
     if (record) {
       if (paddleStatus) record.status = paddleStatus;
       if (type === "subscription.resumed" || type === "transaction.completed" || type === "transaction.paid") record.status = "active";
+      /* A trial that converts arrives here, as the first real payment. */
+      if (trialing !== null) record.trial = trialing;
       record.plan = plan || record.plan;
       record.priceId = priceIdFrom(data) || record.priceId;
       record.customerId = customerId || record.customerId;

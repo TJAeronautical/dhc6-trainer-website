@@ -57,12 +57,24 @@ export function mediaUrl(path) {
   return "/api/media/" + String(path || "").split("/").map(encodeURIComponent).join("/");
 }
 
+/*
+  The bulk downloader reads /api/media/offline-manifest, not /api/media/index.
+
+  Same content, different question. The index answers "what exists", which the
+  running app needs whoever you are. This answers "may this account take the
+  library away", and a subscription still inside its free trial is told no -
+  server-side, because this repository is public and a hidden button is not a
+  gate.
+*/
 export async function readIndex() {
-  const response = await fetch("/api/media/index", { credentials: "same-origin", cache: "no-store" });
+  const response = await fetch("/api/media/offline-manifest", { credentials: "same-origin", cache: "no-store" });
   if (!response.ok) {
-    const error = new Error("media_index_" + response.status);
-    error.status = response.status;
-    throw error;
+    let reason = "";
+    try { reason = (await response.json()).error || ""; } catch (error) { reason = ""; }
+    const failure = new Error(reason || "media_index_" + response.status);
+    failure.status = response.status;
+    failure.reason = reason;
+    throw failure;
   }
   const data = await response.json();
   if (!data || data.ok !== true || data.published === false) return { published: false, items: [] };
