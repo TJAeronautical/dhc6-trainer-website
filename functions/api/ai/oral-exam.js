@@ -1,14 +1,93 @@
+/*
+  POST /api/ai/oral-exam — the AI examiner proxy.
+
+  This endpoint spends money. It forwards to OpenAI on the operator's key, and
+  until now it checked only that the caller held a valid Firebase ID token for
+  the project: no licence, no subscription, no entitlement. Any account that
+  could sign in to Firebase could spend the key, and the feature is sold as
+  Premium.
+
+  It is called from two quite different clients, so it accepts two proofs and
+  demands the AI_TRAINER entitlement on both:
+
+    1. The browser app - a signed web session cookie or bearer token, whose
+       tier comes from the live licence record.
+    2. The Android app - a Firebase ID token, whose tier comes from the
+       entitlements Google Play validation wrote to Firestore for that user.
+
+  Checking only the web session would have been simpler and would have broken
+  the Android oral exam, which is the client the endpoint was built for.
+*/
+
 import { json } from "../_shared.js";
-import { readJson, verifyFirebaseUser } from "../_mobile_shared.js";
+import { readJson, verifyFirebaseUser, readCurrentEntitlements } from "../_mobile_shared.js";
+import { authorizeWebRequest } from "../web-access/_session.js";
+import { AI_TRAINER, hasEntitlement, tierLabel, lowestTierWith } from "../_entitlements.js";
 
 const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
 const DEFAULT_MODEL = "gpt-4.1-mini";
 const MAX_OUTPUT_TOKENS = 600;
 
+function refusal() {
+  const needed = lowestTierWith(AI_TRAINER);
+  return json({
+    ok: false,
+    error: "entitlement_required",
+    entitlement: AI_TRAINER,
+    requiredTier: needed,
+    message: "The AI oral exam is part of the " + tierLabel(needed) + " plan."
+  }, 403);
+}
+
+/*
+  Returns { ok:true, via } or { ok:false, response }.
+
+  The web session is tried first and only falls through to Firebase when there
+  is no session at all. A session that exists but lacks the entitlement is a
+  refusal, not an invitation to try the other door - otherwise a subscriber
+  without AI_TRAINER could simply present a Firebase token instead.
+*/
+async function authorize(context) {
+  const web = await authorizeWebRequest(context);
+  if (web.ok) {
+    if (!hasEntitlement(web, AI_TRAINER)) return { ok: false, response: refusal() };
+    return { ok: true, via: "web" };
+  }
+
+  /* No session presented at all - this is the Android path. A session that was
+     presented and rejected (expired, revoked, lapsed) is reported as such
+     rather than silently retried as a different kind of caller. */
+  if (web.error !== "session_invalid") {
+    return { ok: false, response: json({ ok: false, error: web.error }, web.status) };
+  }
+
+  const firebase = await verifyFirebaseUser(context);
+  if (!firebase.ok) return { ok: false, response: firebase.response };
+
+  /*
+    Reading what Play granted needs a Google service account, and it throws when
+    one is not configured. That must not become a 500 - and it must certainly
+    not become a way through. An entitlement that cannot be read is an
+    entitlement the caller does not have, because the alternative is that a
+    misconfiguration silently reopens the key to every Firebase account.
+  */
+  let entitlements = [];
+  try {
+    const play = await readCurrentEntitlements(context.env, firebase.uid);
+    entitlements = (play && play.entitlements) || [];
+  } catch (error) {
+    console.warn("oral-exam: could not read Play entitlements (" + String(error && error.message) + ")");
+    return { ok: false, response: json({ ok: false, error: "entitlement_check_unavailable" }, 503) };
+  }
+
+  if (entitlements.indexOf(AI_TRAINER) < 0) return { ok: false, response: refusal() };
+  return { ok: true, via: "play" };
+}
+
 export async function onRequestPost(context) {
   const { request, env } = context;
 
-  const auth = await verifyFirebaseUser(context);
+  const auth = await authorize(context);
   if (!auth.ok) return auth.response;
 
   if (!env.OPENAI_API_KEY) {

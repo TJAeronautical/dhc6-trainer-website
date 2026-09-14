@@ -4,7 +4,7 @@
   procedure, Procedures / Aircraft State / Library buttons) → Quick Launch (13 image
   tiles, 2 per row) → Training Signals → Reference Color Guide.
 */
-import { h, Store, currentVariant, variantLabel, nextVariant, feature } from "../core.js";
+import { h, Store, currentVariant, variantLabel, nextVariant, feature, featureStatus } from "../core.js";
 import { screen, blueCard, libraryDivider, tile, featureTile, severityPill, bubble } from "../ui.js";
 import { computeInsights } from "../logic/insights.js";
 
@@ -16,19 +16,19 @@ const PRIMARY_FAMILIES = [
 
 function quickActions(recommendedProcedureName, hasCockpitResume) {
   return [
-    { title: "Debrief Logbook", subtitle: "Review local attempts, drill scores, weak areas, and recent training history.", color: "var(--cockpit-info-blue-dark)", art: "dhc6_tile_cockpit_panel", href: "#/training/logbook", status: feature("logbook").status },
+    { title: "Debrief Logbook", subtitle: "Review local attempts, drill scores, weak areas, and recent training history.", color: "var(--cockpit-info-blue-dark)", art: "dhc6_tile_cockpit_panel", href: "#/training/logbook", status: featureStatus("logbook") },
     { title: recommendedProcedureName ? "Continue Procedure" : "Procedure Library", subtitle: recommendedProcedureName || "Fastest path into normal, abnormal, and emergency content.", color: "var(--tile-procedures)", art: "dhc6_tile_ground_crew", href: "#/systems", status: "available" },
-    { title: "Performance", subtitle: "Calculate seaplane TOD, landing distance, VREF, and key check-ride speeds.", color: "var(--caution-amber-dark)", art: "dhc6_tile_safety", href: "#/training/performance", status: feature("performance").status },
-    { title: "Check Ride Readiness", subtitle: "Review drill currency, score trend, and overdue normal, abnormal, and emergency procedures.", color: "var(--cockpit-info-blue-dark)", art: "dhc6_tile_cockpit_panel", href: "#/training/competency-dashboard", status: feature("readiness").status },
-    { title: "Oral Exam - Premium", subtitle: "Premium AI examiner for POH, systems, limitations, and QRH check-ride preparation.", color: "var(--caution-amber-dark)", art: "dhc6_tile_engine_cutaway", href: "#/training/oral-exam", status: feature("oral-exam").status },
-    { title: "CRM Drill", subtitle: "Practice PM/PF coordination, callouts, challenge-response flow, and crew decision-making.", color: "var(--cockpit-info-blue-dark)", art: "dhc6_tile_cockpit_panel", href: "#/training/crm-drill", status: feature("crm").status },
-    { title: "Aircraft State", subtitle: hasCockpitResume ? "Open the aircraft-state hub; resume is available there." : "Choose scenario states or free-play cockpit.", color: "var(--tile-knowledge)", art: "dhc6_tile_cockpit_panel", href: "#/live", status: feature("aircraft-state").status },
-    { title: "Technical Lab", subtitle: "Open the independent 3D-only model lab: PT6, propeller, hydraulic pack and aircraft variant objects.", color: "var(--tile-library)", art: "system_lab_tile", href: "#/systems/lab", status: feature("technical-lab").status },
+    { title: "Performance", subtitle: "Calculate seaplane TOD, landing distance, VREF, and key check-ride speeds.", color: "var(--caution-amber-dark)", art: "dhc6_tile_safety", href: "#/training/performance", status: featureStatus("performance") },
+    { title: "Check Ride Readiness", subtitle: "Review drill currency, score trend, and overdue normal, abnormal, and emergency procedures.", color: "var(--cockpit-info-blue-dark)", art: "dhc6_tile_cockpit_panel", href: "#/training/competency-dashboard", status: featureStatus("readiness") },
+    { title: "Oral Exam - Premium", subtitle: "Premium AI examiner for POH, systems, limitations, and QRH check-ride preparation.", color: "var(--caution-amber-dark)", art: "dhc6_tile_engine_cutaway", href: "#/training/oral-exam", status: featureStatus("oral-exam") },
+    { title: "CRM Drill", subtitle: "Practice PM/PF coordination, callouts, challenge-response flow, and crew decision-making.", color: "var(--cockpit-info-blue-dark)", art: "dhc6_tile_cockpit_panel", href: "#/training/crm-drill", status: featureStatus("crm") },
+    { title: "Aircraft State", subtitle: hasCockpitResume ? "Open the aircraft-state hub; resume is available there." : "Choose scenario states or free-play cockpit.", color: "var(--tile-knowledge)", art: "dhc6_tile_cockpit_panel", href: "#/live", status: featureStatus("aircraft-state") },
+    { title: "Technical Lab", subtitle: "Open the independent 3D-only model lab: PT6, propeller, hydraulic pack and aircraft variant objects.", color: "var(--tile-library)", art: "system_lab_tile", href: "#/systems/lab", status: featureStatus("technical-lab") },
     { title: "Definitions", subtitle: "Acronyms and plain-language meanings for MCC, CRM, QRH, AFM, POH, MEL, CAS, SRS and more.", color: "var(--cockpit-info-blue-dark)", art: "dhc6_tile_safety", href: "#/knowledge/definitions", status: "available" },
-    { title: "Knowledge", subtitle: "Open 2D system diagrams, PNG references, system notes, flashcards and study lanes.", color: "var(--tile-library)", art: "dhc6_tile_engine_cutaway", href: "#/knowledge/home", status: feature("study").status },
-    { title: "Import", subtitle: "Import manuals, PDFs, images, and training documents into Drill, Knowledge, or Cards.", color: "var(--tile-library)", art: "dhc6_tile_apron_departure", href: "#/library/import", status: feature("import").status },
-    { title: "Fuel Planning", subtitle: "45-min reserve check, trip fuel, alternate, contingency, and tank split.", color: "var(--cockpit-info-blue-dark)", art: "dhc6_tile_safety", href: "#/training/fuel-plan", status: feature("fuel").status },
-    { title: "Weight and Balance", subtitle: "Load, CG arm, MAC percent, and envelope check against QRH OM-B 11.1 limits.", color: "var(--cockpit-button-secondary)", art: "dhc6_tile_ground_crew", href: "#/training/weight-balance", status: feature("wb").status }
+    { title: "Knowledge", subtitle: "Open 2D system diagrams, PNG references, system notes, flashcards and study lanes.", color: "var(--tile-library)", art: "dhc6_tile_engine_cutaway", href: "#/knowledge/home", status: featureStatus("study") },
+    { title: "Import", subtitle: "Import manuals, PDFs, images, and training documents into Drill, Knowledge, or Cards.", color: "var(--tile-library)", art: "dhc6_tile_apron_departure", href: "#/library/import", status: featureStatus("import") },
+    { title: "Fuel Planning", subtitle: "45-min reserve check, trip fuel, alternate, contingency, and tank split.", color: "var(--cockpit-info-blue-dark)", art: "dhc6_tile_safety", href: "#/training/fuel-plan", status: featureStatus("fuel") },
+    { title: "Weight and Balance", subtitle: "Load, CG arm, MAC percent, and envelope check against QRH OM-B 11.1 limits.", color: "var(--cockpit-button-secondary)", art: "dhc6_tile_ground_crew", href: "#/training/weight-balance", status: featureStatus("wb") }
   ];
 }
 

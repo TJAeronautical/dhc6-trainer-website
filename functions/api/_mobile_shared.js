@@ -207,3 +207,33 @@ export function parseFirestoreArray(field) {
 export function parseFirestoreString(field) {
   return field && field.stringValue ? field.stringValue : "";
 }
+
+/* ------------------------------------------------- Play entitlements (Firestore)
+
+   The tier and entitlement list Google Play validation wrote for this Firebase
+   user. It lived inside play/validate-purchase.js, which meant no other
+   endpoint could ask what an Android user had actually bought - and that is
+   exactly what /api/ai/oral-exam needed in order to stop being open to any
+   Firebase account in the project.
+*/
+const FIRESTORE_BASE = "https://firestore.googleapis.com/v1/projects/";
+
+export function firestoreDocumentUrl(env, uid) {
+  return FIRESTORE_BASE +
+    encodeURIComponent(env.FIREBASE_PROJECT_ID) +
+    "/databases/(default)/documents/users/" +
+    encodeURIComponent(uid) +
+    "/entitlements/current";
+}
+
+export async function readCurrentEntitlements(env, uid) {
+  const response = await googleJson(env, firestoreDocumentUrl(env, uid), { method: "GET" }, GOOGLE_API_SCOPES);
+  if (!response.ok) return { tier: "FREE", entitlements: [], ownedPackIds: [], ownedBillingProductIds: [] };
+  const fields = response.data.fields || {};
+  return {
+    tier: parseFirestoreString(fields.tier) || "FREE",
+    entitlements: parseFirestoreArray(fields.entitlements),
+    ownedPackIds: parseFirestoreArray(fields.ownedPackIds),
+    ownedBillingProductIds: parseFirestoreArray(fields.ownedBillingProductIds)
+  };
+}

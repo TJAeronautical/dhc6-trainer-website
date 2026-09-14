@@ -220,7 +220,9 @@
     }
     current = data;
     offline = null;
-    try { window.localStorage.setItem(HINT_KEY, JSON.stringify({ role: data.role, plan: data.plan, expiresAt: data.expiresAt })); } catch (error) { /* ignore */ }
+    /* tier and entitlements ride along so a cold start offline knows what this
+       plan includes rather than drawing every tier-gated tile as available. */
+    try { window.localStorage.setItem(HINT_KEY, JSON.stringify({ role: data.role, plan: data.plan, tier: data.tier, entitlements: data.entitlements, expiresAt: data.expiresAt })); } catch (error) { /* ignore */ }
     grantOffline(data.email, data.entitledUntil);
     cacheAppShell();
     document.body.classList.remove("subscriber-locked");

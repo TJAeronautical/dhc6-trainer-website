@@ -15,6 +15,7 @@
 */
 
 import { hmacHex, timingSafeEqual, getLicense, isExpired, normalizeEmail } from "../_shared.js";
+import { entitlementsFor, tierFor } from "../_entitlements.js";
 
 export const SESSION_SECONDS = 12 * 60 * 60;
 export const SESSION_COOKIE = "dhc6_web_session";
@@ -163,7 +164,8 @@ export async function authorizeWebRequest(context) {
       return { ok: false, status: 403, error: "owner_access_revoked" };
     }
     /* An owner has no paid period to run out. */
-    return { ok: true, payload: payload, role: "owner", plan: "owner", entitledUntil: null, expiresAt: new Date(payload.exp * 1000).toISOString() };
+    const owner = { ok: true, payload: payload, role: "owner", plan: "owner", entitledUntil: null, expiresAt: new Date(payload.exp * 1000).toISOString() };
+    return withEntitlements(owner);
   }
 
   const record = await getLicense(env, payload.key);
@@ -171,7 +173,7 @@ export async function authorizeWebRequest(context) {
   if (!active || normalizeEmail(record.email) !== normalizeEmail(payload.email)) {
     return { ok: false, status: 403, error: "subscription_inactive" };
   }
-  return {
+  return withEntitlements({
     ok: true,
     payload: payload,
     role: "subscriber",
@@ -186,7 +188,20 @@ export async function authorizeWebRequest(context) {
     */
     entitledUntil: record.expiresAt || null,
     expiresAt: new Date(payload.exp * 1000).toISOString()
-  };
+  });
+}
+
+/*
+  Tier and entitlements are derived from the LIVE licence record every time,
+  never read from the token. A plan change - an upgrade, a downgrade, a
+  correction - therefore takes effect on the next request rather than whenever
+  the 12-hour session happens to expire. The token still carries a `plan` field
+  for backwards compatibility; nothing may trust it.
+*/
+function withEntitlements(auth) {
+  auth.tier = tierFor(auth);
+  auth.entitlements = entitlementsFor(auth);
+  return auth;
 }
 
 /* Best-effort per-IP throttle in KV. Returns true when the request is allowed. */

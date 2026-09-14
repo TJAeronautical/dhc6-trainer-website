@@ -3,7 +3,7 @@
   The Library moved to screens/library.js when it became a real document store;
   the AIRCRAFT tab lives in screens/aircraftstate.js.
 */
-import { h, Store, Content, APP_VERSION, currentVariant, variantLabel, variantSubtitle, VARIANTS, feature, clearContentCache } from "../core.js";
+import { h, Store, Content, APP_VERSION, currentVariant, variantLabel, variantSubtitle, VARIANTS, feature, clearContentCache, Entitlements, tierLabel, tierForEntitlement } from "../core.js";
 import { screen, blueCard, libraryDivider, backBubble, bubble, statusPill, settingsSection, navCard, toggleCard, ICONS, outlinedButton } from "../ui.js";
 import { readIndex, partitionIndex, totalBytes, formatBytes, storedCount, downloadAll, removeAll } from "../offlinemedia.js";
 
@@ -200,6 +200,60 @@ function devicesCard(ctx, rerender) {
   return card;
 }
 
+/* ------------------------------------------------------------- What you have
+   The complaint this answers: a subscriber could not tell which plan they were
+   on or what it bought them, because nothing in the app ever said. Premium and
+   Instructor looked identical.
+
+   Listed both ways round on purpose. Saying only what is included leaves
+   somebody guessing whether a missing feature is unbuilt or unbought, and that
+   guess is the one worth removing.
+*/
+const CAPABILITIES = [
+  { entitlement: "FULL_STUDY", title: "Full training content", desc: "Procedures, QRH, checklists, drills, flashcards, limitations and MEL." },
+  { entitlement: "QRH_DRILLS", title: "QRH drills", desc: "Interactive MEMORY, FLOW and SUMMARY drills with scoring." },
+  { entitlement: "ADVANCED_SCENARIOS", title: "Aircraft State scenarios", desc: "Scenario states, frozen snapshots and the free-play cockpit." },
+  { entitlement: "SYSTEMS_LAB_3D", title: "Technical Lab (3D)", desc: "The 3D model lab: PT6A-27, governor, fuel, hydraulics, flap and gear." },
+  { entitlement: "AI_TRAINER", title: "AI oral exam", desc: "AI examiner for POH, systems, limitations and QRH preparation." },
+  { entitlement: "CLOUD_SYNC", title: "Logbook sync", desc: "Your logbook follows the account between browsers and devices." },
+  { entitlement: "TRAINING_INTELLIGENCE", title: "Check Ride Readiness", desc: "Drill currency, score trend and overdue procedures." },
+  { entitlement: "QRH_MANUAL_EDIT", title: "QRH manual edit", desc: "Rewrite a procedure for your operator, kept to your account." },
+  { entitlement: "CONTENT_AUTHORING", title: "Publishing and import", desc: "Publish to the shared shelf and import manuals into training content." },
+  { entitlement: "INSTRUCTOR_TOOLS", title: "Instructor tools", desc: "Trainee oversight and instructor workflows." },
+  { entitlement: "CORPORATE_REPORTS", title: "Corporate reports", desc: "Training reports across an operator's pilots." },
+  { entitlement: "CONTENT_PACK_MANAGEMENT", title: "Content pack management", desc: "Build, activate and distribute operator procedure packs." },
+  { entitlement: "ORGANIZATION_MANAGEMENT", title: "Organisation management", desc: "Manage pilots, seats and roles across an operator." }
+];
+
+function planCard(session, plan) {
+  const tier = Entitlements.tier;
+  const known = Entitlements.known();
+  const owner = session.role === "owner";
+
+  const rows = CAPABILITIES.map(function (cap) {
+    const held = Entitlements.has(cap.entitlement);
+    const needs = tierForEntitlement(cap.entitlement);
+    return h("div", { class: "row gap-8 mt-8", style: "align-items:flex-start" }, [
+      h("span", { class: "t-body-m", style: "color:" + (held ? "var(--ok-green, #7dffb7)" : "var(--white-tertiary, rgba(255,255,255,.55))"), text: held ? "\u2713" : "\u2014", "aria-hidden": "true" }),
+      h("span", { class: "grow" }, [
+        h("div", { class: "t-body-m", style: "color:" + (held ? "var(--white-primary, #fff)" : "var(--white-tertiary, rgba(255,255,255,.55))"), text: cap.title }),
+        h("div", { class: "t-body-s c-ter", text: held ? cap.desc : "Included with " + tierLabel(needs) })
+      ])
+    ]);
+  });
+
+  return blueCard([
+    h("div", { class: "t-title-m c-white", text: owner ? "Owner access" : tierLabel(tier) + " plan" }),
+    h("div", { class: "t-body-m mt-4", style: "color:var(--white-secondary)", text: plan + (session.email ? " \u00b7 " + session.email : "") }),
+    h("div", { class: "t-body-s c-ter mt-6", text: known
+      ? "What this plan includes:"
+      : "Checking what your plan includes\u2026" })
+  ].concat(known ? rows : []).concat([
+    h("div", { class: "t-body-s c-ter mt-8", text: "Web sessions last about 12 hours and are re-validated against your licence every few minutes." }),
+    h("a", { class: "btn text mt-4", href: "/access.html", text: "Manage licence" })
+  ]));
+}
+
 /* ---------------------------------------------------------------- Settings */
 export async function settings(ctx) {
   ctx.setTopbar({ title: "Settings", subtitle: "Account · Plan · Display · Cockpit" });
@@ -229,7 +283,7 @@ export async function settings(ctx) {
       ]),
       devicesCard(ctx, render),
       settingsSection("Plan"),
-      blueCard([h("div", { class: "t-title-m c-white", text: "Current Plan" }), h("div", { class: "t-body-m mt-4", style: "color:var(--white-secondary)", text: plan + (session.email ? " · " + session.email : "") }), h("div", { class: "t-body-s c-ter mt-6", text: "Web sessions last about 12 hours and are re-validated against your licence every few minutes." })]),
+      planCard(session, plan),
       settingsSection("Offline Access"),
       /*
         Kept honest against measured behaviour, twice. It first claimed

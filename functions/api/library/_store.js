@@ -31,6 +31,7 @@
   content and media stores — see wrangler.jsonc.
 */
 
+import { hasEntitlement, CONTENT_AUTHORING } from "../_entitlements.js";
 import { accountIdFor } from "../qrh-edits/_store.js";
 
 export { accountIdFor };
@@ -184,11 +185,9 @@ export function usedBytes(items) {
   same way they see the published training packs.
 */
 export function canPublish(auth) {
-  if (!auth || !auth.ok) return false;
-  if (auth.role === "owner") return true;
-  const plan = str(auth.plan).toLowerCase();
-  return plan.indexOf("instructor") === 0 || plan.indexOf("enterprise") === 0;
+  return hasEntitlement(auth, CONTENT_AUTHORING);
 }
+
 
 /* Single-range `Range: bytes=a-b`, as the media store parses it. */
 export function parseRange(header, size) {

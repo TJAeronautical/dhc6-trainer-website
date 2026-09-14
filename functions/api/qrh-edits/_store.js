@@ -15,6 +15,8 @@
   back on renewal.
 */
 
+import { hasEntitlement, QRH_MANUAL_EDIT } from "../_entitlements.js";
+
 export const QRH_EDIT_PREFIX = "qrhedit:";
 export const PROCEDURE_ID_PATTERN = /^[A-Za-z0-9 _\-./[\]()+&,'"]{1,180}$/;
 
@@ -53,10 +55,11 @@ export async function accountIdFor(auth) {
   QRH_MANUAL_EDIT entitlement (Instructor and Enterprise tiers).
 */
 export function canEditQrh(auth) {
-  if (!auth || !auth.ok) return false;
-  if (auth.role === "owner") return true;
-  const plan = str(auth.plan).toLowerCase();
-  return plan.indexOf("instructor") === 0 || plan.indexOf("enterprise") === 0;
+  /* This compared the plan string here. It now asks the one tier table that
+     both the web and Google Play read, so "who may edit a QRH" is answered in
+     a single place instead of re-derived per endpoint - and a future plan
+     called "instructorship" no longer matches "instructor". */
+  return hasEntitlement(auth, QRH_MANUAL_EDIT);
 }
 
 export function normalizeProcedureId(raw) {
