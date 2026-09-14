@@ -26,6 +26,9 @@ const CACHE_NAME = "dhc6-trainer-site-v7";
 */
 const APP_SHELL_CACHE = "dhc6-app-shell-v1";
 const SHELL_DOCUMENT = "/app/";
+/* Filled by page code (cockpit.js / offlinemedia.js), not by this worker, but
+   named here so activation does not delete it as a stranger. */
+const MEDIA_CACHE = "dhc6-media-v1";
 const CORE_ASSETS = [
   "/",
   "/index.html",
@@ -68,16 +71,24 @@ function isShellRequest(url) {
   return url.pathname === "/app" || url.pathname.startsWith("/app/");
 }
 
-async function clearProtectedEntries() {
+/* Startup hygiene: protected pages must never sit in the PUBLIC site cache.
+   Does not touch the dedicated shell cache, which is the offline app. */
+async function sweepSiteCache() {
   const cache = await caches.open(CACHE_NAME);
   const keys = await cache.keys();
   await Promise.all(keys.map(function (request) {
     const url = new URL(request.url);
     return isProtectedRequest(url) ? cache.delete(request) : Promise.resolve(false);
   }));
-  /* Sign-out removes the offline shell as well: the next person on this device
-     gets the sign-in page from the network, not a cached app. */
+}
+
+/* Sign-out: everything protected goes, the offline shell and any downloaded
+   imagery included, so the next person on this device gets the sign-in page
+   from the network rather than a cached app. */
+async function clearProtectedEntries() {
+  await sweepSiteCache();
   await caches.delete(APP_SHELL_CACHE);
+  await caches.delete(MEDIA_CACHE);
 }
 
 async function cacheAppShell(urls) {
@@ -99,10 +110,30 @@ self.addEventListener("install", function (event) {
   }).then(function () { return self.skipWaiting(); }));
 });
 
+/*
+  Caches this worker owns and must NOT delete when tidying up old versions.
+
+  The previous version deleted every cache whose name was not CACHE_NAME and
+  then ran clearProtectedEntries(), on every activation. Activation happens on
+  every deploy, so each deploy wiped the offline app shell and the downloaded
+  imagery - the app would open with no signal only until the next release, and
+  then quietly stop. clearProtectedEntries() belongs to sign-out, not to
+  starting up.
+*/
+const OWNED_CACHES = [CACHE_NAME, APP_SHELL_CACHE, MEDIA_CACHE];
+
 self.addEventListener("activate", function (event) {
   event.waitUntil(caches.keys().then(function (keys) {
-    return Promise.all(keys.filter(function (key) { return key !== CACHE_NAME; }).map(function (key) { return caches.delete(key); }));
-  }).then(clearProtectedEntries).then(function () { return self.clients.claim(); }));
+    /* Only previous versions of this worker's own site cache are pruned. */
+    return Promise.all(keys
+      .filter(function (key) { return OWNED_CACHES.indexOf(key) === -1 && key.indexOf("dhc6-") === 0; })
+      .map(function (key) { return caches.delete(key); }));
+  }).then(function () {
+    /* Protected pages must not sit in the PUBLIC site cache, where an older
+       worker may have left them. The dedicated shell cache is a different
+       thing and is left alone. */
+    return sweepSiteCache();
+  }).then(function () { return self.clients.claim(); }));
 });
 
 self.addEventListener("message", function (event) {

@@ -581,10 +581,11 @@ test("what Settings says about offline matches what the app actually does", () =
   assert.match(sw, /cache-app-shell/, "and something that fills it");
   assert.match(src, /Works without a connection/, "Settings says so");
 
-  /* Two limits must be stated wherever the claim is, because neither is
-     obvious and both bite on a remote rotation. */
+  /* The limits must be stated wherever the claim is, because none is obvious
+     and all of them bite on a remote rotation. */
   assert.match(src, /30 days/, "the offline window is stated, not left as a surprise");
-  assert.match(src, /still need a connection/, "and what is NOT available offline is named");
+  assert.match(src, /3D models always need a connection/, "and what is never available offline is named");
+  assert.match(src, /optional download/, "imagery is opt-in, so the claim must not imply it is already there");
 
   /* The API is never cached, whatever else changes about offline. */
   assert.match(sw, /isApiRequest/, "the API bypass is still explicit");

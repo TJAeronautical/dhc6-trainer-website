@@ -132,6 +132,47 @@ test("the offline shell is only ever built on request, never by browsing", async
   shellFetches.forEach((c) => assert.equal(c.init.credentials, "same-origin"));
 });
 
+test("a deploy does not wipe the offline app", async () => {
+  /*
+    The symptom Trevor reported: the marketing site opened offline but the app
+    did not. The activate handler deleted every cache whose name was not
+    CACHE_NAME and then ran the sign-out cleanup - on EVERY activation, which
+    means every deploy. So the offline app worked until the next release and
+    then silently stopped.
+  */
+  const sw = loadServiceWorker();
+  sw.storeFor("dhc6-app-shell-v1").set("https://dhc6trainer.com/app/", "SHELL");
+  sw.storeFor("dhc6-app-shell-v1").set("https://dhc6trainer.com/app/app.js", "CODE");
+  sw.storeFor("dhc6-media-v1").set("https://dhc6trainer.com/api/media/cockpit/legacy/plate.png", "PLATE");
+  sw.storeFor("dhc6-trainer-site-v6").set("https://dhc6trainer.com/index.html", "old version");
+  sw.storeFor("dhc6-trainer-site-v7").set("https://dhc6trainer.com/app/", "protected page in the PUBLIC cache");
+  sw.storeFor("dhc6-trainer-site-v7").set("https://dhc6trainer.com/index.html", "public");
+
+  let done;
+  sw.listeners.activate({ waitUntil(p) { done = p; } });
+  await done;
+
+  assert.equal(sw.storeFor("dhc6-app-shell-v1").size, 2, "the offline app survives a deploy");
+  assert.equal(sw.storeFor("dhc6-media-v1").size, 1, "so do diagrams the pilot downloaded for a trip");
+  assert.equal(sw.stores.has("dhc6-trainer-site-v6"), false, "an old version of the site cache is still pruned");
+  assert.equal(sw.storeFor("dhc6-trainer-site-v7").has("https://dhc6trainer.com/app/"), false,
+    "and a protected page left in the PUBLIC cache is still swept out");
+  assert.equal(sw.storeFor("dhc6-trainer-site-v7").has("https://dhc6trainer.com/index.html"), true);
+});
+
+test("sign-out still takes the offline app and the downloaded imagery", async () => {
+  const sw = loadServiceWorker();
+  sw.storeFor("dhc6-app-shell-v1").set("https://dhc6trainer.com/app/", "SHELL");
+  sw.storeFor("dhc6-media-v1").set("https://dhc6trainer.com/api/media/cockpit/legacy/plate.png", "PLATE");
+
+  let done;
+  sw.listeners.message({ data: { type: "clear-protected" }, waitUntil(p) { done = p; } });
+  await done;
+
+  assert.equal(sw.stores.has("dhc6-app-shell-v1"), false, "no cached app for the next person on this device");
+  assert.equal(sw.stores.has("dhc6-media-v1"), false, "and no protected imagery either");
+});
+
 test("the app opens from cache only when the network is genuinely gone", async () => {
   /* Online: the network answers, so a deploy lands at once and the Worker
      still checks the session cookie on every load. */

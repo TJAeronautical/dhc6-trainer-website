@@ -132,12 +132,32 @@
     } catch (error) { /* ignore */ }
   }
 
-  function cacheAppShell() {
+  /*
+    Make sure a worker exists and then ask it for the offline shell.
+
+    Two things were wrong before. /app/ does not load site.js, so the app shell
+    page never registered a worker of its own - it relied entirely on the user
+    having passed through a public page. And this posted to
+    navigator.serviceWorker.controller, which is null until a worker actually
+    controls the page: on the load right after registration it is always null,
+    so the message went nowhere and no shell was ever stored. Both failures
+    were silent, and the symptom was the marketing site opening offline while
+    the app did not.
+
+    serviceWorker.ready resolves to the active registration whether or not it
+    is controlling this page yet, so posting to registration.active works on
+    the first load as well as later ones.
+  */
+  async function cacheAppShell() {
     try {
-      if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-        navigator.serviceWorker.controller.postMessage({ type: "cache-app-shell", urls: APP_SHELL });
+      if (!navigator.serviceWorker) return;
+      if (!navigator.serviceWorker.controller) {
+        try { await navigator.serviceWorker.register("/sw.js"); } catch (error) { /* already registered, or blocked */ }
       }
-    } catch (error) { /* best effort */ }
+      const registration = await navigator.serviceWorker.ready;
+      const worker = registration.active || navigator.serviceWorker.controller;
+      if (worker) worker.postMessage({ type: "cache-app-shell", urls: APP_SHELL });
+    } catch (error) { /* best effort: offline is a bonus, not the session */ }
   }
 
   async function verify() {
