@@ -23,6 +23,7 @@ import { onRequestGet as protectedContent } from "./functions/api/content/index.
 import { onRequestGet as protectedMedia } from "./functions/api/media/index.js";
 import { onRequestGet as qrhEditsGet, onRequestPut as qrhEditsPut, onRequestDelete as qrhEditsDelete } from "./functions/api/qrh-edits/index.js";
 import { onRequestGet as logbookGet, onRequestPut as logbookPut, onRequestDelete as logbookDelete } from "./functions/api/logbook/index.js";
+import { onRequestGet as libraryGet, onRequestHead as libraryHead, onRequestPost as libraryPost, onRequestDelete as libraryDelete } from "./functions/api/library/index.js";
 import { authorizeWebRequest } from "./functions/api/web-access/_session.js";
 
 export const API_ROUTES = [
@@ -49,7 +50,9 @@ export const API_ROUTES = [
   "/api/media/:path",
   "/api/qrh-edits",
   "/api/qrh-edits/:procedureId",
-  "/api/logbook"
+  "/api/logbook",
+  "/api/library",
+  "/api/library/doc/:shelf/:docId"
 ];
 
 function json(body, status) {
@@ -101,6 +104,13 @@ async function routeApi(context) {
     if (method === "GET") return logbookGet(context);
     if (method === "PUT") return logbookPut(context);
     if (method === "DELETE") return logbookDelete(context);
+    return json({ ok: false, error: "method_not_allowed" }, 405);
+  }
+  if (path === "/api/library" || path.startsWith("/api/library/")) {
+    if (method === "GET") return libraryGet(context);
+    if (method === "HEAD") return libraryHead(context);
+    if (method === "POST") return libraryPost(context);
+    if (method === "DELETE") return libraryDelete(context);
     return json({ ok: false, error: "method_not_allowed" }, 405);
   }
 
