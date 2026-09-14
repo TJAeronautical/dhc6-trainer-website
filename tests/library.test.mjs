@@ -411,10 +411,10 @@ test("the Library routes open the real screens, not a placeholder", () => {
   assert.match(app, /route\("\/library\/sources", librarySources\)/);
   assert.match(app, /route\("\/library\/published", libraryPublished\)/);
   assert.match(app, /route\("\/library\/qrh-drafts", libraryQrhDrafts\)/);
-  assert.match(app, /route\("\/library\/import", laterScreen\("import"/, "Import stays a documented later screen");
+  assert.match(app, /route\("\/library\/import", importScreen\)/, "Import is a real screen now, not a placeholder");
   const core = read("app/js/core.js");
   assert.match(core, /id: "library"[^}]*status: "available"/);
-  assert.match(core, /id: "import"[^}]*status: "later"/);
+  assert.match(core, /id: "import"[^}]*status: "available"/);
 });
 
 /* ------------------------------------------------- fidelity to the Kotlin */

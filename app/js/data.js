@@ -3,6 +3,8 @@
   ProcedureRepository.allProceduresWithContent() / proceduresByCategory() and the
   KnowledgeRepository candidate pool.
 */
+import { mergePool } from "./logic/import.js";
+import { importedCards } from "./screens/import.js";
 import { Content, currentVariant } from "./core.js";
 import { materializeProcedures, findByCompiledId } from "./logic/procedures.js";
 
@@ -37,5 +39,11 @@ export async function procedureById(compiledId, variant, preferVariant) {
 
 export async function knowledgePool() {
   const pack = await Content.pack("knowledge-pool");
-  return pack.units || [];
+  /*
+    Cards the pilot imported from their own manual study alongside the bundled
+    pool rather than in a separate lane - which is the whole point of importing
+    them. The published pack always wins a collision: an import may add to the
+    authoritative content, never shadow it.
+  */
+  return mergePool(pack.units || [], importedCards());
 }

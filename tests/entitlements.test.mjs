@@ -394,7 +394,6 @@ test("the app knows what the plan includes, and says so", () => {
   assert.match(core, /export function featureStatus/);
   assert.match(core, /locked: "Upgrade"/);
   assert.match(core, /requires: "AI_TRAINER"/);
-  assert.match(core, /requires: "CONTENT_AUTHORING"/);
 
   const app = fs.readFileSync(path.join(root, "app", "app.js"), "utf8");
   assert.match(app, /Entitlements\.set\(data\.entitlements, data\.tier\)/,
@@ -412,17 +411,22 @@ test("the app knows what the plan includes, and says so", () => {
 
 test("an unbuilt feature says Coming later, never Upgrade", async () => {
   /*
-    The commercially convenient lie this prevents: telling somebody to buy
-    Instructor for the Import screen, which nobody can use yet because it has
-    not been built.
+    The commercially convenient lie this prevents: telling somebody to buy a
+    tier for a screen nobody can use yet. The oral exam is the live example -
+    its endpoint is secured and entitled, but the screen has not been built, so
+    a PRO account that HOLDS AI_TRAINER must still read "Coming later".
   */
   const core = await import("../app/js/core.js");
   core.Entitlements.set(PRO_ENTITLEMENTS, PRO);
-  assert.equal(core.feature("import").status, "later");
-  assert.equal(core.featureStatus("import"), "later", "not locked - it does not exist yet");
-  assert.equal(core.featureStatus("oral-exam"), "later");
+  assert.equal(core.feature("oral-exam").requires, AI_TRAINER);
+  assert.ok(PRO_ENTITLEMENTS.indexOf(AI_TRAINER) >= 0, "this tier does hold it");
+  assert.equal(core.featureStatus("oral-exam"), "later", "unbuilt beats entitled, in both directions");
   assert.equal(core.featureStatus("technical-lab"), "available");
   assert.equal(core.featureStatus("not-a-feature"), "later");
+
+  /* And a built feature the tier lacks does read as locked. */
+  core.Entitlements.set(["BASIC_STUDY"], "FREE");
+  assert.equal(core.featureStatus("oral-exam"), "later", "still unbuilt, so still not an upsell");
 });
 
 test("before the session answers, nothing is drawn as locked", async () => {
