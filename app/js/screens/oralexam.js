@@ -31,7 +31,7 @@ import { h, Content, feature, Entitlements, currentVariant, variantLabel, tierLa
 import { screen, blueCard, backBubble, matButton, outlinedButton, statusPill, notice, contentUnavailable, selectableChip, paint } from "../ui.js";
 import {
   MAX_QUESTIONS, OPENING_TURN, systemsIn, systemLabel, pickUnits, toRequest,
-  replyText, refusalFor, appendTurn, questionsAsked, atLimit
+  replyText, refusalFor, appendTurn, questionsAsked, atLimit, questionCap, questionCapForCount
 } from "../logic/oralexam.js";
 
 const DISCLAIMER = "Training support only. This is not a check ride and does not replace the approved AFM, QRH, MEL, company manuals, approved checklists or an authorised examiner.";
@@ -137,12 +137,15 @@ export async function oralExam(ctx) {
   function topicPicker() {
     const chips = [selectableChip("Every system", chosen === null, function () { chosen = null; render(); })].concat(
       systems.map(function (entry) {
-        return selectableChip(systemLabel(entry.system) + " (" + entry.count + ")", chosen === entry.system, function () { chosen = entry.system; render(); });
+        /* The count is the material; the cap is what it can honestly ask. */
+        const cap = questionCapForCount(entry.count);
+        const label = systemLabel(entry.system) + " (" + (cap < MAX_QUESTIONS ? cap + (cap === 1 ? " question" : " questions") : entry.count) + ")";
+        return selectableChip(label, chosen === entry.system, function () { chosen = entry.system; render(); });
       })
     );
     return blueCard([
       h("div", { class: "t-title-m w-bold c-white", text: "Choose a topic" }),
-      h("p", { class: "t-body-s c-ter mt-4", text: "The examiner asks only about the training content bundled in this app, for the " + variantLabel(variant) + " airframe. Up to " + MAX_QUESTIONS + " questions." }),
+      h("p", { class: "t-body-s c-ter mt-4", text: "The examiner asks only about the training content bundled in this app, for the " + variantLabel(variant) + " airframe. Up to " + MAX_QUESTIONS + " questions, or fewer where a topic has less material." }),
       h("div", { class: "row gap-8 wrap mt-10" }, chips),
       h("div", { class: "mt-10" }, [matButton("Begin", start)])
     ]);
@@ -225,7 +228,8 @@ export async function oralExam(ctx) {
     }
 
     const asked = questionsAsked(turns);
-    const finished = atLimit(turns);
+    const cap = questionCap(units);
+    const finished = atLimit(turns, units);
     const visible = turns.filter(function (turn, index) {
       /* The opening "I am ready to begin" is scaffolding for the endpoint, not
          something the candidate said. */
@@ -235,7 +239,7 @@ export async function oralExam(ctx) {
     paint(root, [
       h("div", { class: "row between gap-8 wrap" }, [
         h("span", { class: "t-label-m c-sec", text: (chosen ? systemLabel(chosen) : "Every system") + " · " + variantLabel(variant) }),
-        h("span", { class: "t-label-m c-sec", text: "Question " + Math.min(asked, MAX_QUESTIONS) + " of " + MAX_QUESTIONS })
+        h("span", { class: "t-label-m c-sec", text: "Question " + Math.min(asked, cap) + " of " + cap })
       ]),
       h("div", { class: "stack-12 mt-10" }, visible.map(function (turn, index) {
         return turnCard(turn, index === visible.length - 1);
