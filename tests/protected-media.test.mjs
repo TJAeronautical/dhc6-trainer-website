@@ -87,17 +87,21 @@ test("media refuses anonymous, malformed, expired, revoked and lapsed sessions",
 });
 
 /* ---------------------------------------------------------------- serving */
+/* Deliberately a poster, not a .glb: models are watermarked per account, which
+   makes them longer than the stored object and rules out byte ranges. That
+   behaviour has its own tests in model-watermark.test.mjs; this one is about
+   the general serving contract, so it uses a path that is not special-cased. */
 test("R2-backed media streams with private no-store headers, ETag, HEAD and byte ranges", async () => {
   const env = envWithLicense();
   const payload = bytes(1000, 3);
-  env.WEB_MEDIA = memoryR2({ [MEDIA_R2_PREFIX + "models/systems-lab/FLAP_SYSTEM.glb"]: { bytes: payload, contentType: "model/gltf-binary" } });
+  env.WEB_MEDIA = memoryR2({ [MEDIA_R2_PREFIX + "systems/posters/hydraulics.png"]: { bytes: payload, contentType: "image/png" } });
   const cookie = await subscriberCookie();
 
-  const full = await media({ request: get("/api/media/models/systems-lab/FLAP_SYSTEM.glb", { Cookie: cookie }), env });
+  const full = await media({ request: get("/api/media/systems/posters/hydraulics.png", { Cookie: cookie }), env });
   assert.equal(full.status, 200);
   assert.equal(full.headers.get("Cache-Control"), "private, no-store");
   assert.match(full.headers.get("Vary"), /Cookie/);
-  assert.equal(full.headers.get("Content-Type"), "model/gltf-binary");
+  assert.equal(full.headers.get("Content-Type"), "image/png");
   assert.equal(full.headers.get("Content-Length"), "1000");
   assert.equal(full.headers.get("Accept-Ranges"), "bytes");
   assert.equal(full.headers.get("X-Media-Store"), "r2");
@@ -105,23 +109,23 @@ test("R2-backed media streams with private no-store headers, ETag, HEAD and byte
   assert.match(etag, /^".+"$/);
   assert.equal(new Uint8Array(await full.arrayBuffer()).byteLength, 1000);
 
-  const head = await media({ request: get("/api/media/models/systems-lab/FLAP_SYSTEM.glb", { Cookie: cookie }, "HEAD"), env });
+  const head = await media({ request: get("/api/media/systems/posters/hydraulics.png", { Cookie: cookie }, "HEAD"), env });
   assert.equal(head.status, 200);
   assert.equal(head.headers.get("Content-Length"), "1000");
   assert.equal(head.headers.get("ETag"), etag);
   assert.equal(head.body, null);
 
-  const notModified = await media({ request: get("/api/media/models/systems-lab/FLAP_SYSTEM.glb", { Cookie: cookie, "If-None-Match": etag }), env });
+  const notModified = await media({ request: get("/api/media/systems/posters/hydraulics.png", { Cookie: cookie, "If-None-Match": etag }), env });
   assert.equal(notModified.status, 304);
 
-  const partial = await media({ request: get("/api/media/models/systems-lab/FLAP_SYSTEM.glb", { Cookie: cookie, Range: "bytes=10-19" }), env });
+  const partial = await media({ request: get("/api/media/systems/posters/hydraulics.png", { Cookie: cookie, Range: "bytes=10-19" }), env });
   assert.equal(partial.status, 206);
   assert.equal(partial.headers.get("Content-Range"), "bytes 10-19/1000");
   assert.equal(partial.headers.get("Content-Length"), "10");
   const slice = new Uint8Array(await partial.arrayBuffer());
   assert.deepEqual(Array.from(slice), Array.from(payload.slice(10, 20)));
 
-  const bad = await media({ request: get("/api/media/models/systems-lab/FLAP_SYSTEM.glb", { Cookie: cookie, Range: "bytes=5000-" }), env });
+  const bad = await media({ request: get("/api/media/systems/posters/hydraulics.png", { Cookie: cookie, Range: "bytes=5000-" }), env });
   assert.equal(bad.status, 416);
   assert.equal(bad.headers.get("Content-Range"), "bytes */1000");
 

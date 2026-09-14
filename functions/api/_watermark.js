@@ -100,3 +100,135 @@ export function readStamp(text) {
     return { id: stamp.id, issued: stamp.d || null, version: Number(stamp.v) || null };
   } catch (error) { return null; }
 }
+
+/* ------------------------------------------------------------------ models */
+/*
+  The 3D models are the most valuable thing in the library: 20 files, 168 MB,
+  against 7 MB of everything else. They cannot be withheld - the Technical Lab
+  has to fetch a .glb to display it - so the goal is not prevention but
+  attribution: a leaked model should name the account that took it.
+
+  A GLB is a 12-byte header followed by length-prefixed chunks. The glTF spec
+  requires readers to ignore chunks whose type they do not recognise, and the
+  bundled three.js GLTFLoader does exactly that - its chunk loop handles JSON
+  and BIN and steps over everything else with no else branch. So the stamp
+  rides in a chunk of its own.
+
+  That is the same property stampPack was built around: this code never reads
+  or rewrites the glTF JSON or the binary buffer, so it is structurally
+  incapable of altering a model. It appends bytes and corrects one integer.
+
+  Honest about the limit, as with packs: truncating the file to the length in
+  its header removes the stamp, and re-exporting through any glTF tool loses
+  it. This identifies a careless leak, not a determined one.
+*/
+export const GLB_MAGIC = 0x46546c67;          /* "glTF", little-endian */
+export const GLB_HEADER_BYTES = 12;
+export const GLB_CHUNK_JSON = 0x4e4f534a;     /* "JSON" - must not collide */
+export const GLB_CHUNK_BIN = 0x004e4942;      /* "BIN\0" - nor this */
+export const GLB_CHUNK_STAMP = 0x574a5754;    /* "TWJW" - ours */
+
+function asBytes(input) {
+  if (input instanceof Uint8Array) return input;
+  if (input instanceof ArrayBuffer) return new Uint8Array(input);
+  return null;
+}
+
+export function isGlb(input) {
+  const bytes = asBytes(input);
+  if (!bytes || bytes.byteLength < GLB_HEADER_BYTES) return false;
+  return new DataView(bytes.buffer, bytes.byteOffset, GLB_HEADER_BYTES).getUint32(0, true) === GLB_MAGIC;
+}
+
+/* The chunk, ready to append: [length][type][JSON padded to 4 with spaces]. */
+export function modelStampChunk(watermark, issued) {
+  if (!watermark) return null;
+  const payload = JSON.stringify({ id: watermark, d: issued || issuedToday(), v: WATERMARK_VERSION });
+  const text = new TextEncoder().encode(payload);
+  const padded = (4 - (text.length % 4)) % 4;
+  const chunk = new Uint8Array(8 + text.length + padded);
+  const view = new DataView(chunk.buffer);
+  view.setUint32(0, text.length + padded, true);
+  view.setUint32(4, GLB_CHUNK_STAMP, true);
+  chunk.set(text, 8);
+  chunk.fill(0x20, 8 + text.length);          /* spaces, as glTF pads JSON */
+  return chunk;
+}
+
+export function stampModel(input, watermark, issued) {
+  const bytes = asBytes(input);
+  const chunk = modelStampChunk(watermark, issued);
+  if (!bytes || !chunk || !isGlb(bytes)) return input;
+
+  const out = new Uint8Array(bytes.byteLength + chunk.byteLength);
+  out.set(bytes, 0);
+  out.set(chunk, bytes.byteLength);
+  /* The loader reads chunks until the length declared in the header, so the
+     stamp is invisible unless that number includes it. */
+  const view = new DataView(out.buffer, out.byteOffset, GLB_HEADER_BYTES);
+  view.setUint32(8, view.getUint32(8, true) + chunk.byteLength, true);
+  return out;
+}
+
+/*
+  The same edit against a stream, so a 40 MB model never sits in Worker memory.
+  Only the first 12 bytes are held back; everything after passes straight
+  through and the chunk goes on at the end.
+*/
+export function stampModelStream(source, watermark, issued) {
+  const chunk = modelStampChunk(watermark, issued);
+  if (!chunk || !source || typeof source.pipeThrough !== "function") return source;
+
+  let held = new Uint8Array(0);
+  let decided = false;
+  let stamping = false;
+
+  return source.pipeThrough(new TransformStream({
+    transform(piece, controller) {
+      if (decided) { controller.enqueue(piece); return; }
+      const incoming = asBytes(piece) || new Uint8Array(0);
+      const merged = new Uint8Array(held.byteLength + incoming.byteLength);
+      merged.set(held, 0);
+      merged.set(incoming, held.byteLength);
+      if (merged.byteLength < GLB_HEADER_BYTES) { held = merged; return; }
+
+      decided = true;
+      held = new Uint8Array(0);
+      const view = new DataView(merged.buffer, merged.byteOffset, GLB_HEADER_BYTES);
+      if (view.getUint32(0, true) === GLB_MAGIC) {
+        stamping = true;
+        view.setUint32(8, view.getUint32(8, true) + chunk.byteLength, true);
+      }
+      controller.enqueue(merged);
+    },
+    flush(controller) {
+      /* Shorter than a header: not a GLB. Pass it on untouched rather than
+         damaging whatever it is. */
+      if (!decided && held.byteLength) controller.enqueue(held);
+      if (stamping) controller.enqueue(chunk);
+    }
+  }));
+}
+
+/* Forensics: given a leaked file, which account was it served to? */
+export function readModelStamp(input) {
+  const bytes = asBytes(input);
+  if (!isGlb(bytes)) return null;
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  let offset = GLB_HEADER_BYTES;
+  while (offset + 8 <= bytes.byteLength) {
+    const length = view.getUint32(offset, true);
+    const type = view.getUint32(offset + 4, true);
+    const start = offset + 8;
+    if (start + length > bytes.byteLength) return null;
+    if (type === GLB_CHUNK_STAMP) {
+      try {
+        const text = new TextDecoder().decode(bytes.subarray(start, start + length)).trim();
+        const parsed = JSON.parse(text);
+        return parsed && typeof parsed === "object" ? parsed : null;
+      } catch (error) { return null; }
+    }
+    offset = start + length;
+  }
+  return null;
+}

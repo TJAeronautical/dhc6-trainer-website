@@ -12,6 +12,7 @@
 import { json, STORED_FILE_CSP } from "../_shared.js";
 import { authorizeWebRequest } from "../web-access/_session.js";
 import { getMedia, headMedia, normalizeMediaPath, parseRange, readMediaIndex } from "./_store.js";
+import { watermarkFor, stampModel, stampModelStream } from "../_watermark.js";
 
 const PROTECTED_HEADERS = {
   "Cache-Control": "private, no-store",
@@ -104,13 +105,57 @@ export async function onRequestGet(context) {
     return new Response(null, { status: 200, headers: mediaHeaders(head, { "Content-Length": String(head.size) }) });
   }
 
-  const range = parseRange(request.headers.get("Range"), head.size);
+  /*
+    The 3D models are the library's most valuable asset by a wide margin - 20
+    files and 168 MB against 7 MB of everything else - and they cannot be
+    withheld, because the Technical Lab has to fetch one to show it. So each
+    is stamped with the account it was served to, and the fetch is logged.
+    Neither prevents a copy; together they make a leak attributable.
+  */
+  const isModel = /\.glb$/i.test(path);
+  const watermark = isModel ? await watermarkFor(context.env, auth) : null;
+
+  /*
+    A stamped body is longer than the stored object, so a byte range into it
+    would be measured against the wrong length - and honouring the range
+    unstamped would hand anyone an unmarked copy for the price of one header.
+    Models are served whole. Nothing asks them for ranges: the viewer reads
+    the buffer in one go.
+  */
+  const range = watermark ? null : parseRange(request.headers.get("Range"), head.size);
   if (range && range.unsatisfiable) {
     return new Response(null, { status: 416, headers: mediaHeaders(head, { "Content-Range": "bytes */" + head.size }) });
   }
 
   const media = await getMedia(context.env, path, range);
   if (!media) return json({ ok: false, error: "media_not_found" }, 404);
+
+  if (watermark) {
+    /* The watermark identifies the account without naming it; the owner
+       resolves it through /api/owner/watermark. Nothing here logs an address
+       or a licence key. */
+    console.log("model served: " + path + " to " + watermark);
+    const streaming = media.body && typeof media.body.pipeThrough === "function";
+    const stamped = streaming ? stampModelStream(media.body, watermark) : stampModel(media.body, watermark);
+
+    /* Say so rather than advertising ranges and then refusing them. A stamped
+       body is longer than the stored object, so the offsets a client would
+       compute from the index are wrong for it. */
+    const extra = { "Accept-Ranges": "none" };
+    /* Streaming genuinely does not know the final length until the last
+       chunk, and guessing it would be worse than omitting it. */
+    if (!streaming) extra["Content-Length"] = String(stamped.byteLength);
+
+    const headers = mediaHeaders(
+      Object.assign({}, media, {
+        /* The body differs per account, so the ETag must too, or a cache
+           could answer one subscriber with another's copy. */
+        etag: media.etag ? media.etag.replace(/"$/, "-" + watermark + '"') : media.etag
+      }),
+      extra
+    );
+    return new Response(stamped, { status: 200, headers: headers });
+  }
 
   const extra = {};
   if (media.range) {
