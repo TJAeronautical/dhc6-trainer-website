@@ -153,7 +153,17 @@ export function maskedLicense(record) {
     plan: record.plan || "desktop",
     expiresAt: record.expiresAt || null,
     cancelAt: record.cancelAt || null,
-    keyHint: key.length >= 4 ? "DHC6-\u2022\u2022\u2022\u2022-\u2022\u2022\u2022\u2022-" + key.slice(-4) : null,
+    /*
+      No part of the key from an email alone.
+
+      This used to return the last four characters as "DHC6-\u2022\u2022\u2022\u2022-\u2022\u2022\u2022\u2022-XXXX".
+      That is a quarter of the key handed to anyone who knows an address, and
+      it bought the customer nothing: they cannot use a partial key, and the
+      status, plan and renewal date below already tell them the lookup found
+      their account. Whoever holds the real key sees it in full through the
+      key-verified branch or a signed-in web session; whoever does not, should
+      get no part of it.
+    */
     activationCount: Array.isArray(record.activations) ? record.activations.length : 0,
     activationLimit: record.activationLimit || 3,
     requiresKey: true

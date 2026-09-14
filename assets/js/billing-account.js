@@ -125,8 +125,10 @@ function renderAccount(license) {
         '<div class="stat"><strong>' + esc(license.plan || "desktop") + '</strong><span>Plan</span></div>' +
         '<div class="stat"><strong>' + esc(fmtDate(license.expiresAt)) + '</strong><span>Renews or expires</span></div>' +
       '</div>' +
-      '<p style="margin-top:14px">Licence key: <code>' + esc(license.keyHint || "hidden") + '</code></p>' +
-      '<p class="muted-sm">To see the full key, devices and billing tools, enter your licence key above, or <a href="web-app.html">sign in to the web app with an emailed link</a> and return here.</p>';
+      /* No "Licence key: DHC6-••••-••••-XXXX" line here any more. The API no
+         longer returns a hint from an email alone, and the sentence below
+         already tells the customer how to see the real thing. */
+      '<p class="muted-sm" style="margin-top:14px">To see the licence key, devices and billing tools, enter your licence key above, or <a href="web-app.html">sign in to the web app with an emailed link</a> and return here.</p>';
     deviceList.innerHTML = "<p>Device details unlock after the licence key is verified.</p>";
     return;
   }
