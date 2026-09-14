@@ -39,8 +39,26 @@ function workspace() {
 function build(ws, extra) {
   return spawnSync(process.execPath, [
     path.join(root, "tools", "build-media.mjs"),
-    "--reference", ws.ref, "--out", ws.out, "--extra-media", ""
+    "--reference", ws.ref, "--out", ws.out,
+    /*
+      A directory that does not exist, NOT "".
+
+      arg() returns its fallback for any falsy value, so `--extra-media ""`
+      reads as "flag absent" and silently uses the default build/cockpit/media.
+      This test first shipped that way: it counted whatever generated media
+      happened to exist on the machine, so it passed on a checkout with no
+      cockpit build and failed on one with one. Naming a path that is really
+      empty is what makes the count the same everywhere.
+    */
+    "--extra-media", path.join(ws.dir, "no-generated-media")
   ].concat(extra || []), { encoding: "utf8" });
+}
+
+/* The models only. Generated media rides in the same index and is not what
+   these assertions are about. */
+function modelItems(ws) {
+  const kv = JSON.parse(fs.readFileSync(path.join(ws.out, "kv-media-index.json"), "utf8"));
+  return JSON.parse(kv[0].value).items.filter((item) => !item.generated);
 }
 
 function present(ws) {
@@ -55,7 +73,35 @@ test("a complete build writes the files you upload", () => {
     assert.deepEqual(present(ws).sort(), UPLOADABLE.slice().sort());
     const kv = JSON.parse(fs.readFileSync(path.join(ws.out, "kv-media-index.json"), "utf8"));
     assert.equal(kv[0].key, "webmedia:index");
-    assert.equal(JSON.parse(kv[0].value).items.length, registry.models.length);
+    assert.equal(modelItems(ws).length, registry.models.length);
+  } finally { fs.rmSync(ws.dir, { recursive: true, force: true }); }
+});
+
+test("generated media rides along without changing the model count", () => {
+  /*
+    The regression guard for this file's own first bug. These tests are about
+    registry entries; the cockpit plates and atlases land in the same index and
+    must not be able to move a model assertion. Run it against a tree that
+    really has generated files in it, which is the shape that caught it.
+  */
+  const ws = workspace();
+  try {
+    const extra = path.join(ws.dir, "generated");
+    fs.mkdirSync(path.join(extra, "cockpit", "atlas"), { recursive: true });
+    fs.writeFileSync(path.join(extra, "cockpit", "atlas", "g950.webp"), "x");
+    fs.writeFileSync(path.join(extra, "cockpit", "atlas", "legacy.webp"), "x");
+
+    const result = spawnSync(process.execPath, [
+      path.join(root, "tools", "build-media.mjs"),
+      "--reference", ws.ref, "--out", ws.out, "--extra-media", extra
+    ], { encoding: "utf8" });
+    assert.equal(result.status, 0, result.stderr);
+
+    assert.equal(modelItems(ws).length, registry.models.length, "generated files must not be counted as models");
+    const kv = JSON.parse(fs.readFileSync(path.join(ws.out, "kv-media-index.json"), "utf8"));
+    const all = JSON.parse(kv[0].value).items;
+    assert.equal(all.length, registry.models.length + 2, "and they must still be published");
+    assert.ok(all.some((i) => i.path === "cockpit/atlas/g950.webp" && i.generated === true));
   } finally { fs.rmSync(ws.dir, { recursive: true, force: true }); }
 });
 
@@ -100,8 +146,7 @@ test("--allow-missing is the deliberate way to publish a subset", () => {
     assert.equal(result.status, 0);
     assert.deepEqual(present(ws).sort(), UPLOADABLE.slice().sort());
     assert.match(result.stderr, /published anyway because --allow-missing/);
-    const kv = JSON.parse(fs.readFileSync(path.join(ws.out, "kv-media-index.json"), "utf8"));
-    assert.equal(JSON.parse(kv[0].value).items.length, registry.models.length - 1);
+    assert.equal(modelItems(ws).length, registry.models.length - 1);
   } finally { fs.rmSync(ws.dir, { recursive: true, force: true }); }
 });
 
@@ -127,8 +172,7 @@ test("a hash that changed is a warning, not a block", () => {
     const result = build(ws);
     assert.equal(result.status, 0);
     assert.match(result.stderr, /differ from the registry hash/);
-    const items = JSON.parse(JSON.parse(fs.readFileSync(path.join(ws.out, "kv-media-index.json"), "utf8"))[0].value).items;
     const declared = new Set(registry.models.map((m) => m.sha256));
-    assert.ok(items.every((i) => !declared.has(i.sha256)), "the index carries the measured hash, never the declared one");
+    assert.ok(modelItems(ws).every((i) => !declared.has(i.sha256)), "the index carries the measured hash, never the declared one");
   } finally { fs.rmSync(ws.dir, { recursive: true, force: true }); }
 });
