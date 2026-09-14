@@ -20,7 +20,7 @@ import { fileURLToPath } from "node:url";
 
 import {
   normalisePack, normalisePositions, basenameGaps, samePath, isDirectRun,
-  readSchemaRules, requirementsFor, classifyGaps, findSchema,
+  readSchemaRules, requirementsFor, classifyGaps, findSchema, resolveRef,
   CONTROL_RENAMES, LIMIT_RENAMES, UNAUTHORED_LIMIT_FIELDS, REGULATORY_VALUES
 } from "../tools/normalise-system-packs.mjs";
 import { controlLabel, controlPositions, limitName, limitQualifier, regulatoryLabel } from "../app/js/logic/systems2d.js";
@@ -501,4 +501,104 @@ test("the run says plainly whether the renames finish the job", () => {
   const unknown = run(["--android", repo.dir]);
   assert.match(unknown.out, /Not assuming they are optional/);
   assert.doesNotMatch(unknown.out, /NONE OF THEM BLOCK PARSING/);
+});
+
+/* --------------------------------------------------- schemas with $ref
+
+   The real schema was sitting exactly where the tool looked and was still
+   reported unreadable, because the first walker only recognised an inline
+   `items.properties`. Any schema of reasonable quality puts its definitions in
+   $defs and points at them.
+*/
+
+const REF_SCHEMA = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  $defs: {
+    Limit: {
+      type: "object",
+      required: ["name", "value"],
+      properties: {
+        name: {}, value: {}, condition: {}, rationale: {},
+        regulatoryStatus: { enum: ["AFM_APPROVED", "OPERATOR_GUIDANCE", "MANUFACTURER_RECOMMENDED"] }
+      }
+    },
+    Control: { type: "object", required: ["label"], properties: { label: {}, positions: {} } }
+  },
+  properties: {
+    limits: { type: "array", items: { $ref: "#/$defs/Limit" } },
+    controls: { type: "array", items: { $ref: "#/$defs/Control" } }
+  }
+};
+
+test("a $defs definition behind a $ref is followed", () => {
+  const rules = readSchemaRules(REF_SCHEMA);
+  assert.deepEqual(rules.limits.required, ["name", "value"]);
+  assert.deepEqual(rules.controls.required, ["label"]);
+  assert.deepEqual(rules.limits.enums.regulatoryStatus, REGULATORY_VALUES);
+});
+
+test("draft-07 'definitions' works the same way", () => {
+  const old = {
+    definitions: { Limit: { required: ["name"], properties: { name: {}, value: {} } } },
+    properties: { limits: { type: "array", items: { $ref: "#/definitions/Limit" } } }
+  };
+  assert.deepEqual(readSchemaRules(old).limits.required, ["name"]);
+});
+
+test("required lists composed with allOf are merged", () => {
+  const composed = {
+    $defs: {
+      Base: { properties: { name: {}, value: {} }, required: ["name"] },
+      Limit: { allOf: [{ $ref: "#/$defs/Base" }], required: ["value"], properties: {} }
+    },
+    properties: { limits: { type: "array", items: { $ref: "#/$defs/Limit" } } }
+  };
+  const required = readSchemaRules(composed).limits.required;
+  assert.ok(required.indexOf("name") >= 0 && required.indexOf("value") >= 0);
+});
+
+test("resolveRef copes with pointers that go nowhere", () => {
+  assert.deepEqual(resolveRef(REF_SCHEMA, { $ref: "#/$defs/Nope" }), { $ref: "#/$defs/Nope" });
+  assert.deepEqual(resolveRef(REF_SCHEMA, { $ref: "https://example.com/x" }), { $ref: "https://example.com/x" });
+  assert.equal(resolveRef(REF_SCHEMA, null), null);
+
+  /* A pointer loop must not hang the tool. */
+  const loop = { $defs: { a: { $ref: "#/$defs/b" }, b: { $ref: "#/$defs/a" } } };
+  assert.doesNotThrow(function () { resolveRef(loop, { $ref: "#/$defs/a" }); });
+});
+
+test("a schema it genuinely cannot read says why, and what it found", () => {
+  /* So the next failure is fixable instead of a shrug. */
+  const repo = fixtureRepo();
+  const schemaDir = path.join(repo.dir, "core-res", "src", "main", "assets", "schema");
+  fs.mkdirSync(schemaDir, { recursive: true });
+  fs.writeFileSync(path.join(schemaDir, "system_description.schema.json"),
+    JSON.stringify({ title: "SystemDescription", $defs: { Thing: {} }, properties: { widgets: {} } }));
+
+  const out = run(["--android", repo.dir]).out;
+  assert.match(out, /Not assuming they are optional/);
+  assert.match(out, /reason: the limits definition was not found in it/);
+  assert.match(out, /it contains: .*\$defs\.Thing/);
+});
+
+test("a schema that is not valid JSON says so", () => {
+  const repo = fixtureRepo();
+  const schemaDir = path.join(repo.dir, "core-res", "src", "main", "assets", "schema");
+  fs.mkdirSync(schemaDir, { recursive: true });
+  fs.writeFileSync(path.join(schemaDir, "system_description.schema.json"), "{ not json");
+
+  const out = run(["--android", repo.dir]).out;
+  assert.match(out, /reason: it is not valid JSON/);
+  assert.doesNotMatch(out, /NONE OF THEM BLOCK PARSING/);
+});
+
+test("a $ref schema reaches the all-clear end to end", () => {
+  const repo = fixtureRepo();
+  const schemaDir = path.join(repo.dir, "core-res", "src", "main", "assets", "schema");
+  fs.mkdirSync(schemaDir, { recursive: true });
+  fs.writeFileSync(path.join(schemaDir, "system_description.schema.json"), JSON.stringify(REF_SCHEMA));
+
+  const out = run(["--android", repo.dir]).out;
+  assert.match(out, /NONE OF THEM BLOCK PARSING/);
+  assert.match(out, /requires only: name, value on a limit, label on a control/);
 });

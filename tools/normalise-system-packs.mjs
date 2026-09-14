@@ -199,6 +199,33 @@ export function findSchema(assetsRoot) {
   a fixed path means a moved definition is found instead of silently reported
   as "no requirements".
 */
+/*
+  Follow a local $ref.
+
+  A schema of any quality puts its definitions in $defs (or `definitions`, on
+  draft-07) and references them, so `limits.items` is a pointer rather than the
+  object. The first version of this walker only looked for an inline
+  `items.properties`, found nothing, and reported the schema as unreadable -
+  which is how a real schema that was sitting right there got treated as absent.
+*/
+export function resolveRef(root, node, depth) {
+  let current = node;
+  let hops = depth || 0;
+  while (current && typeof current === "object" && typeof current.$ref === "string" && hops < 20) {
+    const pointer = current.$ref;
+    if (pointer.charAt(0) !== "#") return current;
+    let target = root;
+    pointer.slice(1).split("/").filter(Boolean).forEach(function (raw) {
+      const key = raw.replace(/~1/g, "/").replace(/~0/g, "~");
+      target = target && typeof target === "object" ? target[key] : undefined;
+    });
+    if (!target) return current;
+    current = target;
+    hops++;
+  }
+  return current;
+}
+
 export function requirementsFor(schema, arrayKey, marker) {
   let found = null;
   const seen = new Set();
@@ -207,10 +234,20 @@ export function requirementsFor(schema, arrayKey, marker) {
     seen.add(node);
     if (Array.isArray(node)) { node.forEach(walk); return; }
 
-    const items = node[arrayKey] && node[arrayKey].items;
-    const props = items && items.properties;
-    if (props && marker.some(function (key) { return Object.prototype.hasOwnProperty.call(props, key); })) {
-      found = items;
+    const array = resolveRef(schema, node[arrayKey]);
+    const items = array && typeof array === "object" ? resolveRef(schema, array.items) : null;
+    /* allOf/oneOf composition: the required list may live in a branch. */
+    const branches = items ? [items].concat(items.allOf || [], items.anyOf || [], items.oneOf || []) : [];
+    const merged = branches.reduce(function (out, raw) {
+      const branch = resolveRef(schema, raw);
+      if (!branch || typeof branch !== "object") return out;
+      Object.assign(out.properties, branch.properties || {});
+      if (Array.isArray(branch.required)) out.required = out.required.concat(branch.required);
+      return out;
+    }, { properties: {}, required: [] });
+
+    if (marker.some(function (key) { return Object.prototype.hasOwnProperty.call(merged.properties, key); })) {
+      found = merged;
       return;
     }
     Object.keys(node).forEach(function (key) { walk(node[key]); });
@@ -218,10 +255,11 @@ export function requirementsFor(schema, arrayKey, marker) {
   walk(schema);
   if (!found) return null;
   return {
-    required: Array.isArray(found.required) ? found.required.slice() : [],
-    properties: Object.keys(found.properties || {}),
-    enums: Object.keys(found.properties || {}).reduce(function (out, key) {
-      const values = found.properties[key] && found.properties[key].enum;
+    required: Array.from(new Set(found.required)),
+    properties: Object.keys(found.properties),
+    enums: Object.keys(found.properties).reduce(function (out, key) {
+      const prop = resolveRef(schema, found.properties[key]);
+      const values = prop && prop.enum;
       if (Array.isArray(values)) out[key] = values.slice();
       return out;
     }, {})
@@ -373,10 +411,28 @@ function main() {
 
   /* The schema decides whether the leftover gaps matter at all. */
   let rules = null;
+  let schemaWhy = "";
+  let schemaShape = null;
   const schemaPath = findSchema(assetsRoot);
-  if (schemaPath) {
-    try { rules = readSchemaRules(JSON.parse(fs.readFileSync(schemaPath, "utf8").replace(/^\uFEFF/, ""))); }
-    catch (error) { rules = null; }
+  if (!schemaPath) {
+    schemaWhy = "no system_description.schema.json under " + assetsRoot;
+  } else {
+    let parsed = null;
+    try { parsed = JSON.parse(fs.readFileSync(schemaPath, "utf8").replace(/^\uFEFF/, "")); }
+    catch (error) { schemaWhy = "it is not valid JSON (" + error.message + ")"; }
+    if (parsed) {
+      rules = readSchemaRules(parsed);
+      if (!rules.limits) {
+        /* The file is fine; this tool could not find the limits definition in
+           it. Printing the shape is what makes that fixable rather than a
+           shrug. */
+        schemaWhy = "the limits definition was not found in it";
+        schemaShape = Object.keys(parsed).concat(
+          parsed.$defs ? Object.keys(parsed.$defs).map(function (k) { return "$defs." + k; }) : [],
+          parsed.definitions ? Object.keys(parsed.definitions).map(function (k) { return "definitions." + k; }) : []
+        );
+      }
+    }
   }
 
   let changedCount = 0;
@@ -429,8 +485,11 @@ function main() {
     console.log("\n--- Fields no rename can produce: " + gapCount + " in " + stillIncomplete.length + " pack" + (stillIncomplete.length === 1 ? "" : "s") + " ---");
 
     if (unknown) {
-      console.log("  Could not read the schema" + (schemaPath ? " at " + schemaPath : "") + ", so whether these");
-      console.log("  block parsing is unknown. Not assuming they are optional.");
+      console.log("  Could not read the schema, so whether these block parsing is unknown.");
+      console.log("  Not assuming they are optional.");
+      if (schemaPath) console.log("    file:   " + schemaPath);
+      if (schemaWhy) console.log("    reason: " + schemaWhy);
+      if (schemaShape) console.log("    it contains: " + schemaShape.join(", "));
     } else if (blocking === 0) {
       /* The answer that changes everything: the renames were the whole job. */
       console.log("  NONE OF THEM BLOCK PARSING. The schema at");
