@@ -86,6 +86,43 @@ export function generateLicenseKey() {
   return out;
 }
 
+/*
+  One subscription, one licence key - derived, not rolled.
+
+  Found in production with five licence records for three customers. Paddle
+  sends `subscription.created` and `transaction.completed` in the same second.
+  Both reached the webhook at once, both read `sub:<id>` and saw nothing there
+  yet, both minted a random key, and both wrote. KV has no compare-and-set to
+  lose that race with, so each purchase left a second, orphaned licence -
+  active, and unreachable by every later billing event, because revocation
+  resolves exactly one key through `sub:<id>`.
+
+  A refunded customer kept working access that way for nine days.
+
+  Deriving the key from the subscription id removes the race rather than
+  narrowing it: both concurrent handlers compute the same key, write the same
+  record, and last-write-wins leaves one licence instead of two. The key stays
+  unguessable because the HMAC secret is, and a subscription id is not enough
+  on its own.
+
+  Existing licences are untouched: `readKey` finds them first, so only new
+  subscriptions get derived keys.
+*/
+export async function licenseKeyFor(env, subscriptionId) {
+  const secret = env && env.LICENSE_SIGNING_SECRET;
+  if (!secret || !subscriptionId) return generateLicenseKey();
+
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no I,O,0,1
+  const digest = await hmacHex(secret, "licensekey:v1:" + subscriptionId);
+  let out = "DHC6-";
+  for (let i = 0; i < 12; i++) {
+    /* 256 is a whole multiple of 32, so the modulo carries no bias. */
+    out += alphabet[parseInt(digest.slice(i * 2, i * 2 + 2), 16) % alphabet.length];
+    if (i === 3 || i === 7) out += "-";
+  }
+  return out;
+}
+
 export function normalizeKey(key) {
   return String(key || "").trim().toUpperCase();
 }
