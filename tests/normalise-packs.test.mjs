@@ -21,6 +21,7 @@ import { fileURLToPath } from "node:url";
 import {
   normalisePack, normalisePositions, basenameGaps, samePath, isDirectRun,
   readSchemaRules, requirementsFor, classifyGaps, findSchema, resolveRef,
+  relaxRequired, relaxIsFaithful, DEFAULT_RELAXED_FIELDS,
   CONTROL_RENAMES, LIMIT_RENAMES, UNAUTHORED_LIMIT_FIELDS, REGULATORY_VALUES
 } from "../tools/normalise-system-packs.mjs";
 import { controlLabel, controlPositions, limitName, limitQualifier, regulatoryLabel } from "../app/js/logic/systems2d.js";
@@ -601,4 +602,132 @@ test("a $ref schema reaches the all-clear end to end", () => {
   const out = run(["--android", repo.dir]).out;
   assert.match(out, /NONE OF THEM BLOCK PARSING/);
   assert.match(out, /requires only: name, value on a limit, label on a control/);
+});
+
+/* --------------------------------------------------- relaxing the schema
+
+   The finding: of 154 leftover fields, 77 block parsing and every one is
+   `rationale` - prose the web app never renders. Meanwhile regulatoryStatus,
+   which IS displayed and separates an AFM-approved number from operator
+   guidance, is optional. The safety-critical field was optional and the
+   explanatory one was mandatory.
+
+   Removing a required entry is the one edit of this kind safe to automate,
+   because it takes a constraint AWAY rather than writing a value. These tests
+   hold it to that: nothing else in the schema may move.
+*/
+
+const STRICT = {
+  $schema: "https://json-schema.org/draft/2020-12/schema",
+  title: "SystemDescription",
+  $defs: {
+    Limit: {
+      type: "object",
+      required: ["name", "value", "rationale"],
+      properties: { name: {}, value: {}, condition: {}, rationale: {}, regulatoryStatus: { enum: REGULATORY_VALUES } }
+    },
+    Control: { type: "object", required: ["label"], properties: { label: {}, positions: {} } }
+  },
+  properties: {
+    limits: { type: "array", items: { $ref: "#/$defs/Limit" } },
+    controls: { type: "array", items: { $ref: "#/$defs/Control" } }
+  }
+};
+
+test("rationale comes out of required, and says where from", () => {
+  const result = relaxRequired(STRICT);
+  assert.deepEqual(result.schema.$defs.Limit.required, ["name", "value"]);
+  assert.deepEqual(result.removed, [{ at: "/$defs/Limit/required", field: "rationale" }]);
+  assert.deepEqual(DEFAULT_RELAXED_FIELDS, ["rationale"]);
+});
+
+test("the original is not mutated", () => {
+  const before = JSON.stringify(STRICT);
+  relaxRequired(STRICT);
+  assert.equal(JSON.stringify(STRICT), before, "a dry run that mutates is not a dry run");
+});
+
+test("nothing else in the schema moves", () => {
+  /* The check that matters: this is somebody's authored schema, and a rewrite
+     that quietly reshaped it would be far worse than one that failed. */
+  const after = relaxRequired(STRICT).schema;
+  assert.equal(after.$schema, STRICT.$schema);
+  assert.equal(after.title, STRICT.title);
+  assert.deepEqual(after.$defs.Control, STRICT.$defs.Control, "an untouched definition stays identical");
+  assert.deepEqual(after.$defs.Limit.properties, STRICT.$defs.Limit.properties);
+  assert.deepEqual(after.properties, STRICT.properties);
+  assert.deepEqual(Object.keys(after.$defs.Limit), Object.keys(STRICT.$defs.Limit), "key order is preserved");
+});
+
+test("the faithfulness check catches a rewrite that changed more", () => {
+  const after = relaxRequired(STRICT).schema;
+  assert.equal(relaxIsFaithful(STRICT, after), true);
+
+  const tampered = JSON.parse(JSON.stringify(after));
+  tampered.$defs.Limit.properties.value = { type: "number" };
+  assert.equal(relaxIsFaithful(STRICT, tampered), false, "an extra change must be refused");
+
+  const alsoTampered = JSON.parse(JSON.stringify(after));
+  alsoTampered.$defs.Control.required = [];
+  assert.equal(relaxIsFaithful(STRICT, alsoTampered), false);
+});
+
+test("a schema that never required it is left alone", () => {
+  const already = { $defs: { Limit: { required: ["name", "value"], properties: { name: {} } } } };
+  const result = relaxRequired(already);
+  assert.deepEqual(result.removed, []);
+  assert.deepEqual(result.schema, already);
+});
+
+test("relaxing is dry-run, keeps a .bak, and actually clears the blockers", () => {
+  const repo = fixtureRepo();
+  const schemaDir = path.join(repo.dir, "core-res", "src", "main", "assets", "schema");
+  fs.mkdirSync(schemaDir, { recursive: true });
+  const schemaFile = path.join(schemaDir, "system_description.schema.json");
+  const original = JSON.stringify(STRICT, null, 2) + "\n";
+  fs.writeFileSync(schemaFile, original);
+
+  /* Before: it blocks. */
+  assert.match(run(["--android", repo.dir]).out, /REQUIRED by the schema and genuinely block parsing/);
+
+  /* Dry run changes nothing. */
+  const dry = run(["--android", repo.dir, "--relax-schema"]);
+  assert.match(dry.out, /remove "rationale" from \/\$defs\/Limit\/required/);
+  assert.match(dry.out, /dry run - add --write to apply/);
+  assert.equal(fs.readFileSync(schemaFile, "utf8"), original, "a dry run must not touch the schema");
+
+  /* Applied. */
+  run(["--android", repo.dir, "--relax-schema", "--write"]);
+  assert.equal(fs.readFileSync(schemaFile + ".bak", "utf8"), original, "the .bak is the original, byte for byte");
+  assert.deepEqual(JSON.parse(fs.readFileSync(schemaFile, "utf8")).$defs.Limit.required, ["name", "value"]);
+
+  /* After: it does not. The loop closes. */
+  assert.match(run(["--android", repo.dir]).out, /NONE OF THEM BLOCK PARSING/);
+});
+
+test("the Kotlin change is printed, never applied", () => {
+  const repo = fixtureRepo();
+  const ktDir = path.join(repo.dir, "kt");
+  fs.mkdirSync(ktDir, { recursive: true });
+  const kt = path.join(ktDir, "SystemDescription.kt");
+  const source = "data class SystemLimit(\n  val name: String,\n  val rationale: String,\n)\n";
+  fs.writeFileSync(kt, source);
+
+  const out = run(["--android", repo.dir, "--relax-schema", "--kotlin", ktDir, "--write"]).out;
+  assert.match(out, /now:\s+val rationale: String,/);
+  assert.match(out, /make it:\s+val rationale: String\? = null,/);
+  assert.match(out, /apply and build it in Android Studio/);
+  assert.equal(fs.readFileSync(kt, "utf8"), source, "even with --write, the Kotlin is untouched");
+});
+
+test("an already-nullable Kotlin property is reported as done", () => {
+  const repo = fixtureRepo();
+  const ktDir = path.join(repo.dir, "kt");
+  fs.mkdirSync(ktDir, { recursive: true });
+  fs.writeFileSync(path.join(ktDir, "SystemDescription.kt"),
+    "data class SystemLimit(\n  val rationale: String? = null,\n)\n");
+
+  const out = run(["--android", repo.dir, "--relax-schema", "--kotlin", ktDir]).out;
+  assert.match(out, /already nullable/);
+  assert.doesNotMatch(out, /make it:/);
 });

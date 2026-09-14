@@ -26,6 +26,7 @@
     node tools/normalise-system-packs.mjs --android "C:\\path\\to\\DHC-6-Trainer"
     node tools/normalise-system-packs.mjs --android "..." --write
     node tools/normalise-system-packs.mjs --android "..." --check-kotlin
+    node tools/normalise-system-packs.mjs --android "..." --relax-schema
 
   Dry run by default: it prints what it would change and writes nothing. Add
   --write to apply, which also leaves a .bak beside every file it rewrites.
@@ -289,6 +290,144 @@ export function classifyGaps(gaps, rules) {
   });
 }
 
+/* ------------------------------------------------- relaxing the schema
+
+   The finding that made this worth building: of 154 leftover fields, 77 block
+   parsing and every one is `rationale` - a prose field the web app never
+   renders anywhere. Meanwhile `regulatoryStatus`, which separates an
+   AFM-approved number from operator guidance and IS displayed, is optional.
+   The safety-critical field is optional and the explanatory one is mandatory.
+
+   So this removes a field from the schema's `required` lists. It is the one
+   edit of this kind that is safe to automate, because it REMOVES a constraint
+   rather than writing a value - the opposite of the thing this tool refuses to
+   do everywhere else.
+
+   Every removal is reported with its location, and the result is verified: the
+   rewritten schema is re-parsed and compared against the original with exactly
+   those entries dropped. If anything else changed, it is not written.
+*/
+export const DEFAULT_RELAXED_FIELDS = ["rationale"];
+
+export function relaxRequired(schema, fields) {
+  const wanted = (fields && fields.length ? fields : DEFAULT_RELAXED_FIELDS);
+  const removed = [];
+  const seen = new Set();
+
+  const walk = function (node, trail) {
+    if (!node || typeof node !== "object" || seen.has(node)) return node;
+    seen.add(node);
+    if (Array.isArray(node)) return node.map(function (item, i) { return walk(item, trail + "/" + i); });
+
+    const out = {};
+    Object.keys(node).forEach(function (key) {
+      const value = node[key];
+      if (key === "required" && Array.isArray(value)) {
+        const kept = value.filter(function (entry) { return wanted.indexOf(entry) === -1; });
+        value.forEach(function (entry) {
+          if (wanted.indexOf(entry) >= 0) removed.push({ at: (trail || "#") + "/required", field: entry });
+        });
+        out[key] = kept;
+        return;
+      }
+      out[key] = walk(value, trail + "/" + key);
+    });
+    return out;
+  };
+
+  return { schema: walk(schema, ""), removed: removed };
+}
+
+/*
+  Confirm the rewrite changed nothing but the entries it claimed to remove.
+  Comparing the re-parsed output against the input-with-those-entries-dropped
+  is the only check that actually proves it, and this file is somebody's
+  authored schema.
+*/
+export function relaxIsFaithful(before, after, fields) {
+  const expected = relaxRequired(before, fields).schema;
+  return JSON.stringify(expected) === JSON.stringify(after);
+}
+
+function reportRelax(assetsRoot, kotlinRoot, write) {
+  console.log("\n--- Relax schema ---");
+  relaxSchemaFile(assetsRoot, write);
+  /* The Kotlin property is a separate concern and must be reported even when
+     the schema cannot be found - gating it behind the schema meant a repo with
+     the schema elsewhere got no Kotlin advice at all. */
+  relaxKotlinReport(kotlinRoot || assetsRoot);
+}
+
+function relaxSchemaFile(assetsRoot, write) {
+  const schemaPath = findSchema(assetsRoot);
+  if (!schemaPath) {
+    console.log("  no system_description.schema.json under " + assetsRoot);
+    return;
+  }
+  const raw = fs.readFileSync(schemaPath, "utf8").replace(/^\uFEFF/, "");
+  let schema;
+  try { schema = JSON.parse(raw); } catch (error) {
+    console.log("  " + schemaPath + " is not valid JSON (" + error.message + ")");
+    return;
+  }
+
+  const result = relaxRequired(schema, DEFAULT_RELAXED_FIELDS);
+  if (!result.removed.length) {
+    console.log("  " + DEFAULT_RELAXED_FIELDS.join(", ") + " is not in any required list. Nothing to do.");
+  } else {
+    result.removed.forEach(function (entry) {
+      console.log("  remove \"" + entry.field + "\" from " + entry.at);
+    });
+    const text = JSON.stringify(result.schema, null, 2) + "\n";
+    if (!relaxIsFaithful(schema, JSON.parse(text), DEFAULT_RELAXED_FIELDS)) {
+      console.log("  REFUSED: the rewrite would have changed something else. Nothing written.");
+      return;
+    }
+    if (write) {
+      fs.writeFileSync(schemaPath + ".bak", raw);
+      fs.writeFileSync(schemaPath, text);
+      console.log("  written; original kept at " + path.basename(schemaPath) + ".bak");
+    } else {
+      console.log("  (dry run - add --write to apply)");
+    }
+  }
+
+}
+
+/* The Kotlin half, read-only as always. */
+function relaxKotlinReport(root) {
+  const found = (function find(dir, depth) {
+    if (depth > 8) return null;
+    let entries;
+    try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch (error) { return null; }
+    for (const entry of entries) {
+      const full = path.join(dir, entry.name);
+      if (entry.name === "SystemDescription.kt") return full;
+      if (entry.isDirectory()) { const hit = find(full, depth + 1); if (hit) return hit; }
+    }
+    return null;
+  })(root, 0);
+
+  if (!found) {
+    console.log("  SystemDescription.kt not found under " + root + " - pass --kotlin <path> to check it.");
+    return;
+  }
+  const kt = fs.readFileSync(found, "utf8");
+  DEFAULT_RELAXED_FIELDS.forEach(function (field) {
+    const line = new RegExp("^.*\\b(val|var)\\s+" + field + "\\s*:\\s*([^,\\n=]+)(.*)$", "m").exec(kt);
+    if (!line) { console.log("  " + found + ": no `" + field + "` property found."); return; }
+    const type = line[2].trim();
+    if (/\?$/.test(type)) {
+      console.log("  " + found + ": `" + field + "` is already nullable (" + type + ") - nothing to change.");
+      return;
+    }
+    console.log("  " + found);
+    console.log("      now:      " + line[0].trim());
+    console.log("      make it:  " + line[0].trim().replace(type, type + "? = null"));
+    console.log("      (Kotlin - apply and build it in Android Studio; nothing here was changed.)");
+  });
+}
+
 /* ------------------------------------------------------ the Android side
 
    Two of the phase-5 findings are not in the JSON at all - they are in Kotlin,
@@ -518,6 +657,7 @@ function main() {
   }
 
   const kotlinRoot = arg("kotlin", process.env.DHC6_ANDROID_KOTLIN || "");
+  if (has("relax-schema")) reportRelax(assetsRoot, kotlinRoot, write);
   if (kotlinRoot) reportKotlin(kotlinRoot);
   else if (has("check-kotlin")) reportKotlin(androidRoot);
 
