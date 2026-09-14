@@ -18,8 +18,8 @@
         "=PT6A27_EXTERNAL_ENVELOPE_GHOST_ROOT"
       ],
       "clips": {
-        "PT6A27_ENGINE_START_SEQUENCE": "Engine start sequence",
-        "PT6A27_ENGINE_RUNNING": "Engine running"
+        "PT6A27_ENGINE_START_SEQUENCE.001": "Engine start sequence",
+        "PT6A27_ENGINE_RUNNING.001": "Engine running"
       },
       "groups": [
         "PT6A27_ACCESSORY_GEARBOX",
@@ -30,14 +30,14 @@
         "PT6A27_EXTERNAL_ENVELOPE_GHOST_ROOT"
       ],
       "mediaPath": "models/systems-lab/PT6A27_ENGINE_REPLICA.glb",
-      "bytes": 75108224,
-      "sha256": "23ac0a533e4bd470517ac66bf3598db97465272113c823303e73a7725ed24564",
-      "nodes": 532,
-      "meshes": 487,
-      "triangles": 895152,
+      "bytes": 77482536,
+      "sha256": "d4f789baac0dea56da6638b4fec40051ff7ae9629b9c52998cdd6c088632e026",
+      "nodes": 542,
+      "meshes": 491,
+      "triangles": 926836,
       "animations": [
-        "PT6A27_ENGINE_START_SEQUENCE",
-        "PT6A27_ENGINE_RUNNING"
+        "PT6A27_ENGINE_START_SEQUENCE.001",
+        "PT6A27_ENGINE_RUNNING.001"
       ],
       "extensionsUsed": [],
       "clipGroups": {},
@@ -689,8 +689,8 @@
         "ROTATING_ASSEMBLY_CCW_DRIVE_END"
       ],
       "mediaPath": "models/systems-lab/DHC6_STARTER_GENERATOR_REPLICA.glb",
-      "bytes": 3910024,
-      "sha256": "24793a93826db312184723ad08d4194d3af711ae73a66bc2c1e7a268c0a7e043",
+      "bytes": 3909964,
+      "sha256": "765e73171510fbb7d951897c50cb03416bf0ce959a22efdd09c4e6387acecf3f",
       "nodes": 418,
       "meshes": 411,
       "triangles": 71928,
@@ -1019,9 +1019,8 @@
         "~^(ctl22|ctl62|OP\\.ind|click-bug|lh-audio-breaker)"
       ],
       "clips": {
-        "FLAPS_DOWN_EXTENSION_AND_FOLLOW_UP_NEUTRAL": "Flaps down (extension, follow-up to neutral)",
-        "FLAPS_UP_RETRACTION_AND_FOLLOW_UP_NEUTRAL": "Flaps up (retraction, follow-up to neutral)",
-        "NEUTRAL_ALL_PORTS_BLOCKED.001": "Neutral — all ports blocked"
+        "FLAPS_DOWN_EXTENSION_AND_FOLLOW_UP_NEUTRAL.001": "Flaps down (extension, follow-up to neutral)",
+        "FLAPS_UP_RETRACTION_AND_FOLLOW_UP_NEUTRAL.001": "Flaps up (retraction, follow-up to neutral)"
       },
       "groups": [
         "ACTUATOR_ASSEMBLY_GROUP",
@@ -1151,8 +1150,8 @@
       ],
       "hidden": [],
       "clips": {
-        "ELEVATOR_TRIM_MINIMUM_TWO_TURNS_EACH_DIRECTION": "Elevator trim (two turns each way)",
-        "RUDDER_TRIM_MINIMUM_TWO_TURNS_EACH_DIRECTION": "Rudder trim (two turns each way)"
+        "ELEVATOR_TRIM_MINIMUM_TWO_TURNS_EACH_DIRECTION.001": "Elevator trim (two turns each way)",
+        "RUDDER_TRIM_MINIMUM_TWO_TURNS_EACH_DIRECTION.001": "Rudder trim (two turns each way)"
       },
       "groups": [
         "COMPLETE_TRIM_CONTROL_ASSEMBLY"
@@ -1323,7 +1322,10 @@
       "alternateFor": [],
       "hidden": [],
       "clips": {
-        "BLEED_VALVE_NORMALIZED_OPERATION.001": "Bleed valve operation (normalised)"
+        "BLEED_VALVE_NORMALIZED_OPERATION | GUIDE_SLEEVE": "Bleed valve operation — guide sleeve",
+        "BLEED_VALVE_NORMALIZED_OPERATION | PISTON": "Bleed valve operation — piston",
+        "BLEED_VALVE_NORMALIZED_OPERATION | PISTON_SUPPORT_PLATE": "Bleed valve operation — piston support plate",
+        "BLEED_VALVE_NORMALIZED_OPERATION | ROLLING_DIAPHRAGM_MOVING_MEMBRANE": "Bleed valve operation — rolling diaphragm moving membrane"
       },
       "groups": [
         "CONNECTION_POINTS",
@@ -1331,20 +1333,23 @@
         "MOVING_PISTON_DIAPHRAGM_ASSEMBLY"
       ],
       "mediaPath": "models/systems-lab/DHC6_PT6A27_BLEED_VALVE_REPLICA.glb",
-      "bytes": 1068252,
-      "sha256": "d8401f6b35d7c74cdaaffb8b8ada82c228e1b6d471d5dda847bf776401f0bfde",
-      "nodes": 67,
-      "meshes": 51,
-      "triangles": 22996,
+      "bytes": 1403268,
+      "sha256": "1dbdb441ef54319f50d30a83c575b642c108eb4f7290bb99eda4c62cbc07c298",
+      "nodes": 81,
+      "meshes": 65,
+      "triangles": 33274,
       "animations": [
-        "BLEED_VALVE_NORMALIZED_OPERATION"
+        "BLEED_VALVE_NORMALIZED_OPERATION | GUIDE_SLEEVE",
+        "BLEED_VALVE_NORMALIZED_OPERATION | PISTON",
+        "BLEED_VALVE_NORMALIZED_OPERATION | PISTON_SUPPORT_PLATE",
+        "BLEED_VALVE_NORMALIZED_OPERATION | ROLLING_DIAPHRAGM_MOVING_MEMBRANE"
       ],
       "extensionsUsed": [],
       "clipGroups": {},
       "parts": {
         "valve_housing": [
           "FIXED_VALVE_STRUCTURE",
-          "HOUSING_SHELL_SOURCE_PROPORTION_DERIVED",
+          "=VALVE_HOUSING",
           "COVER",
           "COVER_RIM",
           "MOUNTING_FLANGE",
@@ -1776,8 +1781,8 @@
         "world"
       ],
       "mediaPath": "models/systems-lab/DHC6WHEELS.glb",
-      "bytes": 4750916,
-      "sha256": "8282dd294e017e0e3fa43bdcde6d385965c366797d4abd686beaee42e7aab989",
+      "bytes": 4756920,
+      "sha256": "0e38800f68f6b5739d3c0e11846a3f24982128637e5d2884fe27b40abb4bb4b2",
       "nodes": 121,
       "meshes": 117,
       "triangles": 23500,
@@ -1900,8 +1905,8 @@
         "world.001"
       ],
       "mediaPath": "models/systems-lab/DHC6SKIS.glb",
-      "bytes": 4908832,
-      "sha256": "11f8067e7dbf1402486a725d3518d8a7ac492ab405275597395a6524a404cb39",
+      "bytes": 4914840,
+      "sha256": "0975adc3f3c460df2b520d3c3e2c58bf6a1a6c494cd548eff27dfed6d6af2781",
       "nodes": 129,
       "meshes": 124,
       "triangles": 24976,
@@ -1971,11 +1976,11 @@
         "world.001"
       ],
       "mediaPath": "models/systems-lab/DHC6FLOATS.glb",
-      "bytes": 5561128,
-      "sha256": "ee02b64478831288597dee096b7120f731f4e03d88f9123e64dea32c1334d5bf",
-      "nodes": 116,
-      "meshes": 111,
-      "triangles": 16911,
+      "bytes": 9898796,
+      "sha256": "5ffcb001d412c9341f73b10dc04bdc781908ee4de4bb620b392ac9775686480a",
+      "nodes": 129,
+      "meshes": 125,
+      "triangles": 19829,
       "animations": [],
       "extensionsUsed": [],
       "clipGroups": {},
@@ -2030,26 +2035,26 @@
         "=world.002"
       ],
       "clips": {
-        "MAIN_GEAR_SHOCK_ABSORBER_COMPRESSION": "Main gear shock absorber compression",
-        "UNDERCARRIAGE_WHEELS_ROLL_359_9_DEG": "Wheels roll",
-        "NOSE_SHOCK_STRUT_COMPRESSION": "Nose shock strut compression",
-        "NOSE_STEERING_SWEEP_60_DEG": "Nose steering sweep (60°)"
+        "MAIN_GEAR_SHOCK_ABSORBER_COMPRESSION.001": "Main gear shock absorber compression",
+        "UNDERCARRIAGE_WHEELS_ROLL_359_9_DEG.001": "Wheels roll",
+        "NOSE_SHOCK_STRUT_COMPRESSION.001": "Nose shock strut compression",
+        "NOSE_STEERING_SWEEP_60_DEG.001": "Nose steering sweep (60°)"
       },
       "groups": [
         "MAIN_GEAR_INSTALLATION_C6U1101",
         "NOSE_GEAR_ASSEMBLY_C6U1500"
       ],
       "mediaPath": "models/systems-lab/DHC6_LANDPLANE_UNDERCARRIAGE_REPLICA.glb",
-      "bytes": 27899372,
-      "sha256": "2ec7f14d0b6a8cd82ef9408d68ec2ac8f6c50f7a336b9f84e66a55b224467268",
-      "nodes": 176,
-      "meshes": 158,
-      "triangles": 329449,
+      "bytes": 27864668,
+      "sha256": "be6f92370c45d38deccd7cbf8ebf337caa2df455f3cbe00ccda365ae3638ebfb",
+      "nodes": 173,
+      "meshes": 155,
+      "triangles": 327209,
       "animations": [
-        "MAIN_GEAR_SHOCK_ABSORBER_COMPRESSION",
-        "UNDERCARRIAGE_WHEELS_ROLL_359_9_DEG",
-        "NOSE_SHOCK_STRUT_COMPRESSION",
-        "NOSE_STEERING_SWEEP_60_DEG"
+        "MAIN_GEAR_SHOCK_ABSORBER_COMPRESSION.001",
+        "UNDERCARRIAGE_WHEELS_ROLL_359_9_DEG.001",
+        "NOSE_SHOCK_STRUT_COMPRESSION.001",
+        "NOSE_STEERING_SWEEP_60_DEG.001"
       ],
       "extensionsUsed": [],
       "clipGroups": {},
@@ -2089,8 +2094,7 @@
           "NOSE_STEERING_GROUP",
           "~^NOSEWHEEL_STEERING",
           "~^NOSE_GEAR_STEERING",
-          "~^NOSE_GEAR_TORQUE",
-          "~TORQUE_ARM"
+          "~^NOSE_GEAR_TORQUE"
         ],
         "hydraulic_supply": [
           "~^[LR]H_MAIN_BRAKE_HYDRAULIC_LINE",

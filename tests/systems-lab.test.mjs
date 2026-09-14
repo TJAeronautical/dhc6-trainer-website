@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { selectorMatches, chainMatches, labSimulation, powerLeverLabel, propLeverLabel, qrhCategoryTargetFor, qrhTargetHref, pinsForModel, clipGroupsForModel, modelsForSystem, formatBytes } from "../app/js/logic/systemslab.js";
+import { selectorMatches, clipSelectorMatches, chainMatches, labSimulation, powerLeverLabel, propLeverLabel, qrhCategoryTargetFor, qrhTargetHref, pinsForModel, clipGroupsForModel, modelsForSystem, formatBytes } from "../app/js/logic/systemslab.js";
 import { buildSystemsLabPack, readDefinitions, readSimulation, readHome, readDisplayTitles } from "../tools/lib/systems-lab.mjs";
 import { parseValue, findCalls, whenCases, functionBody, valDeclaration, stripComments } from "../tools/lib/kotlin-lite.mjs";
 
@@ -32,6 +32,33 @@ test("node selectors follow the Android region-map semantics", () => {
   assert.equal(selectorMatches("~^[LR]H_MAIN_BRAKE", "NOSE_BRAKE"), false);
   assert.equal(selectorMatches("~(", "anything"), false, "invalid regex never matches");
   assert.equal(chainMatches(["=CSU_ARCHIVE_R4"], ["WOODWARD_8210_FLYWEIGHT", "ANIM_PIVOT_FLYWEIGHT_01", "CSU_ARCHIVE_R4"]), true, "ancestor names count");
+});
+
+test("a clip label or group always refers to a clip the entry declares", () => {
+  /*
+    The rot this catches is invisible in the app. `clipGroupsForModel` matches
+    labels and groups against `animations`, so a label whose key is not in that
+    list is simply never applied - no error, no warning, just auto-derived text
+    where somebody wrote a proper one. Five labels had been silently inert
+    across flap-system and trim-control because a re-export appended ".001" to
+    the clip names and the label keys were never followed along.
+
+    It is also the cheap half of the check the GLB inspector does against real
+    files: this needs no models, so it runs everywhere, forever.
+  */
+  const stale = [];
+  for (const model of registry.models) {
+    const declared = new Set(model.animations || []);
+    Object.keys(model.clips || {}).forEach((key) => {
+      if (!declared.has(key)) stale.push(model.id + ": label for undeclared clip " + key);
+    });
+    Object.entries(model.clipGroups || {}).forEach(([label, selectors]) => {
+      const alive = (model.animations || []).some((name) =>
+        (selectors || []).some((s) => clipSelectorMatches(s, name)));
+      if (!alive) stale.push(model.id + ": group '" + label + "' matches none of its declared clips");
+    });
+  }
+  assert.deepEqual(stale, [], "a label or group nobody can reach is authored text the Lab never shows");
 });
 
 test("every registry selector is well formed and every model has a media path, hash and size", () => {

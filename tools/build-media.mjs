@@ -136,15 +136,57 @@ const index = {
 };
 const indexText = JSON.stringify(index);
 fs.writeFileSync(path.join(outDir, "media-index.json"), indexText);
+report.unshift("Protected media build — " + (items.length - extraFiles.length) + " of " + registry.models.length + " models + " + extraFiles.length + " generated file(s), " + (totalBytes / 1e6).toFixed(1) + " MB, index " + index.version);
+fs.writeFileSync(path.join(outDir, "media-report.txt"), report.join("\n") + "\n");
+console.log(report.join("\n"));
+
+/*
+  A short index is not a partial success, it is a regression waiting to be
+  uploaded.
+
+  `webmedia:index` is replaced WHOLE. Publishing an index built from 16 of 21
+  entries does not leave the other five alone - it removes them from the app's
+  view, and their tiles report the model unavailable even though the objects
+  are still sitting in R2. Warning about it and writing the publishable files
+  anyway puts that one command away, which is how the flap stub shipped: the
+  build said HASH-CHANGED and published it regardless.
+
+  So the upload artifacts are written only when every registry entry was
+  located. Stale ones from an earlier run are REMOVED rather than left behind,
+  because a leftover kv-media-index.json next to a fresh report is worse than
+  no file at all - it looks current and is not.
+
+  --allow-missing is the deliberate escape hatch, for building a subset on
+  purpose. `media-index.json` and the report are always written: they are what
+  you read to find out what went wrong.
+*/
+const allowMissing = process.argv.includes("--allow-missing");
+const publishable = [
+  path.join(outDir, "kv-media-index.json"),
+  path.join(outDir, "upload-media.ps1"),
+  path.join(outDir, "upload-media.sh")
+];
+
+if (missing && !allowMissing) {
+  const removed = publishable.filter((file) => fs.existsSync(file));
+  removed.forEach((file) => fs.rmSync(file));
+  console.error("\n" + missing + " model(s) missing — NOTHING WAS WRITTEN TO UPLOAD.");
+  console.error("  Publishing this index would drop those " + missing + " model(s) from the app: the KV key is");
+  console.error("  replaced whole, so an entry that is not in the build is an entry the app can no longer see.");
+  console.error("  Pass --reference and --android so every registry entry can be located, or --allow-missing");
+  console.error("  if a partial publish is genuinely what you want.");
+  if (removed.length) console.error("  Removed " + removed.length + " stale upload file(s) from an earlier run so they cannot be published by mistake.");
+  if (mismatched) console.error("\n" + mismatched + " model(s) also differ from the registry hash.");
+  console.error("\nOutput → " + outDir);
+  process.exit(1);
+}
+
 fs.writeFileSync(path.join(outDir, "kv-media-index.json"), JSON.stringify([{ key: "webmedia:index", value: indexText }]));
 ps.push("# Then publish the index: npx wrangler kv bulk put " + path.join(outDir, "kv-media-index.json") + " --binding LICENSES --remote");
 sh.push("# Then publish the index: npx wrangler kv bulk put '" + path.join(outDir, "kv-media-index.json") + "' --binding LICENSES --remote");
 fs.writeFileSync(path.join(outDir, "upload-media.ps1"), ps.join("\r\n") + "\r\n");
 fs.writeFileSync(path.join(outDir, "upload-media.sh"), sh.join("\n") + "\n");
-report.unshift("Protected media build — " + (items.length - extraFiles.length) + " of " + registry.models.length + " models + " + extraFiles.length + " generated file(s), " + (totalBytes / 1e6).toFixed(1) + " MB, index " + index.version);
-fs.writeFileSync(path.join(outDir, "media-report.txt"), report.join("\n") + "\n");
-console.log(report.join("\n"));
-if (missing) console.warn("\n" + missing + " model(s) missing — pass --reference and --android so every registry entry can be located.");
+if (missing) console.warn("\n" + missing + " model(s) missing — published anyway because --allow-missing was given.");
 if (mismatched) console.warn(mismatched + " model(s) differ from the registry hash — regenerate tools/data/systems-lab-models.json if the GLB files were re-exported.");
 if (!extraFiles.length) console.warn("No generated media found in " + extraMediaDirs.join(", ") + " — run `node tools/build-cockpit.mjs --android <repo>` and `node tools/build-diagrams.mjs --android <repo>` first.");
 console.log("\nOutput → " + outDir);
