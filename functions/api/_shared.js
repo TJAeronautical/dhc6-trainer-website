@@ -174,7 +174,7 @@ export function activationLimitFromPlan(plan) {
 */
 export function parseLicenseRecord(raw) {
   if (!raw) return null;
-  const text = String(raw).replace(/^﻿/, "").trim();
+  const text = String(raw).replace(/^\uFEFF/, "").trim();
   if (!text) return null;
   try {
     const record = JSON.parse(text);
