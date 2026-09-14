@@ -52,15 +52,14 @@ export async function settings(ctx) {
       blueCard([h("div", { class: "t-title-m c-white", text: "Current Plan" }), h("div", { class: "t-body-m mt-4", style: "color:var(--white-secondary)", text: plan + (session.email ? " · " + session.email : "") }), h("div", { class: "t-body-s c-ter mt-6", text: "Web sessions last about 12 hours and are re-validated against your licence every few minutes." })]),
       settingsSection("Offline Access"),
       /*
-        This used to read "Offline-ready core training ... load locally", which
-        was not true and was measured not to be: with the network off, a cold
-        load of /app/ fails with ERR_INTERNET_DISCONNECTED. The content packs
-        really are cached (IndexedDB, below), but the app shell itself is not -
-        /app/ is served `private, no-store` and the service worker deliberately
-        bypasses it, so there is nothing to boot from. What actually works is a
-        connection dropping mid-session, which is worth saying plainly instead.
+        Kept honest against measured behaviour, twice. It first claimed
+        "Offline-ready core training ... load locally" when a cold offline load
+        failed outright; that was corrected to say the app still needed a
+        connection to start. The service worker now caches the shell, so a cold
+        start offline works and this says so again - with the 30-day limit
+        stated, because a limit nobody is told about is just a surprise.
       */
-      navCard("Works through a dropped connection", "Procedures, QRH, flashcards, systems notes and diagrams are kept on this device after they first load, so a session keeps working if you lose signal. Starting the app still needs a connection.", { icon: ICONS.info }),
+      navCard("Works without a connection", "The app opens and runs with no signal: procedures, QRH, checklists, drills, flashcards, limitations, MEL and the calculators are all kept on this device. Diagrams, cockpit imagery and 3D models still need a connection. Sign in at least once every 30 days to keep offline access.", { icon: ICONS.info }),
       blueCard([
         h("div", { class: "t-body-s c-sec", text: "Content packs: " + (manifest.published === false ? "not published yet" : (manifest.packs || []).length + " packs · version " + (manifest.version || "—")) }),
         h("div", { class: "t-body-s c-ter mt-4", text: "Packs are cached in this browser (IndexedDB) after the first load, so an open session keeps working without a connection. They are cleared on sign-out." }),

@@ -570,23 +570,25 @@ test("a hub's status describes the hub, not the worst of its tiles", () => {
     "and the Flashcards tile still renders its own status rather than a hardcoded one");
 });
 
-test("Settings does not promise an offline start the app cannot deliver", () => {
+test("what Settings says about offline matches what the app actually does", () => {
   const src = stripComments(read("app/js/screens/misc.js"));
-
-  /* Measured, not assumed: with the network off, a cold load of /app/ fails
-     with ERR_INTERNET_DISCONNECTED. /app/ is served `private, no-store` and
-     sw.js bypasses it by design, so there is no cached shell to boot from.
-     The content packs in IndexedDB are real - they carry an open session
-     through a dropped connection - but they cannot start one. */
-  assert.ok(!/Offline-ready/i.test(src), "the app cannot start offline, so it must not claim to be offline-ready");
-  assert.ok(!/load locally/i.test(src), "the shell does not load locally");
-  assert.ok(!/stay usable offline/i.test(src), "an open session survives; a new one cannot be started");
-  assert.match(src, /Starting the app still needs a connection/, "the limit is stated where the claim is made");
-
-  /* And the bypass that makes this true is still in place, so the text and the
-     behaviour cannot drift apart without one of these two failing. */
   const sw = stripComments(read("sw.js"));
-  assert.match(sw, /path === "\/app" \|\| path\.startsWith\("\/app\/"\)/, "sw.js still bypasses the app shell");
+
+  /* The app can now start with no network, verified in Chromium by a cold
+     reload with the context offline. So the claim is allowed again - but only
+     while the mechanism that makes it true is still here. */
+  assert.match(sw, /APP_SHELL_CACHE/, "there is a shell cache to boot from");
+  assert.match(sw, /cache-app-shell/, "and something that fills it");
+  assert.match(src, /Works without a connection/, "Settings says so");
+
+  /* Two limits must be stated wherever the claim is, because neither is
+     obvious and both bite on a remote rotation. */
+  assert.match(src, /30 days/, "the offline window is stated, not left as a surprise");
+  assert.match(src, /still need a connection/, "and what is NOT available offline is named");
+
+  /* The API is never cached, whatever else changes about offline. */
+  assert.match(sw, /isApiRequest/, "the API bypass is still explicit");
+  assert.ok(!/CORE_ASSETS[\s\S]{0,400}"\/api/.test(sw), "and nothing under /api is precached");
 });
 
 test("the Library screen keeps the training-support-only statement", () => {

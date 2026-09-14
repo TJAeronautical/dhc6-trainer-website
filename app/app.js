@@ -166,11 +166,30 @@ function applySession(data) {
     setSessionChip(data.role === "owner" ? "owner" : "active", data.role === "owner" ? "Owner" : "Subscriber · " + String(data.plan || "").replace(/_/g, " "));
     railSync.dataset.state = "ok"; railSyncValue.textContent = "Up to date";
   } else if (data.offline) {
-    setSessionChip("offline", "Offline"); railSync.dataset.state = "offline"; railSyncValue.textContent = "Offline";
+    /* Say how long this device may keep working without reaching the server,
+       so nobody is surprised by a lock-out on a remote rotation. */
+    const left = typeof data.daysLeft === "number" ? data.daysLeft : null;
+    setSessionChip("offline", left === null ? "Offline" : "Offline · " + left + "d");
+    railSync.dataset.state = "offline";
+    railSyncValue.textContent = left === null
+      ? "Offline"
+      : "Offline · " + left + " day" + (left === 1 ? "" : "s") + " left";
   }
 }
 document.addEventListener("dhc6:session", function (event) { applySession(event.detail); });
-if (window.DHC6Session && window.DHC6Session.get()) applySession(window.DHC6Session.get());
+/*
+  subscriber-gate.js is a deferred classic script and this is a module, so the
+  gate runs first and may have dispatched dhc6:session before this listener
+  existed. Catching up on both states matters: without the offline branch the
+  chip sat on "Checking access…" for the whole session on a strip with no
+  signal, which is precisely when a pilot wants to know where they stand.
+*/
+if (window.DHC6Session) {
+  const known = window.DHC6Session.get();
+  const off = window.DHC6Session.offlineState && window.DHC6Session.offlineState();
+  if (known) applySession(known);
+  else if (off) applySession({ ok: false, offline: true, offlineUntil: off.until, daysLeft: off.daysLeft });
+}
 
 function updateOnline() {
   offlineBanner.hidden = navigator.onLine;
