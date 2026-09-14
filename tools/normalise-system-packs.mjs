@@ -286,8 +286,56 @@ export function classifyGaps(gaps, rules) {
     const list = required(group);
     /* Unknown is not the same as optional, and must not read as reassurance. */
     const blocking = list === null ? null : list.indexOf(field) >= 0;
+    if (blocking === true) return Object.assign({}, gap, { field: field, blocking: true });
     return Object.assign({}, gap, { field: field, blocking: blocking });
   });
+}
+
+/* ------------------------------------------- what the schema really demands
+
+   The defect this fixes, and it was mine: the gap check looked for a hardcoded
+   pair - rationale and regulatoryStatus - and nothing else. So when the real
+   schema turned out to require `id`, `references` and `description` too, the
+   tool reported "NONE OF THEM BLOCK PARSING" while saying in the same breath
+   that a limit requires four fields it had never once looked for.
+
+   A confident all-clear that checked two fields out of four is worse than no
+   check at all. Every required field the schema names is now checked for
+   presence, whatever it is called.
+*/
+export function missingRequired(entity, required) {
+  if (!required || !required.length) return [];
+  const object = entity && typeof entity === "object" ? entity : {};
+  return required.filter(function (field) {
+    const value = object[field];
+    if (value === undefined || value === null) return true;
+    if (typeof value === "string" && !value.trim()) return true;
+    if (Array.isArray(value) && !value.length) return true;
+    return false;
+  });
+}
+
+/*
+  Every required field absent from a normalised pack, as gaps. Runs AFTER the
+  renames, so a limit whose `name` arrived as `parameter` is not reported.
+*/
+export function requiredGaps(pack, rules) {
+  const out = [];
+  const check = function (list, group, required) {
+    if (!Array.isArray(list) || !required || !required.length) return;
+    list.forEach(function (entity, index) {
+      missingRequired(entity, required).forEach(function (field) {
+        out.push({
+          path: group + "[" + index + "]." + field,
+          field: field,
+          why: "required by the schema and absent from the pack"
+        });
+      });
+    });
+  };
+  check(pack && pack.controls, "controls", rules && rules.controls && rules.controls.required);
+  check(pack && pack.limits, "limits", rules && rules.limits && rules.limits.required);
+  return out;
 }
 
 /* ------------------------------------------------- relaxing the schema
@@ -414,7 +462,12 @@ function relaxKotlinReport(root) {
   }
   const kt = fs.readFileSync(found, "utf8");
   DEFAULT_RELAXED_FIELDS.forEach(function (field) {
-    const line = new RegExp("^.*\\b(val|var)\\s+" + field + "\\s*:\\s*([^,\\n=]+)(.*)$", "m").exec(kt);
+    /* The type stops at a comma, a newline, an `=` AND a closing paren. Without
+       the paren it captured "String)" out of
+       `data class SystemLimit(val rationale: String)` and emitted
+       `SystemLimit(val rationale: String)? = null` - a line that would not
+       compile, offered as the line to paste. */
+    const line = new RegExp("^.*\\b(val|var)\\s+" + field + "\\s*:\\s*([^,\\n=)]+)(.*)$", "m").exec(kt);
     if (!line) { console.log("  " + found + ": no `" + field + "` property found."); return; }
     const type = line[2].trim();
     if (/\?$/.test(type)) {
@@ -439,14 +492,24 @@ function relaxKotlinReport(root) {
    to compile or run that here. Treat the output as a list to apply and test in
    Android Studio, not as a change that has been made.
 */
-export function basenameGaps(repositorySource, aircraftSystemSource) {
+export function basenameGaps(repositorySource, aircraftSystemSource, existingBasenames) {
   const basenames = readAssetBasenames(repositorySource);
   const taxonomy = readSystemTaxonomy(aircraftSystemSource);
+  /*
+    Only a mapping whose target FILE EXISTS is a gap. Without this the tool
+    reported nineteen, including deliberate aliases - ENGINE, IGNITION and
+    STARTING all point at "powerplant" because there is one powerplant pack,
+    not three. Telling somebody to map ENGINE to "engine" when systems/engine.json
+    does not exist would take that system's content away entirely: an
+    over-report that does real harm if acted on.
+  */
+  const exists = existingBasenames ? new Set(existingBasenames) : null;
   const out = [];
   (taxonomy.members || []).forEach(function (member) {
     const expected = member.toLowerCase();
     const mapped = basenames[member];
     if (mapped === expected) return;
+    if (exists && !exists.has(expected)) return;
     out.push({
       system: member,
       mapped: mapped || null,
@@ -460,7 +523,7 @@ export function basenameGaps(repositorySource, aircraftSystemSource) {
   return out;
 }
 
-function reportKotlin(kotlinRoot) {
+function reportKotlin(kotlinRoot, existingBasenames) {
   const find = function (name) {
     const stack = [kotlinRoot];
     while (stack.length) {
@@ -486,7 +549,7 @@ function reportKotlin(kotlinRoot) {
 
   let gaps;
   try {
-    gaps = basenameGaps(fs.readFileSync(repo, "utf8"), fs.readFileSync(system, "utf8"));
+    gaps = basenameGaps(fs.readFileSync(repo, "utf8"), fs.readFileSync(system, "utf8"), existingBasenames);
   } catch (error) {
     console.log("\n--- Android map check failed: " + error.message + " ---");
     return;
@@ -494,7 +557,9 @@ function reportKotlin(kotlinRoot) {
 
   console.log("\n--- SYSTEM_TO_ASSET_BASENAME ---");
   if (!gaps.length) {
-    console.log("  Every system maps to its own file. Nothing to do.");
+    console.log("  Every system with a pack file of its own maps to it. Nothing to do.");
+    console.log("  (A system mapped to a shared pack - ENGINE to \"powerplant\" - is an alias,");
+    console.log("   not a gap, and is only reported when a file of its own name exists.)");
     return;
   }
   console.log("  " + gaps.length + " system" + (gaps.length === 1 ? " does" : "s do") + " not map to their own pack file.");
@@ -604,9 +669,12 @@ function main() {
       }
     }
 
-    if (result.gaps.length) {
-      gapCount += result.gaps.length;
-      stillIncomplete.push({ name: name, gaps: result.gaps });
+    /* Every field the schema names, checked against the NORMALISED pack - not
+       just the hardcoded pair this once looked for. */
+    const gaps = result.gaps.concat(requiredGaps(result.pack, rules));
+    if (gaps.length) {
+      gapCount += gaps.length;
+      stillIncomplete.push({ name: name, gaps: gaps });
     }
   });
 
@@ -630,7 +698,8 @@ function main() {
       if (schemaWhy) console.log("    reason: " + schemaWhy);
       if (schemaShape) console.log("    it contains: " + schemaShape.join(", "));
     } else if (blocking === 0) {
-      /* The answer that changes everything: the renames were the whole job. */
+      /* Only sayable because every required field the schema names has now been
+         checked for presence, not just the two this used to look for. */
       console.log("  NONE OF THEM BLOCK PARSING. The schema at");
       console.log("  " + schemaPath);
       console.log("  requires only: " + rules.limits.required.join(", ") + " on a limit" +
@@ -657,9 +726,13 @@ function main() {
   }
 
   const kotlinRoot = arg("kotlin", process.env.DHC6_ANDROID_KOTLIN || "");
-  if (has("relax-schema")) reportRelax(assetsRoot, kotlinRoot, write);
-  if (kotlinRoot) reportKotlin(kotlinRoot);
-  else if (has("check-kotlin")) reportKotlin(androidRoot);
+  /* Which pack files actually exist, so an alias is not reported as a gap. */
+  const existingBasenames = files.map(function (file) { return path.basename(file, ".json"); });
+  /* Search the whole repo, not the assets folder - SystemDescription.kt is
+     Kotlin and does not live under assets, which is why it was never found. */
+  if (has("relax-schema")) reportRelax(assetsRoot, kotlinRoot || androidRoot, write);
+  if (kotlinRoot) reportKotlin(kotlinRoot, existingBasenames);
+  else if (has("check-kotlin")) reportKotlin(androidRoot, existingBasenames);
 
   if (!write && changedCount) {
     console.log("\nRe-run with --write to apply. Each rewritten file keeps a .bak beside it.");

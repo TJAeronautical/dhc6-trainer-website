@@ -22,6 +22,7 @@ import {
   normalisePack, normalisePositions, basenameGaps, samePath, isDirectRun,
   readSchemaRules, requirementsFor, classifyGaps, findSchema, resolveRef,
   relaxRequired, relaxIsFaithful, DEFAULT_RELAXED_FIELDS,
+  missingRequired, requiredGaps,
   CONTROL_RENAMES, LIMIT_RENAMES, UNAUTHORED_LIMIT_FIELDS, REGULATORY_VALUES
 } from "../tools/normalise-system-packs.mjs";
 import { controlLabel, controlPositions, limitName, limitQualifier, regulatoryLabel } from "../app/js/logic/systems2d.js";
@@ -730,4 +731,207 @@ test("an already-nullable Kotlin property is reported as done", () => {
   const out = run(["--android", repo.dir, "--relax-schema", "--kotlin", ktDir]).out;
   assert.match(out, /already nullable/);
   assert.doesNotMatch(out, /make it:/);
+});
+
+/* ------------------------------ every required field, not a hardcoded pair
+
+   My defect, found by running the tool against the real repository. The gap
+   check looked for `rationale` and `regulatoryStatus` and nothing else, so when
+   the real schema turned out to require id, name, value and references on a
+   limit, the tool printed "NONE OF THEM BLOCK PARSING" in the same breath as
+   listing four required fields it had never looked for.
+
+   An all-clear that checked two fields out of four is worse than no check.
+*/
+
+const REAL_SHAPED = {
+  definitions: {
+    limit: {
+      type: "object",
+      required: ["id", "name", "value", "references"],
+      properties: { id: {}, name: {}, value: {}, condition: {}, references: {}, rationale: {}, regulatoryStatus: { enum: REGULATORY_VALUES } }
+    },
+    control: {
+      type: "object",
+      required: ["id", "label", "positions", "description", "references"],
+      properties: { id: {}, label: {}, positions: {}, description: {}, references: {} }
+    }
+  },
+  properties: {
+    limits: { type: "array", items: { $ref: "#/definitions/limit" } },
+    controls: { type: "array", items: { $ref: "#/definitions/control" } }
+  }
+};
+
+test("a required field absent from the pack is found, whatever it is called", () => {
+  assert.deepEqual(missingRequired({ name: "X", value: "1" }, ["id", "name", "value", "references"]),
+    ["id", "references"]);
+  assert.deepEqual(missingRequired({ id: "a", name: "X", value: "1", references: ["AFM"] },
+    ["id", "name", "value", "references"]), []);
+});
+
+test("empty is missing - a blank string or empty list is not a value", () => {
+  assert.deepEqual(missingRequired({ id: "", name: "X" }, ["id", "name"]), ["id"]);
+  assert.deepEqual(missingRequired({ references: [], name: "X" }, ["references", "name"]), ["references"]);
+  assert.deepEqual(missingRequired({ id: "   ", name: "X" }, ["id"]), ["id"]);
+  assert.deepEqual(missingRequired({ id: null }, ["id"]), ["id"]);
+  assert.deepEqual(missingRequired(null, ["id"]), ["id"]);
+  assert.deepEqual(missingRequired({}, []), [], "no requirements, no gaps");
+});
+
+test("requiredGaps names the entity and the field", () => {
+  const gaps = requiredGaps(
+    { controls: [{ label: "Boost pump" }], limits: [{ name: "X" }] },
+    readSchemaRules(REAL_SHAPED)
+  );
+  const paths = gaps.map(function (g) { return g.path; });
+  assert.ok(paths.indexOf("controls[0].id") >= 0);
+  assert.ok(paths.indexOf("controls[0].description") >= 0);
+  assert.ok(paths.indexOf("limits[0].references") >= 0);
+  assert.equal(paths.indexOf("controls[0].label"), -1, "a field that IS present is not a gap");
+});
+
+test("the all-clear is refused while a required field is missing", () => {
+  /* THE test. The tool said NONE OF THEM BLOCK PARSING against a schema
+     requiring four fields it had never checked. */
+  const repo = fixtureRepo();
+  const packs = repo.packs;
+  fs.writeFileSync(path.join(packs, "fuel.json"), JSON.stringify({
+    system: "FUEL",
+    controls: [{ name: "Boost pump", positions: ["ON", "OFF"] }],
+    limits: [{ parameter: "Max imbalance", value: "300 lb", note: "Normal" }]
+  }));
+  fs.rmSync(path.join(packs, "electrical.json"));
+
+  const schemaDir = path.join(repo.dir, "core-res", "src", "main", "assets", "schema");
+  fs.mkdirSync(schemaDir, { recursive: true });
+  fs.writeFileSync(path.join(schemaDir, "system_description.schema.json"), JSON.stringify(REAL_SHAPED));
+
+  const out = run(["--android", repo.dir]).out;
+  assert.doesNotMatch(out, /NONE OF THEM BLOCK PARSING/,
+    "the renames are clean but id, description and references are still absent");
+  assert.match(out, /REQUIRED by the schema and genuinely block parsing/);
+  assert.match(out, /BLOCKING\s+limits\[0\]\.id/);
+  assert.match(out, /BLOCKING\s+controls\[0\]\.description/);
+  assert.match(out, /BLOCKING\s+limits\[0\]\.references/);
+});
+
+test("a pack that satisfies the schema does get the all-clear", () => {
+  const repo = fixtureRepo();
+  fs.readdirSync(repo.packs).forEach(function (f) { fs.rmSync(path.join(repo.packs, f)); });
+  fs.writeFileSync(path.join(repo.packs, "fuel.json"), JSON.stringify({
+    system: "FUEL",
+    controls: [{ id: "c1", name: "Boost pump", positions: ["ON"], description: "d", references: ["AFM"] }],
+    limits: [{ id: "l1", parameter: "Max imbalance", value: "300 lb", references: ["AFM"] }]
+  }));
+  const schemaDir = path.join(repo.dir, "core-res", "src", "main", "assets", "schema");
+  fs.mkdirSync(schemaDir, { recursive: true });
+  fs.writeFileSync(path.join(schemaDir, "system_description.schema.json"), JSON.stringify(REAL_SHAPED));
+
+  const out = run(["--android", repo.dir]).out;
+  assert.match(out, /NONE OF THEM BLOCK PARSING/, "renames satisfy it, so it must say so");
+});
+
+/* ------------------------------------- an alias is not a gap */
+
+const ALIAS_KT = `
+enum class AircraftSystem { FUEL, POWERPLANT, ENGINE, IGNITION;
+  fun displayTitle(): String = when (this) {
+    FUEL -> "Fuel"
+    POWERPLANT -> "Powerplant"
+    ENGINE -> "Engine"
+    IGNITION -> "Ignition"
+  } }`;
+
+const ALIAS_REPO_KT = `
+private val SYSTEM_TO_ASSET_BASENAME = mapOf(
+  AircraftSystem.FUEL to "fuel",
+  AircraftSystem.ENGINE to "powerplant",
+  AircraftSystem.IGNITION to "powerplant"
+)`;
+
+test("a system sharing a pack is an alias, not a gap", () => {
+  /*
+    The over-report, and it would have done real harm if acted on: ENGINE,
+    IGNITION and STARTING all point at "powerplant" because there is one
+    powerplant pack, not three. Telling somebody to map ENGINE to "engine" when
+    systems/engine.json does not exist takes that system's content away.
+  */
+  const present = ["fuel", "powerplant"];
+  const gaps = basenameGaps(ALIAS_REPO_KT, ALIAS_KT, present);
+  assert.deepEqual(gaps.map(function (g) { return g.system; }), ["POWERPLANT"],
+    "only the system whose own file exists and is unmapped");
+  assert.equal(gaps.some(function (g) { return g.system === "ENGINE"; }), false);
+  assert.equal(gaps.some(function (g) { return g.system === "IGNITION"; }), false);
+});
+
+test("without the file list it still reports everything, as before", () => {
+  /* Callers that cannot supply the list are not silently given a narrower
+     answer; they get the old behaviour and can judge it themselves. */
+  const gaps = basenameGaps(ALIAS_REPO_KT, ALIAS_KT);
+  assert.ok(gaps.length > 1);
+  assert.ok(gaps.some(function (g) { return g.system === "ENGINE"; }));
+});
+
+test("the run only reports basename gaps for packs that exist", () => {
+  const repo = fixtureRepo();
+  fs.readdirSync(repo.packs).forEach(function (f) { fs.rmSync(path.join(repo.packs, f)); });
+  fs.writeFileSync(path.join(repo.packs, "fuel.json"), JSON.stringify({ system: "FUEL" }));
+  fs.writeFileSync(path.join(repo.packs, "powerplant.json"), JSON.stringify({ system: "POWERPLANT" }));
+
+  const ktDir = path.join(repo.dir, "app", "kotlin");
+  fs.mkdirSync(ktDir, { recursive: true });
+  fs.writeFileSync(path.join(ktDir, "AircraftSystem.kt"), ALIAS_KT);
+  fs.writeFileSync(path.join(ktDir, "SystemContentRepository.kt"), ALIAS_REPO_KT);
+
+  const out = run(["--android", repo.dir, "--kotlin", ktDir]).out;
+  assert.match(out, /POWERPLANT/);
+  assert.doesNotMatch(out, /add\/replace:  AircraftSystem\.ENGINE/);
+  assert.doesNotMatch(out, /add\/replace:  AircraftSystem\.IGNITION/);
+});
+
+test("SystemDescription.kt is looked for in the repo, not under assets", () => {
+  /* It is Kotlin. It does not live in an assets folder, which is why the run
+     reported it missing. */
+  const repo = fixtureRepo();
+  const ktDir = path.join(repo.dir, "app", "src", "main", "kotlin");
+  fs.mkdirSync(ktDir, { recursive: true });
+  fs.writeFileSync(path.join(ktDir, "SystemDescription.kt"),
+    "data class SystemLimit(\n  val id: String,\n  val rationale: String,\n)\n");
+  const schemaDir = path.join(repo.dir, "core-res", "src", "main", "assets", "schema");
+  fs.mkdirSync(schemaDir, { recursive: true });
+  fs.writeFileSync(path.join(schemaDir, "system_description.schema.json"), JSON.stringify(STRICT));
+
+  const out = run(["--android", repo.dir, "--relax-schema"]).out;
+  assert.match(out, /make it:\s+val rationale: String\? = null/);
+  assert.doesNotMatch(out, /SystemDescription\.kt not found/);
+});
+
+test("the suggested Kotlin line would actually compile", () => {
+  /*
+    A real defect: the type regex ran to the end of the line, so a single-line
+    `data class SystemLimit(val rationale: String)` yielded the type "String)"
+    and the tool offered
+    `data class SystemLimit(val rationale: String)? = null` - a line that does
+    not compile, presented as the line to paste. Offering a broken edit is
+    worse than offering none.
+  */
+  const oneLine = fixtureRepo();
+  const ktA = path.join(oneLine.dir, "kt");
+  fs.mkdirSync(ktA, { recursive: true });
+  fs.writeFileSync(path.join(ktA, "SystemDescription.kt"),
+    "data class SystemLimit(val rationale: String)\n");
+  const schemaA = path.join(oneLine.dir, "core-res", "src", "main", "assets", "schema");
+  fs.mkdirSync(schemaA, { recursive: true });
+  fs.writeFileSync(path.join(schemaA, "system_description.schema.json"), JSON.stringify(STRICT));
+
+  const out = run(["--android", oneLine.dir, "--relax-schema", "--kotlin", ktA]).out;
+  const suggested = /make it:\s+(.*)/.exec(out);
+  assert.ok(suggested, "a suggestion must be offered");
+  assert.equal(suggested[1].trim(), "data class SystemLimit(val rationale: String? = null)");
+  assert.doesNotMatch(suggested[1], /String\)\? = null/, "the nullable marker must go on the TYPE");
+
+  /* Balanced parens are a cheap proxy for "this would compile". */
+  const line = suggested[1];
+  assert.equal((line.match(/\(/g) || []).length, (line.match(/\)/g) || []).length);
 });
