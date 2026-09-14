@@ -159,7 +159,8 @@ export async function authorizeWebRequest(context) {
     if (!allowedOwner || normalizeEmail(payload.email) !== allowedOwner) {
       return { ok: false, status: 403, error: "owner_access_revoked" };
     }
-    return { ok: true, payload: payload, role: "owner", plan: "owner", expiresAt: new Date(payload.exp * 1000).toISOString() };
+    /* An owner has no paid period to run out. */
+    return { ok: true, payload: payload, role: "owner", plan: "owner", entitledUntil: null, expiresAt: new Date(payload.exp * 1000).toISOString() };
   }
 
   const record = await getLicense(env, payload.key);
@@ -173,6 +174,14 @@ export async function authorizeWebRequest(context) {
     role: "subscriber",
     plan: record.plan || "desktop",
     record: record,
+    /*
+      The end of the period this subscriber has actually paid for, which is a
+      different thing from the 12-hour session expiry below. Offline access is
+      bounded by it: without that, every check-in pushed the offline window a
+      further 30 days out, so cancelling bought a free month on a device that
+      simply stayed off the network.
+    */
+    entitledUntil: record.expiresAt || null,
     expiresAt: new Date(payload.exp * 1000).toISOString()
   };
 }

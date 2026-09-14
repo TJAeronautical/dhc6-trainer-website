@@ -60,7 +60,7 @@ function runGate(options) {
     setInterval: () => 1,
     clearInterval: () => {},
     addEventListener: () => {},
-    indexedDB: { deleteDatabase: () => {} },
+    indexedDB: { deleted: [], deleteDatabase(name) { this.deleted.push(name); } },
     caches: undefined
   };
 
@@ -117,6 +117,7 @@ function runGate(options) {
     posted: posted,
     get registered() { return state.registered; },
     session: () => sandbox.window.DHC6Session,
+    deletedDatabases: () => windowMock.indexedDB.deleted.slice(),
     accountState: () => {
       const raw = storage.get(APP_STATE_KEY);
       return raw ? JSON.parse(raw) : null;
@@ -182,7 +183,18 @@ test("a server that refuses is authoritative; a server that cannot be reached is
   assert.ok(unreachable.accountState().logbook, "no answer is not the same answer");
 });
 
-test("past the window the app locks, but still does not delete anything", async () => {
+test("past the window the content goes, and the pilot's own work does not", async () => {
+  /*
+    Renamed from "still does not delete anything", which stopped being true on
+    purpose. Keeping the cached corpus meant one month's subscription bought it
+    permanently: the app refused to open it, but it sat in the browser's
+    database for anyone willing to look.
+
+    The two halves have to be separated, not traded off. Content is what was
+    paid for and the period has ended. The drills run on the ramp are the
+    pilot's, have not reached the server, and are exactly what the offline
+    feature exists to allow.
+  */
   const gate = runGate({
     failure: "network",
     storage: {
@@ -194,8 +206,13 @@ test("past the window the app locks, but still does not delete anything", async 
 
   assert.equal(gate.redirects.length, 1, "the app locks");
   assert.match(gate.redirects[0], /offline-expired/, "and says why");
+
+  assert.deepEqual(gate.deletedDatabases(), ["dhc6-protected-content"],
+    "the training content is removed, not merely hidden behind a locked door");
+
   const state = gate.accountState();
-  assert.ok(state.logbook && state.logbook.length === 1, "the ramp drills survive to sync after the next sign-in");
+  assert.ok(state.logbook && state.logbook.length === 1,
+    "the ramp drills survive to sync after the next sign-in");
 });
 
 test("a device that has never verified stays visible rather than bouncing", async () => {

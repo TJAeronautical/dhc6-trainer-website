@@ -24,6 +24,24 @@
   const OFFLINE_KEY = "dhc6.offlineGrant.v1";
   const OFFLINE_GRACE_DAYS = 30;
   const OFFLINE_GRACE_MS = OFFLINE_GRACE_DAYS * 24 * 60 * 60 * 1000;
+  /*
+    How far past the end of a paid period offline access may still run.
+
+    It is not zero, because a pilot can be on a strip with no signal when their
+    subscription renews: the card is charged, but they cannot learn that until
+    they reconnect, and locking them out mid-trip for paying would be the wrong
+    failure. It is not thirty days either, because that is what a lapsed
+    subscriber was getting for free.
+  */
+  const RENEWAL_GRACE_MS = 7 * 24 * 60 * 60 * 1000;
+  /*
+    A window is measured against the device's own clock, which its owner
+    controls. Winding it back is the obvious way to keep a lapsed grant alive,
+    so the highest time ever seen is recorded and a large step backwards is
+    treated as untrustworthy - not by deleting anything, but by requiring one
+    online check. A genuinely wrong clock being corrected costs a sign-in.
+  */
+  const CLOCK_TOLERANCE_MS = 24 * 60 * 60 * 1000;
 
   /* The shell the service worker must hold for the app to start with no
      network. Code only - every byte of training data lives in IndexedDB and is
@@ -55,7 +73,14 @@
     try { await run(); } catch (error) { /* keep going: the next step still matters */ }
   }
 
-  async function clearProtectedCaches() {
+  /*
+    keepProgress: remove the training content but leave this account's own
+    work alone. Used when an offline window runs out, where the content is no
+    longer paid for but the drills run on the ramp have still not reached the
+    server and are the user's, not ours.
+  */
+  async function clearProtectedCaches(options) {
+    const keepProgress = Boolean(options && options.keepProgress);
     await step(async function () {
       if (!("caches" in window) || !window.caches) return;
       const keys = await window.caches.keys();
@@ -81,7 +106,7 @@
     });
     await step(async function () { window.localStorage.removeItem(HINT_KEY); });
     await step(async function () { window.localStorage.removeItem(OFFLINE_KEY); });
-    await step(async function () { clearAccountProgress(); });
+    if (!keepProgress) await step(async function () { clearAccountProgress(); });
   }
 
   /*
@@ -124,11 +149,35 @@
     what lets an expired session keep unsynced drills safe: they belong to this
     account and will still sync once it signs back in.
   */
-  function grantOffline(email) {
+  /*
+    The window is the SHORTER of two things: thirty days from this check, and
+    the end of the paid period plus a week.
+
+    Before, it was only the first, refreshed on every successful verify - so a
+    subscriber who checked in daily always had thirty days banked, and
+    cancelling handed them a free month on any device they kept offline. The
+    entitlement end is what they actually paid for, so that is the ceiling.
+  */
+  function offlineWindowEnd(entitledUntil, now) {
+    const rolling = now + OFFLINE_GRACE_MS;
+    const ends = entitledUntil ? Date.parse(entitledUntil) : NaN;
+    /* No entitlement end (an owner, or a licence that carries no expiry):
+       nothing to cap against, so the rolling window stands. */
+    if (!isFinite(ends)) return rolling;
+    return Math.min(rolling, ends + RENEWAL_GRACE_MS);
+  }
+
+  function grantOffline(email, entitledUntil) {
     const previous = readGrant();
     if (previous && previous.email && email && previous.email !== email) clearAccountProgress();
+    const now = Date.now();
     try {
-      window.localStorage.setItem(OFFLINE_KEY, JSON.stringify({ email: email || "", until: Date.now() + OFFLINE_GRACE_MS }));
+      window.localStorage.setItem(OFFLINE_KEY, JSON.stringify({
+        email: email || "",
+        until: offlineWindowEnd(entitledUntil, now),
+        /* The high-water mark for the clock check. Never allowed to go down. */
+        seen: Math.max(now, (previous && Number(previous.seen)) || 0)
+      }));
     } catch (error) { /* ignore */ }
   }
 
@@ -172,7 +221,7 @@
     current = data;
     offline = null;
     try { window.localStorage.setItem(HINT_KEY, JSON.stringify({ role: data.role, plan: data.plan, expiresAt: data.expiresAt })); } catch (error) { /* ignore */ }
-    grantOffline(data.email);
+    grantOffline(data.email, data.entitledUntil);
     cacheAppShell();
     document.body.classList.remove("subscriber-locked");
     document.body.classList.remove("subscriber-offline");
@@ -213,18 +262,30 @@
   function offlineDecision() {
     const grant = readGrant();
     if (!grant) return { state: "none", grant: null };
-    if (grant.until <= Date.now()) return { state: "expired", grant: grant };
+    const now = Date.now();
+    /* The clock has been wound back past anything this device has seen. The
+       window cannot be trusted, so it has to be re-earned online. */
+    if (grant.seen && now + CLOCK_TOLERANCE_MS < grant.seen) return { state: "expired", grant: grant };
+    if (grant.until <= now) return { state: "expired", grant: grant };
     return { state: "granted", grant: grant };
   }
 
   /*
-    Out of offline window. Send them to sign in, but do NOT clear: the drills
-    they ran on the ramp have not reached the server yet, and destroying them
-    here would lose the very work this feature exists to allow. A sign-in by a
-    different account clears them instead, in grantOffline above.
+    Out of offline window: the period this content was paid for has ended.
+
+    The cached training content goes. Leaving it meant a month's subscription
+    bought the whole corpus permanently - the app would refuse to open it, but
+    it was still sitting in the browser's database for anyone willing to look.
+
+    What does NOT go is this account's own work. The drills they ran on the
+    ramp have not reached the server yet, and destroying those would lose the
+    very thing the offline feature exists to allow. They sync when the account
+    signs back in; a sign-in by a DIFFERENT account clears them, in
+    grantOffline above.
   */
-  function offlineExpired() {
+  async function offlineExpired() {
     if (timer) window.clearInterval(timer);
+    await clearProtectedCaches({ keepProgress: true });
     window.location.replace(signInUrl("offline-expired"));
   }
 
