@@ -13,6 +13,27 @@ export function json(body, status) {
   });
 }
 
+/*
+  Sent with every stored file a subscriber can open in a browser tab: Library
+  documents and protected media.
+
+  The reason is SVG. An .svg is a document, not a picture, and a <script> inside
+  one runs on whatever origin served it. Library uploads accept image/svg+xml and
+  are served `Content-Disposition: inline` from dhc6trainer.com itself, so without
+  this header an uploaded drawing could execute script on our own origin and call
+  the session-gated APIs as whoever opened it. X-Content-Type-Options does not
+  help: image/svg+xml is the correct type, not a sniffed one.
+
+  `sandbox` with neither allow-scripts nor allow-same-origin does two things:
+  script never executes, and the document is treated as an opaque origin, so even
+  a bypass of the first has no same-origin handle on /api. allow-downloads is
+  kept so a pilot can still save a manual out of the PDF viewer.
+
+  This covers every current and future file type rather than blacklisting SVG,
+  which is why it is a header rather than a change to the accepted extensions.
+*/
+export const STORED_FILE_CSP = "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; object-src 'none'; sandbox allow-downloads";
+
 function toHex(buffer) {
   const bytes = new Uint8Array(buffer);
   let out = "";

@@ -51,10 +51,19 @@ export async function settings(ctx) {
       settingsSection("Plan"),
       blueCard([h("div", { class: "t-title-m c-white", text: "Current Plan" }), h("div", { class: "t-body-m mt-4", style: "color:var(--white-secondary)", text: plan + (session.email ? " · " + session.email : "") }), h("div", { class: "t-body-s c-ter mt-6", text: "Web sessions last about 12 hours and are re-validated against your licence every few minutes." })]),
       settingsSection("Offline Access"),
-      navCard("Offline-ready core training", "Bundled procedures, QRH, flashcards, systems notes, diagrams and Technical Lab assets load locally; cloud sync resumes when online.", { icon: ICONS.info }),
+      /*
+        This used to read "Offline-ready core training ... load locally", which
+        was not true and was measured not to be: with the network off, a cold
+        load of /app/ fails with ERR_INTERNET_DISCONNECTED. The content packs
+        really are cached (IndexedDB, below), but the app shell itself is not -
+        /app/ is served `private, no-store` and the service worker deliberately
+        bypasses it, so there is nothing to boot from. What actually works is a
+        connection dropping mid-session, which is worth saying plainly instead.
+      */
+      navCard("Works through a dropped connection", "Procedures, QRH, flashcards, systems notes and diagrams are kept on this device after they first load, so a session keeps working if you lose signal. Starting the app still needs a connection.", { icon: ICONS.info }),
       blueCard([
         h("div", { class: "t-body-s c-sec", text: "Content packs: " + (manifest.published === false ? "not published yet" : (manifest.packs || []).length + " packs · version " + (manifest.version || "—")) }),
-        h("div", { class: "t-body-s c-ter mt-4", text: "Packs are cached in this browser (IndexedDB) after the first load so procedures and study data stay usable offline; they are cleared on sign-out." }),
+        h("div", { class: "t-body-s c-ter mt-4", text: "Packs are cached in this browser (IndexedDB) after the first load, so an open session keeps working without a connection. They are cleared on sign-out." }),
         h("div", { class: "row gap-8 wrap mt-8" }, [
           outlinedButton("Refresh content", function () { clearContentCache().then(function () { return Content.loadManifest(); }).then(function () { ctx.toast("Content refreshed"); render(); }).catch(function () { ctx.toast("Unable to refresh right now"); }); }, { small: true }),
           outlinedButton("Clear local progress", function () { if (window.confirm("Clear local logbook, SRS progress, pins and recent items on this device?")) { Store.clearProgress(); ctx.toast("Local progress cleared"); render(); } }, { small: true })

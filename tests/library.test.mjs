@@ -23,7 +23,8 @@ import { onRequestGet as libGet, onRequestPost as libPost, onRequestDelete as li
 import {
   sanitizeRecord, sanitizeRecords, normalizeDocId, makeDocId, contentTypeFor, canPublish,
   objectKeyFor, usedBytes, parseRange, readPrivateIndex, readPublishedIndex,
-  PRIVATE_R2_PREFIX, PUBLISHED_R2_PREFIX, LIBRARY_KV_PREFIX, DOC_TYPES, LIMITS, accountIdFor
+  PRIVATE_R2_PREFIX, PUBLISHED_R2_PREFIX, LIBRARY_KV_PREFIX, DOC_TYPES, LIMITS, accountIdFor,
+  CONTENT_TYPES
 } from "../functions/api/library/_store.js";
 import { createWebSession, createOwnerWebSession, SESSION_COOKIE } from "../functions/api/web-access/_session.js";
 import worker from "../worker.js";
@@ -33,6 +34,9 @@ const SECRET = "test-signing-secret";
 const ORIGIN = "https://dhc6trainer.com";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = (p) => fs.readFileSync(path.join(root, p), "utf8");
+/* Source-scanning assertions must not trip over the explanatory comments in the
+   file they are scanning - that has cost three false failures already. */
+const stripComments = (s) => s.replace(/\/\*[\s\S]*?\*\//g, "").replace(/(^|[^:])\/\/.*$/gm, "$1");
 
 function libraryEnv(license, extra) {
   const env = envWithLicense(license, extra);
@@ -207,6 +211,56 @@ test("a document round-trips: upload, list, fetch, remove", async () => {
   assert.deepEqual((await after.json()).privateShelf.items, []);
   const gone = await libGet({ request: get("/api/library/doc/private/" + docId, cookie), env: env });
   assert.equal(gone.status, 404);
+});
+
+test("an uploaded SVG is a document, and is served so it cannot run script", async () => {
+  const env = libraryEnv();
+  const cookie = await cookieFor();
+
+  /* image/svg+xml is an executable document type. The Library accepts it, the
+     document endpoint serves it `inline` from our own origin, and a <script>
+     inside it would therefore run on dhc6trainer.com with the reader's session
+     and could call /api/logbook, /api/library and /api/content as them. This
+     was confirmed in a real browser before the header below was added.
+
+     X-Content-Type-Options does not help here: image/svg+xml is the correct
+     type, not a sniffed one. Only the CSP stops it. */
+  assert.equal(CONTENT_TYPES.svg, "image/svg+xml", "SVG is still accepted, so the header still has a job");
+
+  const added = await uploadOne(env, cookie, { fileName: "diagram.svg", title: "Bleed air schematic" });
+  assert.equal(added.status, 201);
+  const fetched = await libGet({ request: get("/api/library/doc/private/" + added.body.document.docId, cookie), env: env });
+  assert.equal(fetched.status, 200);
+  assert.equal(fetched.headers.get("Content-Type"), "image/svg+xml");
+
+  const csp = fetched.headers.get("Content-Security-Policy") || "";
+  assert.match(csp, /\bsandbox\b/, "the document is sandboxed");
+  assert.ok(!/allow-scripts/.test(csp), "allow-scripts would restore the whole vulnerability");
+  assert.ok(!/allow-same-origin/.test(csp), "without it the sandbox is an opaque origin, so /api is unreachable even if script ran");
+  assert.match(csp, /default-src 'none'/, "nothing loads by default");
+  assert.match(csp, /object-src 'none'/, "no plugin content");
+  assert.equal(fetched.headers.get("X-Content-Type-Options"), "nosniff");
+});
+
+test("the same header covers every stored file, not just the type that provoked it", async () => {
+  const env = libraryEnv();
+  const cookie = await cookieFor();
+
+  /* A blacklist of SVG would be wrong: the next accepted type would arrive
+     unprotected. Every document the store can hand back carries the header. */
+  for (const fileName of ["otter.pdf", "panel.png", "notes.md", "weights.csv", "plate.webp"]) {
+    const added = await uploadOne(env, cookie, { fileName: fileName });
+    assert.equal(added.status, 201, fileName + " uploads");
+    const fetched = await libGet({ request: get("/api/library/doc/private/" + added.body.document.docId, cookie), env: env });
+    assert.match(fetched.headers.get("Content-Security-Policy") || "", /\bsandbox\b/, fileName + " is sandboxed too");
+  }
+
+  /* allow-downloads is deliberate: a pilot must still be able to save the
+     manual out of the browser's PDF viewer. Verified in Chromium - the viewer
+     still mounts and the drawing in an SVG still renders; only script is gone. */
+  const added = await uploadOne(env, cookie, { fileName: "afm.pdf" });
+  const fetched = await libGet({ request: get("/api/library/doc/private/" + added.body.document.docId, cookie), env: env });
+  assert.match(fetched.headers.get("Content-Security-Policy") || "", /allow-downloads/);
 });
 
 test("one account can never list or fetch another account's documents", async () => {
@@ -514,6 +568,25 @@ test("a hub's status describes the hub, not the worst of its tiles", () => {
     "Study Card Review is still Partial - browse works, the authoring lanes stay app-only");
   assert.match(read("app/js/screens/study.js"), /title: "Flashcards"[^)]*status: feature\("study-cards"\)\.status/,
     "and the Flashcards tile still renders its own status rather than a hardcoded one");
+});
+
+test("Settings does not promise an offline start the app cannot deliver", () => {
+  const src = stripComments(read("app/js/screens/misc.js"));
+
+  /* Measured, not assumed: with the network off, a cold load of /app/ fails
+     with ERR_INTERNET_DISCONNECTED. /app/ is served `private, no-store` and
+     sw.js bypasses it by design, so there is no cached shell to boot from.
+     The content packs in IndexedDB are real - they carry an open session
+     through a dropped connection - but they cannot start one. */
+  assert.ok(!/Offline-ready/i.test(src), "the app cannot start offline, so it must not claim to be offline-ready");
+  assert.ok(!/load locally/i.test(src), "the shell does not load locally");
+  assert.ok(!/stay usable offline/i.test(src), "an open session survives; a new one cannot be started");
+  assert.match(src, /Starting the app still needs a connection/, "the limit is stated where the claim is made");
+
+  /* And the bypass that makes this true is still in place, so the text and the
+     behaviour cannot drift apart without one of these two failing. */
+  const sw = stripComments(read("sw.js"));
+  assert.match(sw, /path === "\/app" \|\| path\.startsWith\("\/app\/"\)/, "sw.js still bypasses the app shell");
 });
 
 test("the Library screen keeps the training-support-only statement", () => {

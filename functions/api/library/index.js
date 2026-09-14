@@ -22,7 +22,7 @@
   working on a deployment where the binding has not been added.
 */
 
-import { json } from "../_shared.js";
+import { json, STORED_FILE_CSP } from "../_shared.js";
 import { authorizeWebRequest } from "../web-access/_session.js";
 import {
   accountIdFor, bucket, kv, canPublish, contentTypeFor, makeDocId, normalizeDocId,
@@ -111,6 +111,10 @@ export async function onRequestGet(context) {
   const headers = protectedHeaders({
     "Content-Type": record.contentType,
     "Content-Disposition": disposition,
+    /* Uploaded by a subscriber, opened in a tab on our own origin. See
+       STORED_FILE_CSP: without this an uploaded SVG is executable script. */
+    "Content-Security-Policy": STORED_FILE_CSP,
+    "X-Content-Type-Options": "nosniff",
     "ETag": head.httpEtag || '"' + head.etag + '"',
     "Accept-Ranges": "bytes"
   });
