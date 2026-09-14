@@ -11,6 +11,7 @@
 import { json } from "../_shared.js";
 import { authorizeWebRequest } from "../web-access/_session.js";
 import { PACK_ID_PATTERN, readManifest, readPack } from "./_store.js";
+import { watermarkFor, stampPack } from "../_watermark.js";
 
 function protectedJson(body, status) {
   return new Response(typeof body === "string" ? body : JSON.stringify(body), {
@@ -43,7 +44,13 @@ export async function onRequestGet(context) {
     if (!PACK_ID_PATTERN.test(id)) return json({ ok: false, error: "bad_pack_id" }, 400);
     const raw = await readPack(context.env, id);
     if (!raw) return json({ ok: false, error: "pack_not_found" }, 404);
-    return protectedJson(raw);
+    /* Stamp the copy with the account that asked for it, so a dump that turns
+       up elsewhere points back at a source. See _watermark.js: this cannot
+       stop a subscriber copying content, and is not meant to. If the signing
+       secret is unset the pack is served unstamped rather than withheld -
+       training content must not go dark over a missing environment variable. */
+    const watermark = await watermarkFor(context.env, auth);
+    return protectedJson(watermark ? stampPack(raw, watermark) : raw);
   }
 
   return json({ ok: false, error: "api_route_not_found" }, 404);

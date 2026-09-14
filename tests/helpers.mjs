@@ -16,7 +16,24 @@ export function memoryKv(initial) {
       return value;
     },
     async put(key, value) { map.set(key, value instanceof Uint8Array || value instanceof ArrayBuffer ? new Uint8Array(value) : String(value)); },
-    async delete(key) { map.delete(key); }
+    async delete(key) { map.delete(key); },
+    /* Cloudflare KV's prefix listing, including the cursor paging, so code
+       that walks the store is exercised against more than one page. */
+    async list(options) {
+      const opts = options || {};
+      const prefix = opts.prefix || "";
+      const limit = Math.max(1, Math.min(1000, Number(opts.limit) || 1000));
+      const all = Array.from(map.keys()).filter(function (key) { return key.startsWith(prefix); }).sort();
+      const start = opts.cursor ? all.indexOf(opts.cursor) + 1 : 0;
+      const page = all.slice(start, start + limit);
+      const last = page.length ? page[page.length - 1] : null;
+      const complete = start + page.length >= all.length;
+      return {
+        keys: page.map(function (name) { return { name: name }; }),
+        list_complete: complete,
+        cursor: complete ? undefined : last
+      };
+    }
   };
 }
 

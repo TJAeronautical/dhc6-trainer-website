@@ -19,6 +19,7 @@ import { onRequestPost as ownerWebAccessSession } from "./functions/api/web-acce
 import { onRequestPost as webAccessLogout } from "./functions/api/web-access/logout.js";
 import { onRequestPost as webAccessRequestLink } from "./functions/api/web-access/request-link.js";
 import { onRequestPost as webAccessLinkSession } from "./functions/api/web-access/link-session.js";
+import { onRequestPost as ownerWatermark } from "./functions/api/owner/watermark.js";
 import { onRequestGet as protectedContent } from "./functions/api/content/index.js";
 import { onRequestGet as protectedMedia } from "./functions/api/media/index.js";
 import { onRequestGet as qrhEditsGet, onRequestPut as qrhEditsPut, onRequestDelete as qrhEditsDelete } from "./functions/api/qrh-edits/index.js";
@@ -44,6 +45,7 @@ export const API_ROUTES = [
   "/api/web-access/logout",
   "/api/web-access/request-link",
   "/api/web-access/link-session",
+  "/api/owner/watermark",
   "/api/content/manifest",
   "/api/content/pack/:id",
   "/api/media/index",
@@ -92,6 +94,7 @@ async function routeApi(context) {
   if (method === "POST" && path === "/api/web-access/logout") return webAccessLogout(context);
   if (method === "POST" && path === "/api/web-access/request-link") return webAccessRequestLink(context);
   if (method === "POST" && path === "/api/web-access/link-session") return webAccessLinkSession(context);
+  if (method === "POST" && path === "/api/owner/watermark") return ownerWatermark(context);
   if (method === "GET" && (path === "/api/content/manifest" || path.startsWith("/api/content/pack/"))) return protectedContent(context);
   if ((method === "GET" || method === "HEAD") && (path === "/api/media" || path.startsWith("/api/media/"))) return protectedMedia(context);
   if (path === "/api/qrh-edits" || path.startsWith("/api/qrh-edits/")) {
