@@ -158,10 +158,36 @@ export function activationLimitFromPlan(plan) {
   return 3;
 }
 
+/*
+  One unreadable record must not take an endpoint down.
+
+  A licence written by hand through `wrangler kv key put --path` picked up a
+  UTF-8 byte order mark, because Windows PowerShell's `-Encoding utf8` writes
+  one. JSON.parse threw on the invisible leading character, the exception
+  escaped, and every /api/billing/status and /api/web-access/request-link call
+  for that address returned 500 - for a single malformed row.
+
+  A record that cannot be read is treated as a record that is not there:
+  callers already handle null by refusing access, which is the safe direction.
+  The BOM itself is stripped first, since it is a harmless encoding artefact
+  rather than corruption, and a licence should not be lost to one.
+*/
+export function parseLicenseRecord(raw) {
+  if (!raw) return null;
+  const text = String(raw).replace(/^﻿/, "").trim();
+  if (!text) return null;
+  try {
+    const record = JSON.parse(text);
+    return record && typeof record === "object" && !Array.isArray(record) ? record : null;
+  } catch (error) {
+    console.warn("licence record is not valid JSON and was ignored: " + (error && error.message));
+    return null;
+  }
+}
+
 export async function getLicense(env, key) {
   if (!env.LICENSES || !key) return null;
-  const raw = await env.LICENSES.get("license:" + normalizeKey(key));
-  return raw ? JSON.parse(raw) : null;
+  return parseLicenseRecord(await env.LICENSES.get("license:" + normalizeKey(key)));
 }
 
 export async function getLicenseByEmail(env, email) {
