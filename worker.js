@@ -49,6 +49,7 @@ export const API_ROUTES = [
   "/api/content/manifest",
   "/api/content/pack/:id",
   "/api/media/index",
+  "/api/media/offline-manifest",
   "/api/media/:path",
   "/api/qrh-edits",
   "/api/qrh-edits/:procedureId",

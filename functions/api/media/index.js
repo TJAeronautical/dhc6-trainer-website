@@ -51,7 +51,34 @@ export async function onRequestGet(context) {
   const url = new URL(request.url);
   const rawPath = url.pathname.replace(/^\/api\/media\/?/, "").replace(/\/+$/, "");
 
+  /* Whether this account may take the whole imagery library to a device. */
+  const paidUp = auth.role === "owner" || !(auth.record && auth.record.trial === true);
+
   if (rawPath === "index" || rawPath === "") {
+    const index = await readMediaIndex(context.env);
+    if (!index) return protectedJson({ ok: true, published: false, items: [], version: null, offlineDownload: paidUp });
+    return protectedJson(Object.assign({ ok: true, published: true, offlineDownload: paidUp }, index));
+  }
+
+  /*
+    GET /api/media/offline-manifest -> the list the bulk downloader works from.
+
+    Deliberately a second endpoint rather than a flag on the index. The index
+    is what the online app uses to know which posters and models exist, so
+    withholding it would break a trial user's diagrams and Technical Lab -
+    exactly the things a trial is meant to show off. This endpoint does
+    nothing for the running app and everything for taking the library away,
+    so it is the one that asks whether the subscription has been paid.
+
+    Honest about what this is: it stops the button, not somebody who writes a
+    script against the index they can legitimately read. Making that slow too
+    means rate-limiting media reads for trial accounts, which needs a real
+    number for how large the published library is - not a guess.
+  */
+  if (rawPath === "offline-manifest") {
+    if (!paidUp) {
+      return json({ ok: false, error: "trial_offline_unavailable" }, 403);
+    }
     const index = await readMediaIndex(context.env);
     if (!index) return protectedJson({ ok: true, published: false, items: [], version: null });
     return protectedJson(Object.assign({ ok: true, published: true }, index));

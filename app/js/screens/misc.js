@@ -45,8 +45,17 @@ function offlineImageryCard(ctx, rerender) {
     try {
       index = await readIndex();
     } catch (error) {
+      /* A trial is refused the manifest, not the app: everything here still
+         works online, including these same diagrams. Say that, rather than
+         "sign in again", which would send someone round a loop they cannot
+         win. */
+      const trial = error && error.reason === "trial_offline_unavailable";
       paint([h("div", { class: "t-body-s c-sec", text: "Diagrams and cockpit imagery" }),
-        h("div", { class: "t-body-s c-ter mt-4", text: error && (error.status === 401 || error.status === 403) ? "Sign in again to manage the offline download." : "Cannot reach the media library right now. Try again when you have a connection." })]);
+        h("div", { class: "t-body-s c-ter mt-4", text: trial
+          ? "Offline download starts once your first payment goes through. Diagrams and the cockpit work normally online during the trial."
+          : error && (error.status === 401 || error.status === 403)
+            ? "Sign in again to manage the offline download."
+            : "Cannot reach the media library right now. Try again when you have a connection." })]);
       return;
     }
     if (!index.published) {
