@@ -421,6 +421,7 @@ export const FEATURES = [
   { id: "technical-lab", title: "Technical Lab", route: "#/systems/lab", status: "available", desc: "Systems Lab: aircraft explorer, 21 reference-library / Android 3D models (PT6A-27, governor, fuel, hydraulics, flap, gear, …) with pins, live readout, faults and notes (SystemsLabHomeScreen / SystemsLabSection). Models stream from the protected media store." },
   { id: "library", title: "Library", route: "#/library/home", status: "available", desc: "Sources (your own uploaded manuals, checklists and notes) and Published (the shared shelf) served from R2 behind the session gate, with upload, in-browser viewing and removal (LibraryHubScreen / SourcesScreen / PublishedContentScreen). Import — Android's on-device PDF extraction into draft procedures — stays in the app." },
   { id: "import", title: "Import", route: "#/library/import", status: "available", desc: "Read a PDF or text document in the browser and turn it into flashcards, or - with the Instructor plan - a QRH draft. The file is never uploaded. Android's image OCR stays in the app." },
+  { id: "tutorial", title: "App Tutorial", route: "#/tutorial", status: "available", desc: "A guided tour of procedures, QRH, drills, the cockpit and settings, replayable from Settings › Help (SettingsScreen tutorial replay)." },
   { id: "settings", title: "Settings", route: "#/settings", status: "available", desc: "Account, plan, display, audio, cockpit variant (SettingsScreen)." }
 ];
 export function feature(id) { return FEATURES.find(function (f) { return f.id === id; }); }

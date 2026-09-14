@@ -310,7 +310,7 @@ export async function settings(ctx) {
       settingsSection("Audio"),
       toggleCard("Sound", Store.get("soundEnabled") !== false ? "Audio cues enabled" : "Audio cues muted", Store.get("soundEnabled") !== false, function (on) { Store.set("soundEnabled", on); render(); }),
       settingsSection("Help"),
-      navCard("App Tutorial", "Replay the quick guide for procedures, QRH, drill, cockpit and settings.", { icon: ICONS.help, trailing: statusPill("later") }),
+      navCard("App Tutorial", "Replay the quick guide for procedures, QRH, drill, cockpit and settings.", { icon: ICONS.help, href: "#/tutorial" }),
       settingsSection("Privacy"),
       navCard("Share diagnostics", "The web app sends no analytics or crash reports. Only the licence check and content requests reach the server.", { icon: ICONS.lock }),
       settingsSection("Cockpit Mode"),
