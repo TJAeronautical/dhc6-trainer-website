@@ -201,7 +201,17 @@ test("the Aircraft State routes are registered and every cockpit screen it impor
 
   const core = fs.readFileSync(path.join(root, "app", "js", "core.js"), "utf8");
   assert.match(core, /id: "aircraft-state"[^}]*status: "available"/, "the Aircraft State tile is no longer a COMING LATER stub");
-  for (const status of ["available", "partial", "later"]) assert.ok(core.includes('status: "' + status + '"'), "the tile status vocabulary stays intact: " + status);
+  /*
+    The vocabulary must stay DEFINED, which is not the same as every word being
+    in use. This used to assert each status string appeared in the registry,
+    and the oral exam shipping emptied the "later" set - a good outcome that
+    read as a regression. What matters is that the labels still exist for the
+    next feature that needs them.
+  */
+  for (const status of ["available", "partial", "later", "blocked", "locked"]) {
+    assert.match(core, new RegExp("STATUS_LABEL[\\s\\S]*?\\b" + status + ":"), "the tile status vocabulary stays intact: " + status);
+  }
+  assert.match(core, /status: "available"/, "and the registry still uses it");
   const misc = fs.readFileSync(path.join(root, "app", "js", "screens", "misc.js"), "utf8");
   assert.doesNotMatch(misc, /Aircraft State[\s\S]{0,200}Coming later/i, "the old Aircraft State placeholder is gone");
 });

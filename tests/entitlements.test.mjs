@@ -409,21 +409,44 @@ test("the app knows what the plan includes, and says so", () => {
 test("an unbuilt feature says Coming later, never Upgrade", async () => {
   /*
     The commercially convenient lie this prevents: telling somebody to buy a
-    tier for a screen nobody can use yet. The oral exam is the live example -
-    its endpoint is secured and entitled, but the screen has not been built, so
-    a PRO account that HOLDS AI_TRAINER must still read "Coming later".
+    tier for a screen nobody can use yet.
+
+    The oral exam used to be the live example - entitled but unbuilt. It
+    shipped, and with it the registry ran out of unbuilt features that require
+    an entitlement, which left this rule with no fixture. Rather than let the
+    coverage lapse quietly, or pin it to whichever row happens to be unfinished
+    next, the rule is exercised against a feature added for the length of the
+    test. FEATURES is a plain exported array, so this is the real function
+    making the real decision.
   */
   const core = await import("../app/js/core.js");
   core.Entitlements.set(PRO_ENTITLEMENTS, PRO);
-  assert.equal(core.feature("oral-exam").requires, AI_TRAINER);
   assert.ok(PRO_ENTITLEMENTS.indexOf(AI_TRAINER) >= 0, "this tier does hold it");
-  assert.equal(core.featureStatus("oral-exam"), "later", "unbuilt beats entitled, in both directions");
+
+  core.FEATURES.push({ id: "test-unbuilt", title: "Unbuilt", route: "#/nowhere", requires: AI_TRAINER, status: "later", desc: "" });
+  try {
+    assert.equal(core.featureStatus("test-unbuilt"), "later", "unbuilt beats entitled");
+    /* The half that actually costs money if it breaks: a tier that does NOT
+       hold the entitlement must still be told the screen does not exist,
+       rather than be sold an upgrade for it. */
+    core.Entitlements.set(["BASIC_STUDY"], "FREE");
+    assert.equal(core.featureStatus("test-unbuilt"), "later", "unbuilt is never an upsell");
+  } finally {
+    core.FEATURES.pop();
+    core.Entitlements.set(PRO_ENTITLEMENTS, PRO);
+  }
+
+  /* And the oral exam, now that it is built, reads as available to a tier that
+     holds AI_TRAINER rather than staying stuck on its old status. */
+  assert.equal(core.feature("oral-exam").requires, AI_TRAINER);
+  assert.equal(core.featureStatus("oral-exam"), "available");
   assert.equal(core.featureStatus("technical-lab"), "available");
   assert.equal(core.featureStatus("not-a-feature"), "later");
 
-  /* And a built feature the tier lacks does read as locked. */
+  /* A BUILT feature the tier lacks is the case where "Upgrade" is honest. */
   core.Entitlements.set(["BASIC_STUDY"], "FREE");
-  assert.equal(core.featureStatus("oral-exam"), "later", "still unbuilt, so still not an upsell");
+  assert.equal(core.featureStatus("oral-exam"), "locked", "built and unowned is a real upsell");
+  assert.equal(core.featureLockedTier("oral-exam"), PRO, "and it names the cheapest plan that has it");
 });
 
 test("before the session answers, nothing is drawn as locked", async () => {
