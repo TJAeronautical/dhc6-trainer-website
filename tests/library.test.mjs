@@ -457,6 +457,57 @@ test("the Library client never caches a document and never guesses a path", () =
   assert.doesNotMatch(src, /localStorage/, "documents are session data, not browser state");
 });
 
+/* ------------------------------------------------- search over the Library */
+
+test("documentMatches searches the fields a reader would type", async () => {
+  const { documentMatches } = await import("../app/js/screens/study.js");
+  const entry = { shelf: "private", doc: { title: "Twin Otter AFM", fileName: "otter-afm-rev4.pdf", note: "Section 3 performance", docType: "MANUAL" } };
+  ["twin otter", "afm", "rev4", "performance", "manual"].forEach((q) => {
+    assert.ok(documentMatches(entry, q), "should match on " + q);
+  });
+  assert.ok(!documentMatches(entry, "hydraulic"), "and not on something absent");
+  assert.ok(!documentMatches(null, "afm"));
+  assert.ok(!documentMatches({}, "afm"));
+});
+
+test("search reads the Library and degrades to nothing when it cannot", () => {
+  const src = read("app/js/screens/study.js");
+  const fn = src.slice(src.indexOf("async function libraryDocuments"), src.indexOf("export function documentMatches"));
+  assert.match(fn, /\/api\/library/);
+  assert.match(fn, /cache: "no-store"/);
+  // A search screen must never fail because the Library is unconfigured or down.
+  assert.match(fn, /catch \(error\) \{ return \[\]; \}/);
+  assert.match(fn, /data\.configured/, "an unconfigured Library contributes no results");
+});
+
+test("a document result opens in its own tab, not in the router", () => {
+  const src = read("app/js/screens/study.js");
+  assert.match(src, /external: true/);
+  assert.match(src, /r\.external \? \{ href: r\.href, target: "_blank" \}/);
+  const ui = read("app/js/ui.js");
+  assert.match(ui, /attrs\.target = o\.target; attrs\.rel = "noopener"/, "and without handing the new tab an opener");
+});
+
+test("Search no longer claims the Library is missing from it", () => {
+  const src = read("app/js/screens/study.js");
+  const fn = src.slice(src.indexOf("export async function knowledgeSearch"));
+  assert.ok(!/Published-library and imported-source search arrive with the Library phase/.test(fn),
+    "that banner outlived the Library phase");
+  assert.ok(!/statusPill\("partial"\)/.test(fn), "and the screen is no longer Partial");
+  const core = read("app/js/core.js");
+  assert.match(core, /id: "search"[^}]*status: "available"/);
+});
+
+test("Knowledge names the one reason it is still Partial", () => {
+  const core = read("app/js/core.js");
+  const entry = core.slice(core.indexOf('id: "study"'), core.indexOf('id: "search"'));
+  assert.match(entry, /status: "partial"/);
+  assert.match(entry, /Flashcards/, "the remaining reason is named");
+  assert.ok(!/Search \(does not yet cover/.test(entry), "and the closed one is not still listed");
+  // study-cards is what keeps it Partial, so that had better still be Partial.
+  assert.match(core, /id: "study-cards"[^}]*status: "partial"/);
+});
+
 test("the Library screen keeps the training-support-only statement", () => {
   const src = read("app/js/screens/library.js");
   assert.match(src, /not an approved AFM, QRH, MEL, company manual or checklist/);

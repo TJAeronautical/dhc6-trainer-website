@@ -24,7 +24,13 @@ export function blueCard(children, opts) {
   const o = opts || {};
   if (o.onClick || o.href) {
     const attrs = { class: "blue-card clickable" + (o.class ? " " + o.class : "") };
-    if (o.href) { attrs.href = o.href; return h("a", attrs, children); }
+    if (o.href) {
+      attrs.href = o.href;
+      /* A Library document is served by the API, not the router: it opens in a
+         tab of its own rather than replacing the app. */
+      if (o.target) { attrs.target = o.target; attrs.rel = "noopener"; }
+      return h("a", attrs, children);
+    }
     attrs.type = "button"; attrs.onclick = o.onClick;
     return h("button", attrs, children);
   }
