@@ -7,6 +7,7 @@
 import { h, Store, currentVariant, variantLabel, nextVariant, feature, featureStatus } from "../core.js";
 import { screen, blueCard, libraryDivider, tile, featureTile, severityPill, bubble } from "../ui.js";
 import { computeInsights } from "../logic/insights.js";
+import { firstRunCard } from "./tutorial.js";
 
 const PRIMARY_FAMILIES = [
   { title: "Procedures", color: "var(--tile-procedures)", href: "#/systems" },
@@ -97,6 +98,10 @@ export async function dashboard(ctx) {
   ]);
 
   return screen({ title: "DHC-6 Trainer", library: true, header: header }, [
+    /* Offered once, above the fold, and dismissible. A forced modal is the
+       thing people close without reading, which is also how they never find
+       the tour again. */
+    firstRunCard(ctx),
     dashboardCard,
     h("div", { class: "mt-4" }), libraryDivider(), h("div", { class: "mt-4" }),
     quickLaunch,
