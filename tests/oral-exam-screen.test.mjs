@@ -326,3 +326,85 @@ test("no aviation figure is authored in this feature", () => {
     assert.doesNotMatch(body, /\b\d+\s*(kt|kts|knots|lb|lbs|kg|psi|°C|degC|ft\b|rpm|%\s*NG|%\s*NP)/i);
   });
 });
+
+/* ------------------------------------------------- the null that shipped */
+
+/*
+  A stray "null" appeared under the status pill on the live Oral Exam screen.
+
+  `replaceChildren()` takes `(Node or DOMString)...`, so a JavaScript null is
+  not skipped - it converts to the STRING "null" and is inserted as a text
+  node. Every screen in this app builds children with `cond ? node : null`,
+  which is exactly right inside h() (it filters them) and exactly wrong as a
+  direct argument to replaceChildren.
+
+  The Oral Exam showed it every time because its refusal card is null on first
+  paint. Three other screens carried the same latent defect - Import, QRH
+  manual edit and Aircraft State - waiting for a conditional to be false.
+
+  So this walks the whole app rather than the screen that happened to expose
+  it. Remembering to use paint() is not a plan; this is.
+*/
+test("no screen can hand a null to replaceChildren", async () => {
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const url = await import("node:url");
+  const appRoot = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), "..", "app");
+
+  function closingIndex(src, open) {
+    let depth = 0;
+    for (let i = open; i < src.length; i++) {
+      const c = src[i];
+      if (c === "(" || c === "[" || c === "{") depth++;
+      else if (c === ")" || c === "]" || c === "}") { depth--; if (depth === 0) return i; }
+    }
+    return -1;
+  }
+  function topLevelArgs(inner) {
+    const out = [];
+    let depth = 0, cur = "";
+    for (const c of inner) {
+      if (c === "(" || c === "[" || c === "{") depth++;
+      else if (c === ")" || c === "]" || c === "}") depth--;
+      if (c === "," && depth === 0) { out.push(cur); cur = ""; } else cur += c;
+    }
+    if (cur.trim()) out.push(cur);
+    return out;
+  }
+  function walk(dir) {
+    return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) return entry.name === "vendor" ? [] : walk(full);
+      return entry.name.endsWith(".js") ? [full] : [];
+    });
+  }
+
+  const offenders = [];
+  for (const file of walk(appRoot)) {
+    const src = fs.readFileSync(file, "utf8");
+    const pattern = /\.replaceChildren\s*\(/g;
+    let match;
+    while ((match = pattern.exec(src)) !== null) {
+      const open = src.indexOf("(", match.index);
+      const end = closingIndex(src, open);
+      if (end < 0) continue;
+      topLevelArgs(src.slice(open + 1, end)).forEach((arg) => {
+        const trimmed = arg.trim();
+        if (/:\s*null\s*$/.test(trimmed) || trimmed === "null") {
+          offenders.push(path.relative(appRoot, file) + ": " + trimmed.replace(/\s+/g, " ").slice(0, 70));
+        }
+      });
+    }
+  }
+  assert.deepEqual(offenders, [], "a null argument is inserted as the text 'null' - build the list and pass it through paint()");
+});
+
+test("paint drops what is not there, and keeps what is", async () => {
+  const { paint } = await import("../app/js/ui.js");
+  const kept = [];
+  const root = { replaceChildren: function () { kept.push(Array.from(arguments)); } };
+  paint(root, ["a", null, "b", undefined, false, "c"]);
+  assert.deepEqual(kept[0], ["a", "b", "c"]);
+  paint(root, null);
+  assert.deepEqual(kept[1], [], "a single null is dropped, not stringified");
+});

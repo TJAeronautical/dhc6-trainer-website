@@ -21,7 +21,7 @@
 */
 
 import { h, Store, Content, Entitlements, currentVariant, feature } from "../core.js";
-import { screen, blueCard, backBubble, statusPill, outlinedButton, matButton, settingsSection } from "../ui.js";
+import { screen, blueCard, backBubble, statusPill, outlinedButton, matButton, settingsSection, paint } from "../ui.js";
 import { extractLines, looksLikeProcedure, toCards, toDraftSteps } from "../logic/import.js";
 import { isPdf, isText, extractPdfText, readTextFile } from "../pdftext.js";
 import { saveEdit, canEdit } from "../qrhedits.js";
@@ -181,7 +181,7 @@ export async function importScreen(ctx) {
         : h("div", { class: "t-body-s c-ter mt-8", text: "Creating a QRH draft is part of the Instructor plan." })
     ];
 
-    root.replaceChildren(
+    paint(root, [
       h("div", { class: "row wrap gap-8" }, [statusPill(feature("import").status)]),
 
       blueCard([
@@ -224,7 +224,7 @@ export async function importScreen(ctx) {
         h("div", { class: "t-body-s c-sec", text: "Training support only" }),
         h("div", { class: "t-body-s c-ter mt-4", text: "Imported material is a copy of your own document, extracted by software. It does not replace the approved AFM, QRH, MEL, company manuals, approved checklists or any regulatory or operator documentation. Check every imported item against the approved source before using it." })
       ])
-    );
+    ]);
   }
 
   render();

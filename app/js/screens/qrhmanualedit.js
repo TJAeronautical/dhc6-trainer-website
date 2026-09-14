@@ -12,7 +12,7 @@
   long as the subscription is active.
 */
 import { h, Content, navigate, Store } from "../core.js";
-import { screen, blueCard, bubble, backBubble, notice, primaryButton, outlinedButton, contentUnavailable, selectableChip } from "../ui.js";
+import { screen, blueCard, bubble, backBubble, notice, primaryButton, outlinedButton, contentUnavailable, selectableChip, paint } from "../ui.js";
 import * as P from "../logic/procedures.js";
 import { procedureById } from "../data.js";
 import { ITEM_KINDS, ITEM_KIND_LABEL, ROLE_TAGS, emptyStep, draftFromDetail, cleanDraft, validateDraft, applyStructure, autoStructure, controlById, defaultFlowRole, normalizedMemorySteps, normalizedFlowSteps } from "../logic/qrhedit.js";
@@ -191,7 +191,7 @@ export async function qrhManualEdit(ctx) {
   function render() {
     const warnings = validateDraft(catalog, draft);
     const blocking = warnings.filter(function (w) { return w.level === "error"; });
-    root.replaceChildren(
+    paint(root, [
       h("div", { class: "row between wrap gap-8" }, [bubble("light", "Back", { href: backHref }), saved ? h("span", { class: "badge", text: "Edited" }) : null]),
       blueCard([
         h("div", { class: "t-headline-s w-bold c-white", text: "Manual QRH Edit" }),
@@ -219,7 +219,7 @@ export async function qrhManualEdit(ctx) {
       saved ? h("div", { class: "mt-8" }, outlinedButton("Reset to the published procedure", revert, { block: true, disabled: state.busy })) : null,
       h("p", { class: "t-body-s c-ter mt-10", text: "Training support only. Anything you author here is your own material and does not replace the approved AFM, QRH, MEL, company manuals, approved checklists or regulatory/operator documentation." }),
       h("div", { class: "spacer-24" })
-    );
+    ]);
   }
 
   render();

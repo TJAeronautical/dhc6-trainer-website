@@ -43,7 +43,12 @@ function procedureIdFrom(url) {
 async function authorize(context) {
   const auth = await authorizeWebRequest(context);
   if (!auth.ok) return { response: json({ ok: false, error: auth.error }, auth.status) };
-  return { auth: auth, accountId: await accountIdFor(auth) };
+  /* accountIdFor returns null when it cannot identify the caller. Refusing is
+     the only safe answer: the alternative is hashing an empty seed, which puts
+     every unidentifiable caller in one shared namespace. */
+  const accountId = await accountIdFor(auth);
+  if (!accountId) return { response: json({ ok: false, error: "account_unidentified" }, 403) };
+  return { auth: auth, accountId: accountId };
 }
 
 export async function onRequestGet(context) {

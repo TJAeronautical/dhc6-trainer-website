@@ -35,19 +35,18 @@ export const LIMITS = {
 function str(v) { return v == null ? "" : String(v); }
 function clip(v, max) { return str(v).trim().slice(0, max); }
 
+/*
+  Re-exported so the Library, the Logbook and this editor keep importing their
+  account id from where they always have. The implementation moved to
+  ../_account.js - it is not a QRH concept, and it was silently collapsing every
+  Android account into one namespace. See that file.
+*/
+export { accountIdFor, accountSeed } from "../_account.js";
+
 async function sha256Hex(value) {
   const bytes = new TextEncoder().encode(value);
   const digest = await crypto.subtle.digest("SHA-256", bytes);
   return Array.from(new Uint8Array(digest)).map(function (b) { return b.toString(16).padStart(2, "0"); }).join("");
-}
-
-/* Stable per-account id. Owner and subscriber namespaces never collide. */
-export async function accountIdFor(auth) {
-  const payload = (auth && auth.payload) || {};
-  const seed = auth && auth.role === "owner"
-    ? "owner:" + str(payload.email).trim().toLowerCase()
-    : "license:" + str(payload.key).trim().toUpperCase();
-  return (await sha256Hex(seed)).slice(0, 32);
 }
 
 /*

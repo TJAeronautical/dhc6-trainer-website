@@ -7,7 +7,7 @@
     FrozenSnapshotScreen.kt         -> frozenSnapshot     (#/scenario/focus/:id/:phase)
 */
 import { h, Store, Content, currentVariant, variantLabel, navigate, feature } from "../core.js";
-import { screen, blueCard, tile, bubble, backBubble, selectableChip, searchField, statusPill, notice, emptyState, contentUnavailable, withSearchFocus, primaryButton, outlinedButton } from "../ui.js";
+import { screen, blueCard, tile, bubble, backBubble, selectableChip, searchField, statusPill, notice, emptyState, contentUnavailable, withSearchFocus, primaryButton, outlinedButton, paint } from "../ui.js";
 import { openEditStateSheet, canEditScenarioState } from "./scenarioedit.js";
 import { CONTEXTS, contextByRouteKey, scenarioItems, scenarioMetaFor, allowedContextsFor, scenarioEntryRoute, scenarioTileArt, cleanScenarioProcedureTitle, CONTEXT_PRESETS } from "../logic/cockpit/scenarios.js";
 import { PHASES, buildScenarioBundle, snapshotVisualState, phaseSummaryText, summaryLines, regionsFor, displayFocusTarget, visibleControls } from "../logic/cockpit/snapshot.js";
@@ -519,7 +519,7 @@ export async function frozenSnapshot(ctx) {
     elSummaryTarget = targets.length ? h("div", { class: "t-body-s c-sec", text: "Focus target  " + displayFocusTarget(targets[selected]) }) : null;
     elPrev = outlinedButton("Previous", function () { selectTarget(selected - 1); }, { block: true, disabled: selected <= 0 });
     elNext = outlinedButton("Next", function () { selectTarget(selected + 1); }, { block: true, disabled: selected >= targets.length - 1 });
-    root.replaceChildren(
+    paint(root, [
       h("div", { class: "row between wrap gap-8" }, [
         bubble("light", "Back", { onClick: function () { window.history.back(); } }),
         h("div", { class: "t-title-m w-bold c-white", text: "Focus Snapshot" })
@@ -571,7 +571,7 @@ export async function frozenSnapshot(ctx) {
         outlinedButton("Close", function () { window.history.back(); }, { block: true })
       ]),
       disclaimer()
-    );
+    ]);
   }
   render();
   applyFocus(syncZoom);
