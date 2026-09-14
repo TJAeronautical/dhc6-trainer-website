@@ -6,7 +6,7 @@
   the ported screens from the protected content packs (/api/content/*).
 */
 
-import { APP_VERSION, h, Store, Content, route, match, parseHash, navigate, currentVariant, variantLabel, owningTab } from "./js/core.js";
+import { APP_VERSION, h, Store, Content, route, match, parseHash, navigate, currentVariant, variantLabel, owningTab, Entitlements, tierLabel } from "./js/core.js";
 import { ICONS } from "./js/ui.js";
 import { dashboard } from "./js/screens/dashboard.js";
 import { procedureLibrary, procedureDetail, qrhHub, qrhList } from "./js/screens/procedures.js";
@@ -163,7 +163,17 @@ function setSessionChip(state, text) {
 function applySession(data) {
   data = data || {};
   if (data.ok) {
-    setSessionChip(data.role === "owner" ? "owner" : "active", data.role === "owner" ? "Owner" : "Subscriber · " + String(data.plan || "").replace(/_/g, " "));
+    /*
+      What this plan includes. Re-rendering matters: the first paint happens
+      before verify answers, so without it a tier-gated tile would keep
+      whatever status it was drawn with until the user navigated away.
+    */
+    const before = Entitlements.known() ? String(Entitlements.tier) : "";
+    Entitlements.set(data.entitlements, data.tier);
+    if (Entitlements.known() && String(Entitlements.tier) !== before) {
+      try { render(); } catch (error) { /* the first paint has not run yet */ }
+    }
+    setSessionChip(data.role === "owner" ? "owner" : "active", data.role === "owner" ? "Owner" : tierLabel(data.tier) + " · Subscriber");
     railSync.dataset.state = "ok"; railSyncValue.textContent = "Up to date";
   } else if (data.offline) {
     /* Say how long this device may keep working without reaching the server,

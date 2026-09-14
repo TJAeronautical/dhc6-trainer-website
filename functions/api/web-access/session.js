@@ -9,6 +9,7 @@
 import { json, getLicense, isExpired, normalizeEmail, normalizeKey } from "../_shared.js";
 import { createWebSession, rateLimitAllows, sameOriginRequest, sessionCookie } from "./_session.js";
 import { claimSeat, describeSeats, signOutOtherSeats } from "./_seats.js";
+import { entitlementsForTier, tierForPlan } from "../_entitlements.js";
 
 const KEY_PATTERN = /^DHC6-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/;
 
@@ -65,10 +66,14 @@ export async function seatedSessionResponse(context, record, options) {
     }, 403);
   }
 
-  return sessionResponse(session, record.plan || "desktop", "subscriber", {
+  const plan = record.plan || "desktop";
+  const tier = tierForPlan(plan);
+  return sessionResponse(session, plan, "subscriber", {
     deviceId: claim.deviceId,
     seatLimit: claim.limit,
-    seatsUsed: claim.seats.length
+    seatsUsed: claim.seats.length,
+    tier: tier,
+    entitlements: entitlementsForTier(tier)
   });
 }
 

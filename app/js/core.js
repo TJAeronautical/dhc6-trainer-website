@@ -357,7 +357,43 @@ export function variantSubtitle(v) { return v === "LEGACY" ? "Analog / classic c
 /* Android feature inventory with the browser port status. Status legend:
    available = fully usable from Android data/logic · partial = usable, port in progress ·
    later = present in Android, not yet in the browser · blocked = needs a decision/source. */
-export const STATUS_LABEL = { available: "Available", partial: "Partial", later: "Coming later", blocked: "Blocked" };
+export const STATUS_LABEL = { available: "Available", partial: "Partial", later: "Coming later", blocked: "Blocked", locked: "Upgrade" };
+
+/*
+  What this account may actually use.
+
+  Populated from /api/web-access/verify, which derives it from the live licence
+  record - so it is a mirror of a server decision, never the decision itself.
+  Every endpoint re-checks; hiding a tile is a courtesy to the user, not a
+  security control.
+
+  `null` means "not known yet". The app must not flash a lock on a feature the
+  subscriber has paid for while the first verify is still in flight, so an
+  unknown state shows the registry status and the dashboard re-renders once the
+  answer arrives.
+*/
+let granted = null;
+export const Entitlements = {
+  set: function (list, tier) {
+    granted = Array.isArray(list) ? list.slice() : null;
+    Entitlements.tier = tier || null;
+    return granted;
+  },
+  known: function () { return granted !== null; },
+  has: function (name) { return granted === null || granted.indexOf(name) >= 0; },
+  tier: null
+};
+
+/* The cheapest plan that includes a capability, for the "needs Instructor" copy. */
+export const TIER_LABEL = { FREE: "Free", PRO: "Premium", INSTRUCTOR: "Instructor", ENTERPRISE: "Enterprise" };
+const ENTITLEMENT_TIER = {
+  INSTRUCTOR_TOOLS: "INSTRUCTOR", CONTENT_AUTHORING: "INSTRUCTOR",
+  QRH_MANUAL_EDIT: "INSTRUCTOR", CORPORATE_REPORTS: "INSTRUCTOR",
+  COCKPIT_DEBUG_TOOLS: "ENTERPRISE", CONTENT_PACK_MANAGEMENT: "ENTERPRISE",
+  ORGANIZATION_MANAGEMENT: "ENTERPRISE"
+};
+export function tierForEntitlement(name) { return ENTITLEMENT_TIER[name] || "PRO"; }
+export function tierLabel(tier) { return TIER_LABEL[String(tier || "").toUpperCase()] || "Premium"; }
 export const FEATURES = [
   { id: "dashboard", title: "Home", route: "#/dashboard", status: "available", desc: "Dashboard, Quick Launch, Training Signals and colour guide (DashboardScreen)." },
   { id: "procedures", title: "Procedures", route: "#/systems", status: "available", desc: "Procedure Library with search, category and normal-subsection filters, pins and drill launch (ProcedureLibraryScreen)." },
@@ -379,15 +415,37 @@ export const FEATURES = [
   { id: "wb", title: "Weight and Balance", route: "#/training/weight-balance", status: "available", desc: "Load sheet, seat map, CG arm / %MAC and envelope chart (WeightBalanceCalculator)." },
   { id: "logbook", title: "Debrief Logbook", route: "#/training/logbook", status: "available", desc: "Search, filters, five sort modes, the Scenario Debrief detail screen and a printable export (LogbookScreen / LogbookDetailScreen / LogbookPdfExporter). Entries sync to the signed-in account through /api/logbook, so they follow the account between browsers and devices and survive cleared site data." },
   { id: "readiness", title: "Check Ride Readiness", route: "#/training/competency-dashboard", status: "available", desc: "Drill currency, score trend and overdue procedures, weighted Emergency 40% / Abnormal 35% / Normal 25% (CompetencyDashboardScreen + CompetencyAnalyzer). Computed from this browser's logbook, as Android computes it from the device logbook." },
-  { id: "oral-exam", title: "Oral Exam - Premium", route: "#/training/oral-exam", status: "later", desc: "AI examiner (needs a web-session-gated proxy for /api/ai/oral-exam)." },
+  { id: "oral-exam", title: "Oral Exam - Premium", route: "#/training/oral-exam", requires: "AI_TRAINER", status: "later", desc: "AI examiner (needs a web-session-gated proxy for /api/ai/oral-exam)." },
   { id: "crm", title: "CRM Drill", route: "#/training/crm-drill", status: "available", desc: "PF/PM callout pacing over four source procedures, eight drills, with the other seat spoken aloud (CrmDrillScreen). The scenario MCC flow drill under AIRCRAFT runs the same crew-flow steps against the cockpit." },
   { id: "systems", title: "Systems", route: "#/systems/home", status: "available", desc: "Aircraft Systems: 35 system tiles, the bundled AFM/FCTM reference packs, 27 reference diagrams from the protected media store and the interactive 2D component pins (AircraftSystemsHomeScreen / SystemDetailScreen / Interactive2dDiagramViewer). Imported user knowledge cards stay app-only." },
   { id: "technical-lab", title: "Technical Lab", route: "#/systems/lab", status: "available", desc: "Systems Lab: aircraft explorer, 21 reference-library / Android 3D models (PT6A-27, governor, fuel, hydraulics, flap, gear, …) with pins, live readout, faults and notes (SystemsLabHomeScreen / SystemsLabSection). Models stream from the protected media store." },
   { id: "library", title: "Library", route: "#/library/home", status: "available", desc: "Sources (your own uploaded manuals, checklists and notes) and Published (the shared shelf) served from R2 behind the session gate, with upload, in-browser viewing and removal (LibraryHubScreen / SourcesScreen / PublishedContentScreen). Import — Android's on-device PDF extraction into draft procedures — stays in the app." },
-  { id: "import", title: "Import", route: "#/library/import", status: "later", desc: "Android's on-device PDF extraction into draft procedures and knowledge cards." },
+  { id: "import", title: "Import", route: "#/library/import", requires: "CONTENT_AUTHORING", status: "later", desc: "Android's on-device PDF extraction into draft procedures and knowledge cards." },
   { id: "settings", title: "Settings", route: "#/settings", status: "available", desc: "Account, plan, display, audio, cockpit variant (SettingsScreen)." }
 ];
 export function feature(id) { return FEATURES.find(function (f) { return f.id === id; }); }
+
+/*
+  The status to SHOW for a feature, which is not always the status it has.
+
+  A feature this plan does not include reads "Upgrade" rather than its port
+  status, because "Available" on something the account cannot open is worse
+  than useless. A feature that is not built yet stays "Coming later" whatever
+  the plan - telling somebody to upgrade for a thing nobody can use would be a
+  lie in the commercially convenient direction.
+*/
+export function featureStatus(id) {
+  const f = feature(id);
+  if (!f) return "later";
+  if (f.status !== "available" && f.status !== "partial") return f.status;
+  if (f.requires && !Entitlements.has(f.requires)) return "locked";
+  return f.status;
+}
+
+export function featureLockedTier(id) {
+  const f = feature(id);
+  return f && f.requires ? tierForEntitlement(f.requires) : null;
+}
 
 /* Tile artwork shipped from core-res/drawable-nodpi (converted to webp). */
 export function tileUrl(name) { return "/app/assets/tiles/" + name + ".webp"; }

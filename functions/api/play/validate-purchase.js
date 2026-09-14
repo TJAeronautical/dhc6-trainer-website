@@ -1,4 +1,8 @@
 import { json } from "../_shared.js";
+/* The tier model is shared with the web app - see functions/api/_entitlements.js.
+   It used to live here, which is why the web side had no access to it. */
+import { entitlementsForTier, maxTier } from "../_entitlements.js";
+import { firestoreDocumentUrl, readCurrentEntitlements } from "../_mobile_shared.js";
 import {
   GOOGLE_API_SCOPES,
   firestoreArray,
@@ -14,47 +18,9 @@ import {
 } from "../_mobile_shared.js";
 
 const PLAY_BASE = "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/";
-const FIRESTORE_BASE = "https://firestore.googleapis.com/v1/projects/";
 const PRODUCT_TYPE_SUBS = "subs";
 const PRODUCT_TYPE_INAPP = "inapp";
 const VALIDATION_SOURCE_SERVER = "SERVER_VALIDATED";
-
-const FREE_ENTITLEMENTS = ["BASIC_STUDY", "FLASHCARD_SELF_ENTRY"];
-const PRO_ENTITLEMENTS = [
-  "BASIC_STUDY",
-  "FULL_STUDY",
-  "SYSTEMS_LAB_3D",
-  "FLASHCARD_SELF_ENTRY",
-  "AI_TRAINER",
-  "QRH_DRILLS",
-  "ADVANCED_SCENARIOS",
-  "CLOUD_SYNC",
-  "TRAINING_INTELLIGENCE"
-];
-const INSTRUCTOR_ENTITLEMENTS = PRO_ENTITLEMENTS.concat([
-  "INSTRUCTOR_TOOLS",
-  "CONTENT_AUTHORING",
-  "QRH_MANUAL_EDIT",
-  "CORPORATE_REPORTS"
-]);
-const ENTERPRISE_ENTITLEMENTS = [
-  "BASIC_STUDY",
-  "FULL_STUDY",
-  "SYSTEMS_LAB_3D",
-  "FLASHCARD_SELF_ENTRY",
-  "QRH_DRILLS",
-  "AI_TRAINER",
-  "ADVANCED_SCENARIOS",
-  "CLOUD_SYNC",
-  "TRAINING_INTELLIGENCE",
-  "COCKPIT_DEBUG_TOOLS",
-  "QRH_MANUAL_EDIT",
-  "CONTENT_PACK_MANAGEMENT",
-  "INSTRUCTOR_TOOLS",
-  "CONTENT_AUTHORING",
-  "ORGANIZATION_MANAGEMENT",
-  "CORPORATE_REPORTS"
-];
 
 const ALL_TRAINING_PACKS = [
   "built-in-cockpit-familiarisation",
@@ -116,21 +82,6 @@ const PRODUCTS = {
     entitlements: ["BASIC_STUDY", "FULL_STUDY", "QRH_DRILLS"]
   }
 };
-
-function tierRank(tier) {
-  return { FREE: 0, PRO: 1, INSTRUCTOR: 2, ENTERPRISE: 3 }[tier] || 0;
-}
-
-function maxTier(a, b) {
-  return tierRank(a) >= tierRank(b) ? a : b;
-}
-
-function entitlementsForTier(tier) {
-  if (tier === "ENTERPRISE") return ENTERPRISE_ENTITLEMENTS;
-  if (tier === "INSTRUCTOR") return INSTRUCTOR_ENTITLEMENTS;
-  if (tier === "PRO") return PRO_ENTITLEMENTS;
-  return FREE_ENTITLEMENTS;
-}
 
 function productEntitlements(product) {
   return Array.from(new Set(entitlementsForTier(product.tier).concat(product.entitlements || [])));
@@ -252,26 +203,6 @@ async function verifyPlayPurchase(env, requestBody) {
     autoRenewing: state.autoRenewing,
     expiryMillis: state.expiryMillis,
     play: playResponse.data
-  };
-}
-
-function firestoreDocumentUrl(env, uid) {
-  return FIRESTORE_BASE +
-    encodeURIComponent(env.FIREBASE_PROJECT_ID) +
-    "/databases/(default)/documents/users/" +
-    encodeURIComponent(uid) +
-    "/entitlements/current";
-}
-
-async function readCurrentEntitlements(env, uid) {
-  const response = await googleJson(env, firestoreDocumentUrl(env, uid), { method: "GET" }, GOOGLE_API_SCOPES);
-  if (!response.ok) return { tier: "FREE", entitlements: [], ownedPackIds: [], ownedBillingProductIds: [] };
-  const fields = response.data.fields || {};
-  return {
-    tier: parseFirestoreString(fields.tier) || "FREE",
-    entitlements: parseFirestoreArray(fields.entitlements),
-    ownedPackIds: parseFirestoreArray(fields.ownedPackIds),
-    ownedBillingProductIds: parseFirestoreArray(fields.ownedBillingProductIds)
   };
 }
 
