@@ -19,7 +19,7 @@ import { MEDIA_KV_PREFIX } from "../functions/api/media/_store.js";
 import { createWebSession, createOwnerWebSession, SESSION_COOKIE } from "../functions/api/web-access/_session.js";
 import { authorizeMobileRequest, hasMobileBearer } from "../functions/api/_mobile_session.js";
 import { entitlementsFor, tierFor, hasEntitlement, FREE, PRO, SYSTEMS_LAB_3D } from "../functions/api/_entitlements.js";
-import { seedForFirebaseUid, watermarkFromSeed } from "../functions/api/_watermark.js";
+import { seedForFirebaseUid, watermarkFromSeed, stampModel } from "../functions/api/_watermark.js";
 import { activeLicense, envWithLicense, memoryKv, mockFetch, jsonResponse, jsonRequest, TEST_SERVICE_ACCOUNT_KEY } from "./helpers.mjs";
 
 const ORIGIN = "https://dhc6trainer.com";
@@ -357,6 +357,64 @@ test("the owner can check a Firebase uid against a stamp, and is told when a wal
   A document nobody can verify rots into the same problem it was written to
   solve, so the facts it states about the gate are checked against the gate.
 */
+test("the verification rule the contract prints actually verifies a stamped model", async () => {
+  /*
+    This test exists because the rule in that document was WRONG, and an Android
+    session implemented what it said.
+
+    It told the client to hash the first `model.bytes` bytes of the response and
+    compare against the registry hash - while also, two lines earlier, correctly
+    saying the GLB header's declared length is rewritten. Both cannot be true.
+    Those bytes are inside the prefix, so the check fails on every model, and the
+    documented symptom is VERIFICATION_FAILED with no model on screen: all 21
+    would have been discarded.
+
+    So the document is no longer merely written. The code below is the rule as
+    printed, executed against a really stamped model, and it is run for several
+    account seeds because the stamp's LENGTH varies with the seed while the
+    prefix must not.
+  */
+  const crypto = await import("node:crypto");
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const url = await import("node:url");
+  const repo = path.resolve(path.dirname(url.fileURLToPath(import.meta.url)), "..");
+  const contract = fs.readFileSync(path.join(repo, "ANDROID_CLIENT_CONTRACT.md"), "utf8");
+
+  /* The document must still tell the client to undo the header bump. */
+  assert.match(contract, /offset 8/, "the contract must name the header field that is rewritten");
+  assert.match(contract, /restore the source's declared length/, "and say to restore it before hashing");
+  assert.doesNotMatch(contract, /^sha256\( first model\.bytes bytes of the response \) == model\.sha256$/m,
+    "the old rule must not reappear: it fails on every model");
+
+  const gltf = Buffer.from(JSON.stringify({ asset: { version: "2.0" }, nodes: [{ name: "PT6A27_AGB" }] }), "utf8");
+  const pad = (4 - (gltf.length % 4)) % 4;
+  const jsonLen = gltf.length + pad;
+  const source = Buffer.alloc(12 + 8 + jsonLen, 0x20);
+  source.writeUInt32LE(0x46546c67, 0); source.writeUInt32LE(2, 4); source.writeUInt32LE(source.length, 8);
+  source.writeUInt32LE(jsonLen, 12); source.writeUInt32LE(0x4e4f534a, 16); gltf.copy(source, 20);
+
+  const bytes = source.length;
+  const sha256 = crypto.createHash("sha256").update(source).digest("hex");
+
+  for (const seed of ["3e756966d5a26531", "b26d45c0b2d3c584", "a"]) {
+    const body = Buffer.from(stampModel(new Uint8Array(source), seed));
+    assert.ok(body.length > bytes, "the delivered body is longer than the registry bytes");
+
+    /* Naive: hash the prefix as it arrives. This is what the old rule said. */
+    const naive = crypto.createHash("sha256").update(body.subarray(0, bytes)).digest("hex");
+    assert.notEqual(naive, sha256, "if this ever matches, the header is no longer bumped and the doc needs revisiting");
+
+    /* The rule as the contract now prints it. */
+    const head = Buffer.from(body.subarray(0, bytes));
+    head.writeUInt32LE(bytes, 8);
+    assert.equal(crypto.createHash("sha256").update(head).digest("hex"), sha256,
+      "the documented rule must reproduce the source file for seed " + seed);
+
+    assert.equal(body.length - bytes, body.length - bytes, "the remainder is the account stamp");
+  }
+});
+
 test("the Android contract document cannot drift from the code it describes", async () => {
   const fs = await import("node:fs");
   const path = await import("node:path");

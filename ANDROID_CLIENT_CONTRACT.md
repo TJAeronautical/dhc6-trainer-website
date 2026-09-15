@@ -69,16 +69,32 @@ Authorization: Bearer <Firebase ID token>
 ```
 
 Every `.glb` is watermarked per account before it is sent, so the delivered body
-is **longer than the registry `bytes`** and its whole-file hash will never
-match. The stamp is appended after the source bytes and the GLB header length is
-bumped, so verify:
+is **longer than the registry `bytes`** and its whole-file hash will never match.
+Two things change: the stamp chunk is appended after the source bytes, **and the
+GLB header's declared total length at offset 8 is rewritten** to cover it.
+
+That second change is easy to miss, and missing it breaks every model. Hashing
+the first `model.bytes` bytes as they arrive does NOT reproduce the source file —
+those bytes differ from it at offsets 8..11, so the check fails on all 21 models
+and each one is discarded with `VERIFICATION_FAILED` and no model on screen.
+
+Undo the header bump first, then hash:
 
 ```
-sha256( first model.bytes bytes of the response ) == model.sha256
+if (body.length < model.bytes) -> discard
+head = copy of body[0 .. model.bytes)      // a copy: do not edit the response
+writeUInt32LE(head, offset 8, model.bytes)  // restore the source's declared length
+sha256(head) == model.sha256
 ```
 
-and treat the remainder as the account stamp. A short body or a mismatched
-prefix should be discarded rather than handed to the viewer.
+`head` is then byte-identical to the file in the reference library, and
+`body[model.bytes ..]` is the account stamp. A short body or a mismatched hash
+should be discarded rather than handed to the viewer.
+
+An earlier revision of this document prescribed the check without the header
+restore. It was wrong, and `tests/mobile-media.test.mjs` now executes the rule
+written above against a really stamped model so this paragraph cannot be wrong
+again without failing the suite.
 
 Ranges are refused on models (`Accept-Ranges: none`): a range into a stamped
 body would be measured against the wrong length, and serving it unstamped would
