@@ -345,6 +345,36 @@ test("Paddle legal pages and primary footer links are published", () => {
   assert.match(sitemap, /refund\.html/);
 });
 
+test("the published refund terms state the window and every route a buyer can use", () => {
+  /*
+    These four sentences are the owner's own wording, published to customers as
+    a consumer-law commitment. A later edit that tidies the page and drops the
+    window, or leaves only the email route, would quietly narrow what buyers
+    were promised - and nothing else in the suite would notice. So they are
+    pinned here rather than trusted to survive a rewrite.
+  */
+  const refund = fs.readFileSync(path.join(root, "refund.html"), "utf8");
+  assert.match(refund, /request a refund within 14 days of the transaction date/i,
+    "the 14-day request window must stay on the page");
+  assert.match(refund, /in accordance with Paddle’s applicable refund policy and consumer protection requirements/i);
+  assert.match(refund, /statutory consumer withdrawal and refund rights remain unaffected/i);
+
+  /* All three self-service routes, not just the one that reaches our inbox. */
+  for (const route of [/support link in (?:their|your) Paddle receipt/i, /Paddle customer portal/i, /href="https:\/\/paddle\.net"/]) {
+    assert.match(refund, route, `a buyer route is missing: ${route}`);
+  }
+
+  /*
+    Section 6 lists what is normally not refundable, and its first entry -
+    changing your mind - is exactly what a 14-day window allows. If that
+    section ever stops deferring to the window, the page contradicts itself on
+    the one point a customer is most likely to rely on.
+  */
+  const notRefundable = refund.slice(refund.indexOf("6. Requests That Are Normally Not Refundable"));
+  assert.match(notRefundable.slice(0, 600), /except within the 14-day Paddle request window/i,
+    "section 6 must defer to the 14-day window it would otherwise contradict");
+});
+
 test("service worker precache paths exist", () => {
   const sw = fs.readFileSync(path.join(root, "sw.js"), "utf8");
   const entries = Array.from(sw.matchAll(/^\s*"(\/[^"]+)"[,]?$/gm), (m) => m[1]);
