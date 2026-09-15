@@ -30,7 +30,7 @@ import crypto from "node:crypto";
 import { fileURLToPath } from "node:url";
 /* The GLB reader, so the build can see what a model actually contains rather
    than only how big it is. */
-import { summarise } from "./inspect-glb.mjs";
+import { summarise, checkSelectors } from "./inspect-glb.mjs";
 
 function arg(name, fallback) {
   const index = process.argv.indexOf("--" + name);
@@ -72,13 +72,28 @@ function sha256File(bytes) {
   from 82 clips to 1 and woodward-csu from 19 to 1; publishing either before its
   entry is re-authored would put eighty-odd dead buttons in front of a pilot.
 */
-function deadClipsIn(model, bytes) {
-  const declared = model.animations;
-  if (!Array.isArray(declared) || !declared.length) return [];
+function deadRefsIn(model, bytes) {
   const read = summarise(bytes);
   if (!read.ok) return [];          /* unreadable is the hash check's problem, not this one */
-  const actual = new Set(read.animations);
-  return declared.filter((name) => !actual.has(name));
+
+  const dead = [];
+  const declared = Array.isArray(model.animations) ? model.animations : [];
+  if (declared.length) {
+    const actual = new Set(read.animations);
+    declared.forEach((name) => { if (!actual.has(name)) dead.push("clip " + name); });
+  }
+
+  /*
+    Pins are the same failure wearing a different hat. A `parts` or `extraParts`
+    selector that resolves to nothing is a dot a pilot can tap that does
+    nothing - no error, no warning - and publishing is what makes it live.
+    `hidden` is excluded on purpose: a hygiene rule with nothing left to hide is
+    the library getting cleaner, not a fault.
+  */
+  checkSelectors(model, read.nodeNames).dead.forEach((entry) => {
+    if (entry.where !== "hidden") dead.push(entry.where + " " + entry.selector);
+  });
+  return dead;
 }
 
 function locate(model) {
@@ -99,7 +114,7 @@ const sh = ["#!/usr/bin/env bash", "# Upload the Technical Lab models to R2 (run
 let missing = 0;
 let mismatched = 0;
 let totalBytes = 0;
-const deadClips = [];
+const deadRefs = [];
 
 for (const model of registry.models) {
   const file = locate(model);
@@ -114,12 +129,12 @@ for (const model of registry.models) {
   const sha = sha256File(buffer);
   const status = sha === model.sha256 ? "ok" : "HASH-CHANGED";
   if (status !== "ok") mismatched += 1;
-  const dead = deadClipsIn(model, buffer);
-  if (dead.length) deadClips.push({ id: model.id, file: model.file, clips: dead });
+  const dead = deadRefsIn(model, buffer);
+  if (dead.length) deadRefs.push({ id: model.id, file: model.file, refs: dead });
   totalBytes += bytes;
-  report.push((dead.length ? "DEAD-CLIPS" : status).padEnd(12) + model.file.padEnd(48) + String(bytes).padStart(10) + "  " + file);
+  report.push((dead.length ? "DEAD-REFS" : status).padEnd(12) + model.file.padEnd(48) + String(bytes).padStart(10) + "  " + file);
   if (dead.length) {
-    report.push("".padEnd(12) + dead.length + " declared clip(s) are not in this file, e.g. " + dead.slice(0, 2).join(", "));
+    report.push("".padEnd(12) + dead.length + " declared reference(s) are not in this file, e.g. " + dead.slice(0, 2).join(", "));
   }
   const mediaPath = model.mediaPath || (registry.mediaRoot + "/" + model.file);
   items.push({ path: mediaPath, bytes: bytes, sha256: sha, contentType: "model/gltf-binary", store: "r2", modelId: model.id, title: model.title });
@@ -198,14 +213,15 @@ const publishable = [
   path.join(outDir, "upload-media.sh")
 ];
 
-if (deadClips.length && !allowMissing) {
+if (deadRefs.length && !allowMissing) {
   const removed = publishable.filter((file) => fs.existsSync(file));
   removed.forEach((file) => fs.rmSync(file));
-  const total = deadClips.reduce((n, entry) => n + entry.clips.length, 0);
-  console.error("\n" + total + " declared clip(s) across " + deadClips.length + " model(s) are not in the files — NOTHING WAS WRITTEN TO UPLOAD.");
-  console.error("  Unlike a changed hash, this does not correct itself on publish: the Lab plays animations");
-  console.error("  from the registry's list, so a clip the file has lost becomes a button that does nothing.");
-  deadClips.forEach((entry) => console.error("    " + entry.id.padEnd(24) + entry.clips.length + " dead"));
+  const total = deadRefs.reduce((n, entry) => n + entry.refs.length, 0);
+  console.error("\n" + total + " declared reference(s) across " + deadRefs.length + " model(s) are not in the files — NOTHING WAS WRITTEN TO UPLOAD.");
+  console.error("  Unlike a changed hash, this does not correct itself on publish: the Lab draws its pins and");
+  console.error("  plays its animations from the registry, so a name the file has lost becomes a dot or a");
+  console.error("  button that does nothing.");
+  deadRefs.forEach((entry) => console.error("    " + entry.id.padEnd(24) + entry.refs.length + " dead: " + entry.refs.slice(0, 2).join(", ")));
   console.error("  Re-author those entries against the files first (tools/inspect-glb.mjs --json), or pass");
   console.error("  --allow-missing if you intend to publish them as they are.");
   if (removed.length) console.error("  Removed " + removed.length + " stale upload file(s) so they cannot be published by mistake.");

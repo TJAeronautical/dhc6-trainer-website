@@ -19,6 +19,7 @@ import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { selectorMatches } from "../app/js/logic/systemslab.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const registry = JSON.parse(fs.readFileSync(path.join(root, "tools", "data", "systems-lab-models.json"), "utf8"));
@@ -171,8 +172,47 @@ test("the report and the index are always written, because they are what you rea
   buttons in front of a pilot.
 */
 
-function glbWithClips(names) {
-  const gltf = { asset: { version: "2.0" }, animations: names.map((n) => ({ name: n })) };
+/*
+  Node names that satisfy every pin a model declares, or null when a selector
+  cannot be satisfied by construction. The guard now checks pins as well as
+  clips, so a fixture that supplies clips and no nodes is a file with every pin
+  dead - which is exactly what the guard should refuse, and not what the clip
+  tests are about.
+
+  Each candidate is checked with the app's own matcher rather than assumed:
+  a fixture that quietly fails to satisfy a selector would turn these into
+  tests of the guard again.
+*/
+function satisfyingNodes(model) {
+  const selectors = [].concat(
+    ...Object.values(model.parts || {}),
+    ...(model.extraParts || []).map((e) => e.selectors || [])
+  );
+  const names = [];
+  for (const selector of selectors) {
+    let candidate;
+    if (selector[0] === "~") {
+      candidate = selector.slice(1)
+        .replace(/^\^/, "").replace(/\$$/, "")
+        .replace(/\\\./g, ".")
+        .replace(/\[0-9\]/g, "0")
+        .replace(/\[[^\]]*\]/g, "A")
+        .replace(/[*+?()|]/g, "");
+    } else {
+      candidate = selector.replace(/^=/, "");
+    }
+    if (!selectorMatches(selector, candidate)) return null;
+    names.push(candidate);
+  }
+  return names;
+}
+
+function glbWithClips(names, nodeNames) {
+  const gltf = {
+    asset: { version: "2.0" },
+    animations: names.map((n) => ({ name: n })),
+    nodes: (nodeNames || []).map((n) => ({ name: n }))
+  };
   const json = Buffer.from(JSON.stringify(gltf), "utf8");
   const pad = (4 - (json.length % 4)) % 4;
   const jsonLen = json.length + pad;
@@ -190,7 +230,8 @@ test("a declared clip the file has lost stops the upload", () => {
     assert.ok(model, "the shipped registry must have an entry that declares clips");
     /* The file keeps one real clip and loses the rest - the exact shape of the
        re-export, not an empty file. */
-    fs.writeFileSync(path.join(ws.ref, model.file), glbWithClips([model.animations[0], "SOMETHING_ELSE"]));
+    const nodes = satisfyingNodes(model) || [];
+    fs.writeFileSync(path.join(ws.ref, model.file), glbWithClips([model.animations[0], "SOMETHING_ELSE"], nodes));
 
     const result = build(ws);
     if (model.animations.length < 2) return;   /* nothing was actually lost */
@@ -205,11 +246,15 @@ test("a declared clip the file has lost stops the upload", () => {
 test("a file that has every declared clip publishes normally", () => {
   const ws = workspace();
   try {
+    let written = 0;
     registry.models.forEach((model) => {
-      if ((model.animations || []).length) {
-        fs.writeFileSync(path.join(ws.ref, model.file), glbWithClips(model.animations));
-      }
+      if (!(model.animations || []).length) return;
+      const nodes = satisfyingNodes(model);
+      if (!nodes) return;          /* left unparseable, which the guard ignores */
+      fs.writeFileSync(path.join(ws.ref, model.file), glbWithClips(model.animations, nodes));
+      written += 1;
     });
+    assert.ok(written > 0, "the registry must have a clip-declaring entry this fixture can satisfy");
     const result = build(ws);
     assert.equal(result.status, 0, result.stderr);
     assert.deepEqual(present(ws).sort(), UPLOADABLE.slice().sort());
@@ -220,7 +265,7 @@ test("--allow-missing also covers a deliberate publish of reduced clips", () => 
   const ws = workspace();
   try {
     const model = registry.models.find((m) => (m.animations || []).length > 1);
-    fs.writeFileSync(path.join(ws.ref, model.file), glbWithClips([model.animations[0]]));
+    fs.writeFileSync(path.join(ws.ref, model.file), glbWithClips([model.animations[0]], satisfyingNodes(model) || []));
     const result = build(ws, ["--allow-missing"]);
     assert.equal(result.status, 0, result.stderr);
     assert.deepEqual(present(ws).sort(), UPLOADABLE.slice().sort());
@@ -232,12 +277,51 @@ test("an entry that declares no clips is never reported as having lost any", () 
   try {
     /* Most entries declare nothing; a file full of clips they never named is
        not a fault, and must not block a publish. */
+    let written = 0;
     registry.models.forEach((model) => {
-      if (!(model.animations || []).length) {
-        fs.writeFileSync(path.join(ws.ref, model.file), glbWithClips(["UNDECLARED_A", "UNDECLARED_B"]));
-      }
+      if ((model.animations || []).length) return;
+      const nodes = satisfyingNodes(model);
+      if (!nodes) return;
+      fs.writeFileSync(path.join(ws.ref, model.file), glbWithClips(["UNDECLARED_A", "UNDECLARED_B"], nodes));
+      written += 1;
     });
+    assert.ok(written > 0, "the registry must have a clipless entry this fixture can satisfy");
     assert.equal(build(ws).status, 0);
+  } finally { fs.rmSync(ws.dir, { recursive: true, force: true }); }
+});
+
+test("a pin that resolves to nothing stops the upload too", () => {
+  /*
+    Same failure as a dead clip, wearing a different hat: a `parts` selector
+    that finds no node is a dot a pilot can tap that does nothing. The guard
+    covers both because publishing is what makes either one live.
+  */
+  const ws = workspace();
+  try {
+    const model = registry.models.find((m) => Object.values(m.parts || {}).some((list) => list.length));
+    assert.ok(model, "the shipped registry must have an entry with pins");
+    /* Every clip it declares, and none of the nodes its pins name. */
+    fs.writeFileSync(path.join(ws.ref, model.file), glbWithClips(model.animations || [], ["NOTHING_MATCHES_THIS"]));
+
+    const result = build(ws);
+    assert.equal(result.status, 1, "a build that would publish a dead pin must fail");
+    assert.deepEqual(present(ws), [], "nothing publishable may be left behind");
+    assert.match(result.stderr, /parts\.|extraParts\[/, "the message must name where the dead pin lives");
+  } finally { fs.rmSync(ws.dir, { recursive: true, force: true }); }
+});
+
+test("a hygiene rule with nothing left to hide never blocks a publish", () => {
+  /*
+    The distinction phase 52 established, now load-bearing: `hidden` exists to
+    drop archive and donor geometry, so a rule that matches nothing means the
+    export got cleaner. Blocking on it would stop every publish after a tidy-up.
+  */
+  const ws = workspace();
+  try {
+    const model = registry.models.find((m) => (m.hidden || []).length && !Object.values(m.parts || {}).some((l) => l.length));
+    if (!model) return;   /* no such entry shipped; nothing to prove here */
+    fs.writeFileSync(path.join(ws.ref, model.file), glbWithClips(model.animations || [], ["NOTHING_MATCHES_THIS"]));
+    assert.equal(build(ws).status, 0, "a dead hidden rule is not a fault");
   } finally { fs.rmSync(ws.dir, { recursive: true, force: true }); }
 });
 

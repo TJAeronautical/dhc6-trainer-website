@@ -144,17 +144,7 @@
         "~_HEADING$"
       ],
       "clips": {
-        "ANIM_PIVOT_WW_FLYWEIGHT_01ACTION": "Flyweights",
-        "ANIM_PIVOT_WW_FLYWEIGHT_02ACTION": "Flyweights",
-        "ANIM_PIVOT_WW_PILOT_VALVEACTION": "Pilot valve",
-        "ANIM_PIVOT_WW_PUMP_DRIVE_GEARACTION": "Governor oil pump",
-        "ANIM_PIVOT_WW_PUMP_IDLER_GEARACTION": "Governor oil pump",
-        "ANIM_PIVOT_WW_SPEED_ADJUSTING_LEVERACTION": "Speed-adjusting lever",
-        "PT6A27_BASE_CSU_BETA_VALVE_SPOOLACTION": "Beta valve spool",
-        "PT6A27_BASE_FEATHERING_DUMP_VALVE_POPPETACTION": "Feathering dump valve",
-        "ANIM_PIVOT_AIRBLEED_LEVERACTION": "Nf air-bleed lever",
-        "ANIM_PIVOT_RESET_ARMACTION": "Nf reset arm",
-        "PT6A27_BASE_CSU_PILOT_VALVE_STEMACTION": "Pilot valve stem"
+        "CSU_STATE_SEQUENCE": "Governor state sequence"
       },
       "groups": [
         "ANIM_PIVOT_WW_FLYWEIGHT_HEAD",
@@ -168,52 +158,16 @@
         "CSU_ARCHIVE_R4"
       ],
       "mediaPath": "models/systems-lab/DHC6_PT6A27_WOODWARD_CSU_REPLICA.glb",
-      "bytes": 13314684,
-      "sha256": "4b034a4b2eb9d437901c625b7db7a400a7cfeda28c2e320fbc80818463eda7ba",
-      "nodes": 1463,
-      "meshes": 1418,
-      "triangles": 229996,
+      "bytes": 3183704,
+      "sha256": "4b5e42fb192daa1c2816592165787a6abb00038067d63c9f6a334454d8854fed",
+      "nodes": 420,
+      "meshes": 390,
+      "triangles": 50664,
       "animations": [
-        "ANIM_PIVOT_WW_FLYWEIGHT_01ACTION",
-        "ANIM_PIVOT_WW_FLYWEIGHT_02ACTION",
-        "ANIM_PIVOT_WW_PILOT_VALVEACTION",
-        "ANIM_PIVOT_WW_PUMP_DRIVE_GEARACTION",
-        "ANIM_PIVOT_WW_PUMP_IDLER_GEARACTION",
-        "ANIM_PIVOT_WW_SPEED_ADJUSTING_LEVERACTION",
-        "PT6A27_BASE_CSU_BETA_VALVE_SPOOLACTION",
-        "PT6A27_BASE_FEATHERING_DUMP_VALVE_POPPETACTION",
-        "ANIM_PIVOT_AIRBLEED_LEVERACTION",
-        "ANIM_PIVOT_RESET_ARMACTION",
-        "ANIM_PIVOT_FLYWEIGHT_01ACTION",
-        "ANIM_PIVOT_FLYWEIGHT_02ACTION",
-        "ANIM_PIVOT_FLYWEIGHT_03ACTION",
-        "ANIM_PIVOT_GEAR_01ACTION",
-        "ANIM_PIVOT_GEAR_02ACTION",
-        "ANIM_PIVOT_GEAR_03ACTION",
-        "ANIM_PIVOT_GEAR_04ACTION",
-        "ANIM_PIVOT_GEAR_05ACTION",
-        "PT6A27_BASE_CSU_PILOT_VALVE_STEMACTION"
+        "CSU_STATE_SEQUENCE"
       ],
       "extensionsUsed": [],
-      "clipGroups": {
-        "Governor operation": [
-          "ANIM_PIVOT_WW_FLYWEIGHT_01ACTION",
-          "ANIM_PIVOT_WW_FLYWEIGHT_02ACTION",
-          "ANIM_PIVOT_WW_PILOT_VALVEACTION",
-          "ANIM_PIVOT_WW_PUMP_DRIVE_GEARACTION",
-          "ANIM_PIVOT_WW_PUMP_IDLER_GEARACTION",
-          "ANIM_PIVOT_WW_SPEED_ADJUSTING_LEVERACTION",
-          "PT6A27_BASE_CSU_PILOT_VALVE_STEMACTION"
-        ],
-        "Beta / feather": [
-          "PT6A27_BASE_CSU_BETA_VALVE_SPOOLACTION",
-          "PT6A27_BASE_FEATHERING_DUMP_VALVE_POPPETACTION"
-        ],
-        "Nf air-bleed and reset": [
-          "ANIM_PIVOT_AIRBLEED_LEVERACTION",
-          "ANIM_PIVOT_RESET_ARMACTION"
-        ]
-      },
+      "clipGroups": {},
       "parts": {
         "governor_housing": [
           "CSU_R5_EXTERIOR_CASTING",
@@ -341,65 +295,39 @@
         "~_HEADING$"
       ],
       "clips": {
-        "OSG_AUTOFEATHER_SOLENOID_DUMP": "Autofeather solenoid dump",
-        "OSG_FLYWEIGHT_LEFT_OVERSPEED": "Flyweights (overspeed)",
-        "OSG_FLYWEIGHT_RIGHT_OVERSPEED": "Flyweights (overspeed)",
-        "OSG_PILOT_VALVE_OVERSPEED": "Pilot valve (overspeed)",
-        "OSG_TEST_SOLENOID_OPERATION": "Test solenoid"
+        "Overspeed/test/autofeather cycle": "Overspeed, test and autofeather cycle"
       },
       "groups": [
         "ACTUAL_OSG_MASTER_NEW_CASE_ROOT",
         "OSG_ARCHIVE_NOT_IN_SOURCE"
       ],
       "mediaPath": "models/systems-lab/DHC6_PT6A27_WOODWARD_OSG_REPLICA.glb",
-      "bytes": 1205804,
-      "sha256": "25b7afe3bebba3a26d0fe33f8ab7e3b19b5364abace47a9fe3e31da13de0bcdf",
-      "nodes": 87,
-      "meshes": 77,
-      "triangles": 35542,
+      "bytes": 1152140,
+      "sha256": "fbce6e361bbc51dc174113c3b1893bdde941ed8965cf2c4080fd802f95d64d4c",
+      "nodes": 54,
+      "meshes": 48,
+      "triangles": 36006,
       "animations": [
-        "OSG_AUTOFEATHER_SOLENOID_DUMP",
-        "OSG_FLYWEIGHT_LEFT_OVERSPEED",
-        "OSG_FLYWEIGHT_RIGHT_OVERSPEED",
-        "OSG_PILOT_VALVE_OVERSPEED",
-        "OSG_TEST_SOLENOID_OPERATION"
+        "Overspeed/test/autofeather cycle"
       ],
       "extensionsUsed": [],
-      "clipGroups": {
-        "Overspeed response": [
-          "OSG_FLYWEIGHT_LEFT_OVERSPEED",
-          "OSG_FLYWEIGHT_RIGHT_OVERSPEED",
-          "OSG_PILOT_VALVE_OVERSPEED"
-        ],
-        "Autofeather dump": [
-          "OSG_AUTOFEATHER_SOLENOID_DUMP"
-        ],
-        "Test solenoid": [
-          "OSG_TEST_SOLENOID_OPERATION"
-        ]
-      },
+      "clipGroups": {},
       "parts": {
         "overspeed_governor": [
           "OSG_FLYWEIGHT",
           "OSG_SPEEDER",
           "OSG_PILOT",
-          "OSG_MAIN_CAST",
           "OSG_CASTING",
           "OSG_ASSEMBLY",
-          "OSG_COVER",
           "NEW_CASE_OSG",
-          "OSG_ADJUSTMENT",
-          "OSG_SERVO_DUMP_SPOOL_INTERNAL"
+          "OSG_ADJUSTMENT"
         ],
         "overspeed_drain": [
           "OSG_SUMP_DUMP",
-          "OSG_SERVO_DUMP",
           "OSG_SERVO_OIL"
         ],
         "test_solenoid": [
-          "OSG_TEST_SOLENOID",
-          "OSG_TEST_PORT",
-          "OSG_TEST_LEVER"
+          "OSG_TEST_SOLENOID"
         ],
         "autofeather_valve": [
           "OSG_AUTOFEATHER"
@@ -835,121 +763,23 @@
       "hidden": [
         "~DONOR"
       ],
-      "clips": {},
+      "clips": {
+        "HYDRAULIC_POWER_PACK_DEMONSTRATION": "Hydraulic power pack demonstration"
+      },
       "groups": [],
       "mediaPath": "models/systems-lab/HYDRAULIC_SYSTEM_PACK_REPLICA.glb",
-      "bytes": 4990436,
-      "sha256": "7149445891e16d6e7910f5a1cd033499ba9f2310af005f9c5ff90539286f1c2b",
-      "nodes": 596,
-      "meshes": 465,
-      "triangles": 119795,
+      "bytes": 6136596,
+      "sha256": "38a201992f4380d367a6e14c17395cc1a8b70724d44b2a45ace3e67fb524075c",
+      "nodes": 643,
+      "meshes": 500,
+      "triangles": 130051,
       "animations": [
-        "FLOW | BRAKE_ACCUMULATOR_DISCHARGE | P10 | 1Action.002",
-        "FLOW | BRAKE_ACCUMULATOR_DISCHARGE | P10 | 2Action.002",
-        "FLOW | BRAKE_ACCUMULATOR_DISCHARGE | P18 | 1Action.002",
-        "FLOW | BRAKE_ACCUMULATOR_DISCHARGE | P18 | 2Action.002",
-        "FLOW | BRAKE_RELIEF_FLOW | P01 | 1Action.002",
-        "FLOW | BRAKE_RELIEF_FLOW | P01 | 2Action.002",
-        "FLOW | BRAKE_RELIEF_FLOW | P02 | 1Action.002",
-        "FLOW | BRAKE_RELIEF_FLOW | P02 | 2Action.002",
-        "FLOW | BRAKE_RELIEF_FLOW | P03 | 1Action.002",
-        "FLOW | BRAKE_RELIEF_FLOW | P03 | 2Action.002",
-        "FLOW | BRAKE_RELIEF_FLOW | P04 | 1Action.002",
-        "FLOW | BRAKE_RELIEF_FLOW | P04 | 2Action.002",
-        "FLOW | BRAKE_RELIEF_FLOW | P05 | 1Action.002",
-        "FLOW | BRAKE_RELIEF_FLOW | P05 | 2Action.002",
-        "FLOW | BRAKE_RELIEF_FLOW | P06 | 1Action.002",
-        "FLOW | BRAKE_RELIEF_FLOW | P06 | 2Action.002",
-        "FLOW | BRAKE_RELIEF_FLOW | P08 | 1Action.002",
-        "FLOW | BRAKE_RELIEF_FLOW | P08 | 2Action.002",
-        "FLOW | BRAKE_RELIEF_FLOW | P09 | 1Action.002",
-        "FLOW | BRAKE_RELIEF_FLOW | P09 | 2Action.002",
-        "FLOW | BRAKE_RELIEF_FLOW | P14 | 1Action.002",
-        "FLOW | BRAKE_RELIEF_FLOW | P14 | 2Action.002",
-        "FLOW | BRAKE_RELIEF_FLOW | P15 | 1Action.002",
-        "FLOW | BRAKE_RELIEF_FLOW | P15 | 2Action.002",
-        "FLOW | BRAKE_RELIEF_FLOW | P16 | 1Action.002",
-        "FLOW | BRAKE_RELIEF_FLOW | P16 | 2Action.002",
-        "FLOW | ELECTRIC_PUMP_CHARGE | P01 | 1Action.002",
-        "FLOW | ELECTRIC_PUMP_CHARGE | P01 | 2Action.002",
-        "FLOW | ELECTRIC_PUMP_CHARGE | P02 | 1Action.002",
-        "FLOW | ELECTRIC_PUMP_CHARGE | P02 | 2Action.002",
-        "FLOW | ELECTRIC_PUMP_CHARGE | P03 | 1Action.002",
-        "FLOW | ELECTRIC_PUMP_CHARGE | P03 | 2Action.002",
-        "FLOW | ELECTRIC_PUMP_CHARGE | P04 | 1Action.002",
-        "FLOW | ELECTRIC_PUMP_CHARGE | P04 | 2Action.002",
-        "FLOW | ELECTRIC_PUMP_CHARGE | P05 | 1Action.002",
-        "FLOW | ELECTRIC_PUMP_CHARGE | P05 | 2Action.002",
-        "FLOW | ELECTRIC_PUMP_CHARGE | P06 | 1Action.002",
-        "FLOW | ELECTRIC_PUMP_CHARGE | P06 | 2Action.002",
-        "FLOW | ELECTRIC_PUMP_CHARGE | P07 | 1Action.002",
-        "FLOW | ELECTRIC_PUMP_CHARGE | P07 | 2Action.002",
-        "FLOW | ELECTRIC_PUMP_CHARGE | P08 | 1Action.002",
-        "FLOW | ELECTRIC_PUMP_CHARGE | P08 | 2Action.002",
-        "FLOW | ELECTRIC_PUMP_CHARGE | P09 | 1Action.002",
-        "FLOW | ELECTRIC_PUMP_CHARGE | P09 | 2Action.002",
-        "FLOW | ELECTRIC_PUMP_CHARGE | P10 | 1Action.002",
-        "FLOW | ELECTRIC_PUMP_CHARGE | P10 | 2Action.002",
-        "FLOW | HANDPUMP_PRESSURIZATION | P07 | 1Action.002",
-        "FLOW | HANDPUMP_PRESSURIZATION | P07 | 2Action.002",
-        "FLOW | HANDPUMP_PRESSURIZATION | P08 | 1Action.002",
-        "FLOW | HANDPUMP_PRESSURIZATION | P08 | 2Action.002",
-        "FLOW | HANDPUMP_PRESSURIZATION | P09 | 1Action.002",
-        "FLOW | HANDPUMP_PRESSURIZATION | P09 | 2Action.002",
-        "FLOW | HANDPUMP_PRESSURIZATION | P10 | 1Action.002",
-        "FLOW | HANDPUMP_PRESSURIZATION | P10 | 2Action.002",
-        "FLOW | HANDPUMP_PRESSURIZATION | P17 | 1Action.002",
-        "FLOW | HANDPUMP_PRESSURIZATION | P17 | 2Action.002",
-        "FLOW | HANDPUMP_PRESSURIZATION | P18 | 1Action.002",
-        "FLOW | HANDPUMP_PRESSURIZATION | P18 | 2Action.002",
-        "FLOW | HANDPUMP_PRESSURIZATION | P19 | 1Action.002",
-        "FLOW | HANDPUMP_PRESSURIZATION | P19 | 2Action.002",
-        "FLOW | HANDPUMP_PRESSURIZATION | P20 | 1Action.002",
-        "FLOW | HANDPUMP_PRESSURIZATION | P20 | 2Action.002",
-        "FLOW | SYSTEM_ACCUMULATOR_CIRCULATION | P07 | 1Action.002",
-        "FLOW | SYSTEM_ACCUMULATOR_CIRCULATION | P07 | 2Action.002",
-        "FLOW | SYSTEM_ACCUMULATOR_CIRCULATION | P16 | 1Action.002",
-        "FLOW | SYSTEM_ACCUMULATOR_CIRCULATION | P16 | 2Action.002",
-        "FLOW | SYSTEM_ACCUMULATOR_CIRCULATION | P17 | 1Action.002",
-        "FLOW | SYSTEM_ACCUMULATOR_CIRCULATION | P17 | 2Action.002",
-        "FLOW | SYSTEM_ACCUMULATOR_CIRCULATION | P21 | 1Action.002",
-        "FLOW | SYSTEM_ACCUMULATOR_CIRCULATION | P21 | 2Action.002",
-        "FLOW | SYSTEM_RELIEF_FLOW | P01 | 1Action.002",
-        "FLOW | SYSTEM_RELIEF_FLOW | P01 | 2Action.002",
-        "FLOW | SYSTEM_RELIEF_FLOW | P02 | 1Action.002",
-        "FLOW | SYSTEM_RELIEF_FLOW | P02 | 2Action.002",
-        "FLOW | SYSTEM_RELIEF_FLOW | P03 | 1Action.002",
-        "FLOW | SYSTEM_RELIEF_FLOW | P03 | 2Action.002",
-        "FLOW | SYSTEM_RELIEF_FLOW | P12 | 1Action.002",
-        "FLOW | SYSTEM_RELIEF_FLOW | P12 | 2Action.002",
-        "FLOW | SYSTEM_RELIEF_FLOW | P13 | 1Action.002",
-        "FLOW | SYSTEM_RELIEF_FLOW | P13 | 2Action.002",
-        "FLOW | SYSTEM_RELIEF_FLOW | P16 | 1Action.002",
-        "FLOW | SYSTEM_RELIEF_FLOW | P16 | 2Action.002"
+        "HYDRAULIC_POWER_PACK_DEMONSTRATION"
       ],
       "extensionsUsed": [
         "KHR_materials_emissive_strength"
       ],
-      "clipGroups": {
-        "Electric pump charge": [
-          "~ELECTRIC_PUMP_CHARGE"
-        ],
-        "System accumulator circulation": [
-          "~SYSTEM_ACCUMULATOR_CIRCULATION"
-        ],
-        "System relief flow": [
-          "~SYSTEM_RELIEF_FLOW"
-        ],
-        "Brake accumulator discharge": [
-          "~BRAKE_ACCUMULATOR_DISCHARGE"
-        ],
-        "Brake relief flow": [
-          "~BRAKE_RELIEF_FLOW"
-        ],
-        "Hand-pump pressurisation": [
-          "~HANDPUMP_PRESSURIZATION"
-        ]
-      },
+      "clipGroups": {},
       "parts": {
         "reservoir": [
           "~RESERVOIR"
@@ -1681,8 +1511,7 @@
         "~_HEADING$"
       ],
       "clips": {
-        "FCU_MASTER_CORRECTED_COMBINED_OPERATION": "Combined FCU operation",
-        "FCU_R5_NG_GOVERNOR_CORRECTED": "Ng governor"
+        "FCU_MASTER_CORRECTED_COMBINED_OPERATION": "Combined FCU operation"
       },
       "groups": [
         "FCU_DP_F2_ASSEMBLY",
@@ -1693,14 +1522,13 @@
         "FCU_ARCHIVE_R5"
       ],
       "mediaPath": "models/systems-lab/DHC6_PT6A27_FCU_REPLICA.glb",
-      "bytes": 3813364,
-      "sha256": "b47e95724830e960b301d2f4971e45568c5a10639b40bb62c76e2b7a76f5403d",
-      "nodes": 252,
-      "meshes": 216,
-      "triangles": 56645,
+      "bytes": 2315232,
+      "sha256": "b8df4effc34d55c68d96b107b0c1195271fcc314396ad0945ae2a80ff1b3b2b3",
+      "nodes": 147,
+      "meshes": 90,
+      "triangles": 33025,
       "animations": [
-        "FCU_MASTER_CORRECTED_COMBINED_OPERATION",
-        "FCU_R5_NG_GOVERNOR_CORRECTED"
+        "FCU_MASTER_CORRECTED_COMBINED_OPERATION"
       ],
       "extensionsUsed": [
         "KHR_materials_unlit"
